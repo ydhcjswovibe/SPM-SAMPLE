@@ -1,13 +1,12 @@
 'use client'
 
-import { useState } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Loader2, BookOpen, ChevronRight, AlertCircle } from 'lucide-react'
+import { Loader2, BookOpen, ChevronRight } from 'lucide-react'
 import type { Class, Enrollment, Attendance } from '@/lib/types'
 
 const supabase = createClient()
@@ -35,8 +34,37 @@ async function fetchEnrollments(): Promise<EnrollmentWithDetails[]> {
   return (data || []) as EnrollmentWithDetails[]
 }
 
+// Demo data for when not logged in
+const demoEnrollments: EnrollmentWithDetails[] = [
+  {
+    id: 'demo-1',
+    class_id: 'demo-class-1',
+    student_id: 'demo-student',
+    payment_status: 'paid',
+    enrolled_at: new Date().toISOString(),
+    classes: {
+      id: 'demo-class-1',
+      name: 'Q1 2024 Basic Course',
+      description: 'Introduction to the basics',
+      total_weeks: 4,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    attendances: [
+      { id: '1', enrollment_id: 'demo-1', week_number: 1, status: 'present', marked_at: null },
+      { id: '2', enrollment_id: 'demo-1', week_number: 2, status: 'present', marked_at: null },
+      { id: '3', enrollment_id: 'demo-1', week_number: 3, status: 'pending', marked_at: null },
+      { id: '4', enrollment_id: 'demo-1', week_number: 4, status: 'pending', marked_at: null },
+    ],
+  },
+]
+
 export default function StudentDashboard() {
   const { data: enrollments, isLoading } = useSWR('student-enrollments', fetchEnrollments)
+  
+  // Use demo data if no enrollments (demo mode)
+  const displayEnrollments = enrollments?.length ? enrollments : demoEnrollments
 
   if (isLoading) {
     return (
@@ -46,16 +74,16 @@ export default function StudentDashboard() {
     )
   }
 
-  if (!enrollments || enrollments.length === 0) {
+  if (!displayEnrollments || displayEnrollments.length === 0) {
     return (
       <div className="p-4">
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="rounded-full bg-muted p-4 mb-4">
             <BookOpen className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h2 className="font-medium text-lg">등록된 수업이 없습니다</h2>
+          <h2 className="font-medium text-lg">No classes enrolled</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            관리자에게 문의하여 수업에 등록해주세요
+            Contact your admin to enroll in a class
           </p>
         </div>
       </div>
@@ -64,10 +92,10 @@ export default function StudentDashboard() {
 
   return (
     <div className="p-4 space-y-4">
-      <h1 className="text-xl font-semibold">내 수업</h1>
+      <h1 className="text-xl font-semibold">My Classes</h1>
       
       <div className="space-y-3">
-        {enrollments.map((enrollment) => {
+        {displayEnrollments.map((enrollment) => {
           const presentCount = enrollment.attendances.filter(a => a.status === 'present').length
           const totalWeeks = enrollment.classes.total_weeks
           const progressPercent = (presentCount / totalWeeks) * 100
@@ -84,9 +112,9 @@ export default function StudentDashboard() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-medium truncate">{enrollment.classes.name}</h3>
                         {enrollment.payment_status === 'paid' ? (
-                          <Badge variant="default" className="shrink-0 text-xs">결제완료</Badge>
+                          <Badge variant="default" className="shrink-0 text-xs">Paid</Badge>
                         ) : (
-                          <Badge variant="secondary" className="shrink-0 text-xs">미결제</Badge>
+                          <Badge variant="secondary" className="shrink-0 text-xs">Unpaid</Badge>
                         )}
                       </div>
                       {enrollment.classes.description && (
@@ -96,8 +124,8 @@ export default function StudentDashboard() {
                       )}
                       <div className="space-y-1">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>출석 현황</span>
-                          <span>{presentCount}/{totalWeeks}주</span>
+                          <span>Attendance</span>
+                          <span>{presentCount}/{totalWeeks} weeks</span>
                         </div>
                         <Progress value={progressPercent} className="h-1.5" />
                       </div>

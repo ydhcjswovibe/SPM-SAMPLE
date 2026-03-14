@@ -5,7 +5,6 @@ import useSWR from 'swr'
 import { createClient } from '@/lib/supabase/client'
 import { ClassSelector } from '@/components/class-selector'
 import { WeekContentEditor } from '@/components/week-content-editor'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2, AlertCircle } from 'lucide-react'
@@ -52,7 +51,6 @@ export default function ContentPage() {
     }
   }, [classes, selectedClass])
 
-  // Ensure weekly content records exist for all weeks
   useEffect(() => {
     if (selectedClass && contents) {
       const existingWeeks = new Set(contents.map(c => c.week_number))
@@ -99,7 +97,7 @@ export default function ContentPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-14 items-center justify-between px-4 md:px-6">
-          <h1 className="font-semibold text-lg md:hidden">콘텐츠 관리</h1>
+          <h1 className="font-semibold text-lg md:hidden">Content</h1>
           <div className="flex items-center gap-2">
             <ClassSelector
               classes={classes || []}
@@ -117,7 +115,7 @@ export default function ContentPage() {
             <CardContent className="py-12">
               <div className="flex flex-col items-center justify-center text-center">
                 <AlertCircle className="h-8 w-8 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">클래스를 선택해주세요</p>
+                <p className="text-muted-foreground">Please select a class</p>
               </div>
             </CardContent>
           </Card>
@@ -129,7 +127,7 @@ export default function ContentPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">
-                {selectedClass.name} 주차별 콘텐츠
+                {selectedClass.name} - Weekly Content
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -137,7 +135,7 @@ export default function ContentPage() {
                 <TabsList className="w-full justify-start overflow-x-auto">
                   {Array.from({ length: selectedClass.total_weeks }, (_, i) => (
                     <TabsTrigger key={i + 1} value={String(i + 1)} className="flex-shrink-0">
-                      {i + 1}주차
+                      Week {i + 1}
                     </TabsTrigger>
                   ))}
                 </TabsList>

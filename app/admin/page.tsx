@@ -177,7 +177,7 @@ export default function AdminDashboard() {
   const handleExportCSV = useCallback(() => {
     if (!matrixData) return
 
-    const headers = ['학생명', '이메일', '결제상태', ...Array.from({ length: matrixData.totalWeeks }, (_, i) => `${i + 1}주차`)]
+    const headers = ['Name', 'Email', 'Payment', ...Array.from({ length: matrixData.totalWeeks }, (_, i) => `Week ${i + 1}`)]
     const rows = matrixData.students.map(student => [
       student.studentName,
       student.studentEmail,
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `${matrixData.className}_출석현황_${new Date().toISOString().split('T')[0]}.csv`
+    link.download = `${matrixData.className}_attendance_${new Date().toISOString().split('T')[0]}.csv`
     link.click()
     URL.revokeObjectURL(url)
   }, [matrixData])
@@ -215,7 +215,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-14 items-center justify-between px-4 md:px-6">
-          <h1 className="font-semibold text-lg md:hidden">대시보드</h1>
+          <h1 className="font-semibold text-lg md:hidden">Dashboard</h1>
           <div className="flex items-center gap-2">
             <ClassSelector
               classes={classes || []}
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  <span className="hidden sm:inline">총 학생</span>
+                  <span className="hidden sm:inline">Students</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -259,7 +259,7 @@ export default function AdminDashboard() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <CreditCard className="h-4 w-4" />
-                  <span className="hidden sm:inline">결제완료</span>
+                  <span className="hidden sm:inline">Paid</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <CalendarCheck className="h-4 w-4" />
-                  <span className="hidden sm:inline">출석률</span>
+                  <span className="hidden sm:inline">Attendance</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -284,19 +284,19 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              {selectedClass ? `${selectedClass.name} 출석 현황` : '클래스를 선택하세요'}
+              {selectedClass ? `${selectedClass.name} - Attendance` : 'Select a class'}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {!selectedClass ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <p className="text-muted-foreground">클래스를 선택하거나 새로 만들어주세요</p>
+                <p className="text-muted-foreground">Select a class or create a new one</p>
                 <Button 
                   className="mt-4 gap-2" 
                   onClick={() => setIsCreateDialogOpen(true)}
                 >
                   <Plus className="h-4 w-4" />
-                  새 클래스 만들기
+                  New Class
                 </Button>
               </div>
             ) : !matrixData ? (
@@ -318,38 +318,38 @@ export default function AdminDashboard() {
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>새 클래스 만들기</DialogTitle>
+            <DialogTitle>Create New Class</DialogTitle>
             <DialogDescription>
-              새로운 클래스를 생성합니다. 클래스는 4주차로 구성됩니다.
+              Create a new class. Classes are organized into 4 weeks.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="className">클래스명</Label>
+              <Label htmlFor="className">Class Name</Label>
               <Input
                 id="className"
                 value={newClassName}
                 onChange={(e) => setNewClassName(e.target.value)}
-                placeholder="예: 2024년 1분기 기초반"
+                placeholder="e.g. Q1 2024 Basic Course"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="classDescription">설명 (선택)</Label>
+              <Label htmlFor="classDescription">Description (optional)</Label>
               <Textarea
                 id="classDescription"
                 value={newClassDescription}
                 onChange={(e) => setNewClassDescription(e.target.value)}
-                placeholder="클래스에 대한 설명을 입력하세요"
+                placeholder="Enter a description for the class"
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-              취소
+              Cancel
             </Button>
             <Button onClick={handleCreateClass} disabled={!newClassName.trim() || isCreating}>
-              {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : '만들기'}
+              {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>

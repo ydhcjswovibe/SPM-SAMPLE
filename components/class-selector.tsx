@@ -30,7 +30,7 @@ export function ClassSelector({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="gap-2 min-w-[160px] justify-between">
           <span className="truncate">
-            {selectedClass?.name || '클래스 선택'}
+            {selectedClass?.name || 'Select Class'}
           </span>
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -38,7 +38,7 @@ export function ClassSelector({
       <DropdownMenuContent align="start" className="w-[200px]">
         {classes.length === 0 ? (
           <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-            클래스가 없습니다
+            No classes yet
           </div>
         ) : (
           classes.map((classItem) => (
@@ -62,7 +62,7 @@ export function ClassSelector({
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onCreateNew} className="gap-2">
               <Plus className="h-4 w-4" />
-              새 클래스 만들기
+              New Class
             </DropdownMenuItem>
           </>
         )}

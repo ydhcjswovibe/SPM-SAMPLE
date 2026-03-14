@@ -54,19 +54,19 @@ export function StudentNav({ userName }: StudentNavProps) {
             <DropdownMenuContent align="end" className="w-48">
               <div className="px-2 py-1.5">
                 <p className="text-sm font-medium truncate">{userName}</p>
-                <p className="text-xs text-muted-foreground">학생</p>
+                <p className="text-xs text-muted-foreground">Student</p>
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/student/profile" className="gap-2">
                   <User className="h-4 w-4" />
-                  프로필
+                  Profile
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-destructive">
                 <LogOut className="h-4 w-4" />
-                로그아웃
+                Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -86,7 +86,7 @@ export function StudentNav({ userName }: StudentNavProps) {
             )}
           >
             <BookOpen className="h-5 w-5" />
-            <span>내 수업</span>
+            <span>Classes</span>
           </Link>
           <Link
             href="/student/profile"
@@ -98,7 +98,7 @@ export function StudentNav({ userName }: StudentNavProps) {
             )}
           >
             <User className="h-5 w-5" />
-            <span>프로필</span>
+            <span>Profile</span>
           </Link>
         </div>
       </nav>

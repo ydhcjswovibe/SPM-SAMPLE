@@ -10,7 +10,6 @@ import {
   Loader2, 
   ArrowLeft, 
   Play, 
-  Image as ImageIcon, 
   Check, 
   X, 
   Clock,
@@ -29,7 +28,33 @@ interface ClassDetails {
 
 async function fetchClassDetails(classId: string): Promise<ClassDetails | null> {
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  
+  // Demo mode - return mock data if no user
+  if (!user) {
+    return {
+      classInfo: {
+        id: classId,
+        name: 'Q1 2024 Basic Course',
+        description: 'Introduction to the basics',
+        total_weeks: 4,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      contents: [
+        { id: '1', class_id: classId, week_number: 1, title: 'Week 1: Introduction', youtube_url: null, image_url: null, description: 'Getting started with the basics', created_at: '', updated_at: '' },
+        { id: '2', class_id: classId, week_number: 2, title: 'Week 2: Core Concepts', youtube_url: null, image_url: null, description: 'Understanding core concepts', created_at: '', updated_at: '' },
+        { id: '3', class_id: classId, week_number: 3, title: 'Week 3: Practice', youtube_url: null, image_url: null, description: 'Hands-on practice', created_at: '', updated_at: '' },
+        { id: '4', class_id: classId, week_number: 4, title: 'Week 4: Review', youtube_url: null, image_url: null, description: 'Final review and wrap-up', created_at: '', updated_at: '' },
+      ],
+      attendances: [
+        { id: '1', enrollment_id: 'demo', week_number: 1, status: 'present', marked_at: null },
+        { id: '2', enrollment_id: 'demo', week_number: 2, status: 'present', marked_at: null },
+        { id: '3', enrollment_id: 'demo', week_number: 3, status: 'pending', marked_at: null },
+        { id: '4', enrollment_id: 'demo', week_number: 4, status: 'pending', marked_at: null },
+      ],
+    }
+  }
 
   // Get class info
   const { data: classInfo, error: classError } = await supabase
@@ -73,10 +98,10 @@ async function fetchClassDetails(classId: string): Promise<ClassDetails | null> 
 }
 
 const attendanceStatusConfig: Record<AttendanceStatus, { label: string; icon: React.ReactNode; color: string }> = {
-  pending: { label: '대기', icon: <Clock className="h-4 w-4" />, color: 'bg-muted text-muted-foreground' },
-  present: { label: '출석', icon: <Check className="h-4 w-4" />, color: 'bg-success text-success-foreground' },
-  absent: { label: '결석', icon: <X className="h-4 w-4" />, color: 'bg-destructive text-destructive-foreground' },
-  excused: { label: '사유', icon: <AlertCircle className="h-4 w-4" />, color: 'bg-info text-info-foreground' },
+  pending: { label: 'Pending', icon: <Clock className="h-4 w-4" />, color: 'bg-muted text-muted-foreground' },
+  present: { label: 'Present', icon: <Check className="h-4 w-4" />, color: 'bg-success text-success-foreground' },
+  absent: { label: 'Absent', icon: <X className="h-4 w-4" />, color: 'bg-destructive text-destructive-foreground' },
+  excused: { label: 'Excused', icon: <AlertCircle className="h-4 w-4" />, color: 'bg-info text-info-foreground' },
 }
 
 function extractYoutubeId(url: string): string | null {
@@ -117,9 +142,9 @@ export default function ClassDetailPage({
       <div className="p-4">
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <AlertCircle className="h-8 w-8 text-muted-foreground mb-4" />
-          <h2 className="font-medium">수업을 찾을 수 없습니다</h2>
+          <h2 className="font-medium">Class not found</h2>
           <Link href="/student">
-            <Button variant="link">돌아가기</Button>
+            <Button variant="link">Go back</Button>
           </Link>
         </div>
       </div>
@@ -167,7 +192,7 @@ export default function ClassDetailPage({
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-medium">
                       {weekNumber}
                     </span>
-                    {content?.title || `${weekNumber}주차`}
+                    {content?.title || `Week ${weekNumber}`}
                   </CardTitle>
                   <Badge className={statusConfig.color}>
                     <span className="flex items-center gap-1">
@@ -183,7 +208,7 @@ export default function ClassDetailPage({
                   <div className="aspect-video rounded-lg overflow-hidden bg-muted">
                     <iframe
                       src={`https://www.youtube.com/embed/${youtubeId}`}
-                      title={`${weekNumber}주차 영상`}
+                      title={`Week ${weekNumber} video`}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
@@ -196,7 +221,7 @@ export default function ClassDetailPage({
                   <div className="rounded-lg overflow-hidden">
                     <img
                       src={content.image_url}
-                      alt={`${weekNumber}주차 이미지`}
+                      alt={`Week ${weekNumber} image`}
                       className="w-full h-auto"
                     />
                   </div>
@@ -216,7 +241,7 @@ export default function ClassDetailPage({
                       <Play className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      아직 등록된 콘텐츠가 없습니다
+                      No content available yet
                     </p>
                   </div>
                 )}

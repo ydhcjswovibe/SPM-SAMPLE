@@ -13,7 +13,6 @@ import {
   Save, 
   Trash2, 
   Upload,
-  ExternalLink,
   CheckCircle
 } from 'lucide-react'
 import type { WeeklyContent } from '@/lib/types'
@@ -101,12 +100,12 @@ export function WeekContentEditor({ content, weekNumber, onUpdate }: WeekContent
     <div className="space-y-6">
       {/* Title */}
       <div className="space-y-2">
-        <Label htmlFor={`title-${weekNumber}`}>제목</Label>
+        <Label htmlFor={`title-${weekNumber}`}>Title</Label>
         <Input
           id={`title-${weekNumber}`}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder={`${weekNumber}주차 제목을 입력하세요`}
+          placeholder={`Enter title for Week ${weekNumber}`}
         />
       </div>
 
@@ -114,20 +113,20 @@ export function WeekContentEditor({ content, weekNumber, onUpdate }: WeekContent
       <div className="space-y-2">
         <Label htmlFor={`youtube-${weekNumber}`} className="flex items-center gap-2">
           <Youtube className="h-4 w-4 text-red-500" />
-          YouTube 영상
+          YouTube Video
         </Label>
         <Input
           id={`youtube-${weekNumber}`}
           value={youtubeUrl}
           onChange={(e) => setYoutubeUrl(e.target.value)}
-          placeholder="YouTube URL 또는 영상 ID를 입력하세요"
+          placeholder="Enter YouTube URL or video ID"
         />
         {youtubeId && (
           <Card className="overflow-hidden">
             <div className="aspect-video relative">
               <iframe
                 src={`https://www.youtube.com/embed/${youtubeId}`}
-                title={`${weekNumber}주차 영상`}
+                title={`Week ${weekNumber} video`}
                 className="absolute inset-0 w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -141,7 +140,7 @@ export function WeekContentEditor({ content, weekNumber, onUpdate }: WeekContent
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
           <ImageIcon className="h-4 w-4 text-blue-500" />
-          이미지
+          Image
         </Label>
         <input
           ref={fileInputRef}
@@ -155,7 +154,7 @@ export function WeekContentEditor({ content, weekNumber, onUpdate }: WeekContent
             <div className="relative aspect-video">
               <img
                 src={imageUrl}
-                alt={`${weekNumber}주차 이미지`}
+                alt={`Week ${weekNumber} image`}
                 className="absolute inset-0 w-full h-full object-cover"
               />
             </div>
@@ -169,7 +168,7 @@ export function WeekContentEditor({ content, weekNumber, onUpdate }: WeekContent
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  교체
+                  Replace
                 </Button>
                 <Button
                   variant="ghost"
@@ -191,13 +190,13 @@ export function WeekContentEditor({ content, weekNumber, onUpdate }: WeekContent
             {isUploading ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">업로드 중...</span>
+                <span className="text-sm text-muted-foreground">Uploading...</span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-2">
                 <Upload className="h-8 w-8 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  클릭하여 이미지 업로드
+                  Click to upload image
                 </span>
               </div>
             )}
@@ -207,12 +206,12 @@ export function WeekContentEditor({ content, weekNumber, onUpdate }: WeekContent
 
       {/* Description */}
       <div className="space-y-2">
-        <Label htmlFor={`description-${weekNumber}`}>설명</Label>
+        <Label htmlFor={`description-${weekNumber}`}>Description</Label>
         <Textarea
           id={`description-${weekNumber}`}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="주차별 설명이나 메모를 입력하세요"
+          placeholder="Enter description or notes for this week"
           rows={4}
         />
       </div>
@@ -227,7 +226,7 @@ export function WeekContentEditor({ content, weekNumber, onUpdate }: WeekContent
           ) : (
             <Save className="h-4 w-4" />
           )}
-          {saved ? '저장됨' : '저장하기'}
+          {saved ? 'Saved' : 'Save'}
         </Button>
       </div>
     </div>

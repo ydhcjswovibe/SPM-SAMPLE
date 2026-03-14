@@ -9,10 +9,10 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
 const navItems = [
-  { href: '/admin', label: '대시보드', icon: LayoutGrid },
-  { href: '/admin/students', label: '학생 관리', icon: Users },
-  { href: '/admin/content', label: '콘텐츠 관리', icon: BookOpen },
-  { href: '/admin/settings', label: '설정', icon: Settings },
+  { href: '/admin', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/admin/students', label: 'Students', icon: Users },
+  { href: '/admin/content', label: 'Content', icon: BookOpen },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
 export function DesktopSidebar() {
@@ -68,7 +68,7 @@ export function DesktopSidebar() {
           onClick={handleSignOut}
         >
           <LogOut className="h-4 w-4" />
-          로그아웃
+          Sign Out
         </Button>
       </div>
     </aside>

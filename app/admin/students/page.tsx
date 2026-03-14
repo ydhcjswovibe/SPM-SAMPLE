@@ -15,7 +15,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { 
   Plus, 
@@ -60,7 +59,6 @@ async function fetchEnrollments(classId: string): Promise<EnrollmentWithProfile[
 }
 
 async function fetchAvailableStudents(classId: string): Promise<Profile[]> {
-  // Get all students not enrolled in this class
   const { data: enrolledIds } = await supabase
     .from('enrollments')
     .select('student_id')
@@ -114,7 +112,6 @@ export default function StudentsPage() {
 
     setIsEnrolling(studentId)
     try {
-      // Create enrollment
       const { data: enrollment, error: enrollError } = await supabase
         .from('enrollments')
         .insert({
@@ -127,7 +124,6 @@ export default function StudentsPage() {
 
       if (enrollError) throw enrollError
 
-      // Create attendance records for all weeks
       const attendanceRecords = Array.from({ length: selectedClass.total_weeks }, (_, i) => ({
         enrollment_id: enrollment.id,
         week_number: i + 1,
@@ -152,13 +148,11 @@ export default function StudentsPage() {
   const handleRemoveStudent = async (enrollmentId: string) => {
     setIsRemoving(enrollmentId)
     try {
-      // Delete attendance records first (cascade should handle this, but just in case)
       await supabase
         .from('attendances')
         .delete()
         .eq('enrollment_id', enrollmentId)
 
-      // Delete enrollment
       const { error } = await supabase
         .from('enrollments')
         .delete()
@@ -184,7 +178,7 @@ export default function StudentsPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-14 items-center justify-between px-4 md:px-6">
-          <h1 className="font-semibold text-lg md:hidden">학생 관리</h1>
+          <h1 className="font-semibold text-lg md:hidden">Students</h1>
           <div className="flex items-center gap-2">
             <ClassSelector
               classes={classes || []}
@@ -200,7 +194,7 @@ export default function StudentsPage() {
               className="gap-2"
             >
               <UserPlus className="h-4 w-4" />
-              <span className="hidden sm:inline">학생 배정</span>
+              <span className="hidden sm:inline">Add Student</span>
             </Button>
           </div>
         </div>
@@ -211,11 +205,11 @@ export default function StudentsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              {selectedClass ? `${selectedClass.name} 수강생` : '클래스를 선택하세요'}
+              {selectedClass ? `${selectedClass.name} Students` : 'Select a class'}
             </CardTitle>
             {selectedClass && (
               <CardDescription>
-                총 {enrollments?.length || 0}명의 학생이 등록되어 있습니다
+                {enrollments?.length || 0} students enrolled
               </CardDescription>
             )}
           </CardHeader>
@@ -223,7 +217,7 @@ export default function StudentsPage() {
             {!selectedClass ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <AlertCircle className="h-8 w-8 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">클래스를 선택해주세요</p>
+                <p className="text-muted-foreground">Please select a class</p>
               </div>
             ) : !enrollments ? (
               <div className="flex items-center justify-center py-12">
@@ -234,13 +228,13 @@ export default function StudentsPage() {
                 <div className="rounded-full bg-muted p-4 mb-4">
                   <UserPlus className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="font-medium">등록된 학생이 없습니다</h3>
+                <h3 className="font-medium">No students enrolled</h3>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
-                  학생 배정 버튼을 눌러 학생을 추가하세요
+                  Click the Add Student button to enroll students
                 </p>
                 <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
                   <UserPlus className="h-4 w-4" />
-                  학생 배정하기
+                  Add Student
                 </Button>
               </div>
             ) : (
@@ -252,7 +246,7 @@ export default function StudentsPage() {
                   >
                     <div className="flex flex-col gap-0.5">
                       <span className="font-medium">
-                        {enrollment.profiles.full_name || '이름 없음'}
+                        {enrollment.profiles.full_name || 'No name'}
                       </span>
                       <span className="text-sm text-muted-foreground flex items-center gap-1">
                         <Mail className="h-3 w-3" />
@@ -261,8 +255,8 @@ export default function StudentsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={enrollment.payment_status === 'paid' ? 'default' : 'secondary'}>
-                        {enrollment.payment_status === 'paid' ? '결제완료' : 
-                         enrollment.payment_status === 'refunded' ? '환불' : '미결제'}
+                        {enrollment.payment_status === 'paid' ? 'Paid' : 
+                         enrollment.payment_status === 'refunded' ? 'Refunded' : 'Unpaid'}
                       </Badge>
                       <Button
                         variant="ghost"
@@ -290,16 +284,16 @@ export default function StudentsPage() {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-h-[80dvh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>학생 배정</DialogTitle>
+            <DialogTitle>Add Student</DialogTitle>
             <DialogDescription>
-              {selectedClass?.name}에 학생을 배정합니다
+              Add students to {selectedClass?.name}
             </DialogDescription>
           </DialogHeader>
           
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="이름 또는 이메일로 검색"
+              placeholder="Search by name or email"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -314,7 +308,7 @@ export default function StudentsPage() {
             ) : filteredAvailableStudents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <p className="text-muted-foreground text-sm">
-                  {searchQuery ? '검색 결과가 없습니다' : '배정 가능한 학생이 없습니다'}
+                  {searchQuery ? 'No results found' : 'No students available'}
                 </p>
               </div>
             ) : (
@@ -326,7 +320,7 @@ export default function StudentsPage() {
                   >
                     <div className="flex flex-col gap-0.5">
                       <span className="font-medium">
-                        {student.full_name || '이름 없음'}
+                        {student.full_name || 'No name'}
                       </span>
                       <span className="text-sm text-muted-foreground">
                         {student.email}
@@ -344,7 +338,7 @@ export default function StudentsPage() {
                       ) : (
                         <Plus className="h-4 w-4" />
                       )}
-                      배정
+                      Add
                     </Button>
                   </div>
                 ))}
@@ -354,7 +348,7 @@ export default function StudentsPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              닫기
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

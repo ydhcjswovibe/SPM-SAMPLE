@@ -44,6 +44,19 @@ export default function StudentProfilePage() {
 
   const { data: profile, mutate } = useSWR('student-profile', fetchProfile)
 
+  // Demo profile for when not logged in
+  const demoProfile = {
+    id: 'demo',
+    email: 'student@demo.com',
+    full_name: 'Demo Student',
+    role: 'student' as const,
+    avatar_url: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+
+  const displayProfile = profile || demoProfile
+
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || '')
@@ -70,57 +83,49 @@ export default function StudentProfilePage() {
     }
   }
 
-  if (!profile) {
-    return (
-      <div className="flex items-center justify-center min-h-[60dvh]">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
   return (
     <div className="p-4 space-y-4">
-      <h1 className="text-xl font-semibold">프로필</h1>
+      <h1 className="text-xl font-semibold">Profile</h1>
 
       {/* Profile Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">내 정보</CardTitle>
+          <CardTitle className="text-base">My Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={profile.avatar_url || undefined} />
+              <AvatarImage src={displayProfile.avatar_url || undefined} />
               <AvatarFallback>
                 <User className="h-8 w-8" />
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="font-medium">{profile.full_name || '이름 없음'}</span>
-              <span className="text-sm text-muted-foreground">{profile.email}</span>
+              <span className="font-medium">{displayProfile.full_name || 'No name'}</span>
+              <span className="text-sm text-muted-foreground">{displayProfile.email}</span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="fullName">이름</Label>
+            <Label htmlFor="fullName">Name</Label>
             <Input
               id="fullName"
-              value={fullName}
+              value={fullName || displayProfile.full_name || ''}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="이름을 입력하세요"
+              placeholder="Enter your name"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>이메일</Label>
-            <Input value={profile.email} disabled className="bg-muted" />
+            <Label>Email</Label>
+            <Input value={displayProfile.email} disabled className="bg-muted" />
             <p className="text-xs text-muted-foreground">
-              이메일은 변경할 수 없습니다
+              Email cannot be changed
             </p>
           </div>
 
           <div className="flex justify-end">
-            <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+            <Button onClick={handleSave} disabled={isSaving || !profile} className="gap-2">
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : saved ? (
@@ -128,7 +133,7 @@ export default function StudentProfilePage() {
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              {saved ? '저장됨' : '저장하기'}
+              {saved ? 'Saved' : 'Save'}
             </Button>
           </div>
         </CardContent>
@@ -137,8 +142,8 @@ export default function StudentProfilePage() {
       {/* Theme Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">테마</CardTitle>
-          <CardDescription>화면 테마를 설정하세요</CardDescription>
+          <CardTitle className="text-base">Theme</CardTitle>
+          <CardDescription>Choose your preferred theme</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
@@ -149,7 +154,7 @@ export default function StudentProfilePage() {
               className="gap-2"
             >
               <Sun className="h-4 w-4" />
-              라이트
+              Light
             </Button>
             <Button
               variant={theme === 'dark' ? 'default' : 'outline'}
@@ -158,7 +163,7 @@ export default function StudentProfilePage() {
               className="gap-2"
             >
               <Moon className="h-4 w-4" />
-              다크
+              Dark
             </Button>
             <Button
               variant={theme === 'system' ? 'default' : 'outline'}
@@ -167,7 +172,7 @@ export default function StudentProfilePage() {
               className="gap-2"
             >
               <Monitor className="h-4 w-4" />
-              시스템
+              System
             </Button>
           </div>
         </CardContent>

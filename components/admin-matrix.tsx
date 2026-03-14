@@ -20,9 +20,9 @@ interface AdminMatrixProps {
 }
 
 const paymentLabels: Record<PaymentStatus, string> = {
-  unpaid: '미결제',
-  paid: '결제완료',
-  refunded: '환불',
+  unpaid: 'Unpaid',
+  paid: 'Paid',
+  refunded: 'Refunded',
 }
 
 const paymentColors: Record<PaymentStatus, string> = {
@@ -32,10 +32,10 @@ const paymentColors: Record<PaymentStatus, string> = {
 }
 
 const attendanceLabels: Record<AttendanceStatus, string> = {
-  pending: '대기',
-  present: '출석',
-  absent: '결석',
-  excused: '사유',
+  pending: 'Pending',
+  present: 'Present',
+  absent: 'Absent',
+  excused: 'Excused',
 }
 
 const attendanceIcons: Record<AttendanceStatus, React.ReactNode> = {
@@ -80,9 +80,9 @@ export function AdminMatrix({ data, onPaymentChange, onAttendanceChange }: Admin
         <div className="rounded-full bg-muted p-4 mb-4">
           <AlertCircle className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="font-medium text-foreground">등록된 학생이 없습니다</h3>
+        <h3 className="font-medium text-foreground">No students enrolled</h3>
         <p className="text-sm text-muted-foreground mt-1">
-          학생 관리에서 학생을 배정해주세요
+          Assign students from the Students page
         </p>
       </div>
     )
@@ -94,14 +94,14 @@ export function AdminMatrix({ data, onPaymentChange, onAttendanceChange }: Admin
         <thead>
           <tr className="border-b">
             <th className="text-left py-3 px-2 font-medium text-sm text-muted-foreground sticky left-0 bg-background z-10 min-w-[140px]">
-              학생
+              Student
             </th>
             <th className="text-center py-3 px-2 font-medium text-sm text-muted-foreground min-w-[90px]">
-              결제
+              Payment
             </th>
             {Array.from({ length: data.totalWeeks }, (_, i) => (
               <th key={i} className="text-center py-3 px-2 font-medium text-sm text-muted-foreground min-w-[60px]">
-                {i + 1}주차
+                W{i + 1}
               </th>
             ))}
           </tr>
@@ -112,7 +112,7 @@ export function AdminMatrix({ data, onPaymentChange, onAttendanceChange }: Admin
               <td className="py-3 px-2 sticky left-0 bg-background z-10">
                 <div className="flex flex-col">
                   <span className="font-medium text-sm truncate max-w-[120px]">
-                    {student.studentName || '이름 없음'}
+                    {student.studentName || 'No name'}
                   </span>
                   <span className="text-xs text-muted-foreground truncate max-w-[120px]">
                     {student.studentEmail}

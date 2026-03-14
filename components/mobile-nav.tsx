@@ -6,10 +6,10 @@ import { cn } from '@/lib/utils'
 import { LayoutGrid, Users, BookOpen, Settings } from 'lucide-react'
 
 const navItems = [
-  { href: '/admin', label: '대시보드', icon: LayoutGrid },
-  { href: '/admin/students', label: '학생', icon: Users },
-  { href: '/admin/content', label: '콘텐츠', icon: BookOpen },
-  { href: '/admin/settings', label: '설정', icon: Settings },
+  { href: '/admin', label: 'Home', icon: LayoutGrid },
+  { href: '/admin/students', label: 'Students', icon: Users },
+  { href: '/admin/content', label: 'Content', icon: BookOpen },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
 export function MobileNav() {
