@@ -1,0 +1,359 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import useSWR from 'swr'
+import { createClient } from '@/lib/supabase/client'
+import { ClassSelector } from '@/components/class-selector'
+import { AdminMatrix } from '@/components/admin-matrix'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Download, Plus, Loader2, Users, CreditCard, CalendarCheck } from 'lucide-react'
+import type { Class, AdminMatrixData, PaymentStatus, AttendanceStatus } from '@/lib/types'
+
+const supabase = createClient()
+
+async function fetchClasses(): Promise<Class[]> {
+  const { data, error } = await supabase
+    .from('classes')
+    .select('*')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+  
+  if (error) throw error
+  return data || []
+}
+
+async function fetchMatrixData(classId: string): Promise<AdminMatrixData | null> {
+  // Get class info
+  const { data: classData, error: classError } = await supabase
+    .from('classes')
+    .select('*')
+    .eq('id', classId)
+    .single()
+
+  if (classError || !classData) return null
+
+  // Get enrollments with student profiles
+  const { data: enrollments, error: enrollError } = await supabase
+    .from('enrollments')
+    .select(`
+      id,
+      payment_status,
+      student_id,
+      profiles!enrollments_student_id_fkey (
+        id,
+        full_name,
+        email
+      )
+    `)
+    .eq('class_id', classId)
+
+  if (enrollError) throw enrollError
+
+  // Get all attendances for these enrollments
+  const enrollmentIds = enrollments?.map(e => e.id) || []
+  
+  const { data: attendances, error: attError } = await supabase
+    .from('attendances')
+    .select('*')
+    .in('enrollment_id', enrollmentIds)
+    .order('week_number', { ascending: true })
+
+  if (attError) throw attError
+
+  // Transform data
+  const students = (enrollments || []).map(enrollment => {
+    const profile = enrollment.profiles as { id: string; full_name: string | null; email: string } | null
+    const studentAttendances = (attendances || [])
+      .filter(a => a.enrollment_id === enrollment.id)
+      .map(a => ({
+        week: a.week_number,
+        status: a.status as AttendanceStatus,
+        attendanceId: a.id,
+      }))
+
+    return {
+      enrollmentId: enrollment.id,
+      studentId: profile?.id || '',
+      studentName: profile?.full_name || '',
+      studentEmail: profile?.email || '',
+      paymentStatus: enrollment.payment_status as PaymentStatus,
+      attendances: studentAttendances,
+    }
+  })
+
+  return {
+    classId: classData.id,
+    className: classData.name,
+    totalWeeks: classData.total_weeks,
+    students,
+  }
+}
+
+export default function AdminDashboard() {
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newClassName, setNewClassName] = useState('')
+  const [newClassDescription, setNewClassDescription] = useState('')
+
+  const { data: classes, mutate: mutateClasses } = useSWR('classes', fetchClasses)
+  
+  const { data: matrixData, mutate: mutateMatrix } = useSWR(
+    selectedClass ? `matrix-${selectedClass.id}` : null,
+    () => selectedClass ? fetchMatrixData(selectedClass.id) : null
+  )
+
+  // Auto-select first class
+  useEffect(() => {
+    if (classes && classes.length > 0 && !selectedClass) {
+      setSelectedClass(classes[0])
+    }
+  }, [classes, selectedClass])
+
+  const handleCreateClass = async () => {
+    if (!newClassName.trim()) return
+
+    setIsCreating(true)
+    try {
+      const { data, error } = await supabase
+        .from('classes')
+        .insert({
+          name: newClassName.trim(),
+          description: newClassDescription.trim() || null,
+          total_weeks: 4,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      await mutateClasses()
+      setSelectedClass(data)
+      setIsCreateDialogOpen(false)
+      setNewClassName('')
+      setNewClassDescription('')
+    } catch (error) {
+      console.error('Failed to create class:', error)
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  const handlePaymentChange = async (enrollmentId: string, status: PaymentStatus) => {
+    const { error } = await supabase
+      .from('enrollments')
+      .update({ payment_status: status })
+      .eq('id', enrollmentId)
+
+    if (error) throw error
+    await mutateMatrix()
+  }
+
+  const handleAttendanceChange = async (attendanceId: string, status: AttendanceStatus) => {
+    const { error } = await supabase
+      .from('attendances')
+      .update({ 
+        status, 
+        marked_at: status !== 'pending' ? new Date().toISOString() : null 
+      })
+      .eq('id', attendanceId)
+
+    if (error) throw error
+    await mutateMatrix()
+  }
+
+  const handleExportCSV = useCallback(() => {
+    if (!matrixData) return
+
+    const headers = ['학생명', '이메일', '결제상태', ...Array.from({ length: matrixData.totalWeeks }, (_, i) => `${i + 1}주차`)]
+    const rows = matrixData.students.map(student => [
+      student.studentName,
+      student.studentEmail,
+      student.paymentStatus,
+      ...student.attendances.map(a => a.status)
+    ])
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n')
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${matrixData.className}_출석현황_${new Date().toISOString().split('T')[0]}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }, [matrixData])
+
+  // Stats calculation
+  const stats = matrixData ? {
+    totalStudents: matrixData.students.length,
+    paidStudents: matrixData.students.filter(s => s.paymentStatus === 'paid').length,
+    avgAttendance: matrixData.students.length > 0
+      ? Math.round(
+          (matrixData.students.flatMap(s => s.attendances).filter(a => a.status === 'present').length /
+            Math.max(matrixData.students.flatMap(s => s.attendances).length, 1)) * 100
+        )
+      : 0,
+  } : null
+
+  return (
+    <div className="flex flex-col min-h-dvh">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-14 items-center justify-between px-4 md:px-6">
+          <h1 className="font-semibold text-lg md:hidden">대시보드</h1>
+          <div className="flex items-center gap-2">
+            <ClassSelector
+              classes={classes || []}
+              selectedClass={selectedClass}
+              onSelect={setSelectedClass}
+              onCreateNew={() => setIsCreateDialogOpen(true)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCSV}
+              disabled={!matrixData || matrixData.students.length === 0}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">CSV</span>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Content */}
+      <div className="flex-1 p-4 md:p-6 space-y-6">
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-3 gap-3 md:gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">총 학생</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl md:text-2xl font-bold">{stats.totalStudents}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  <span className="hidden sm:inline">결제완료</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl md:text-2xl font-bold text-success">{stats.paidStudents}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <CalendarCheck className="h-4 w-4" />
+                  <span className="hidden sm:inline">출석률</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl md:text-2xl font-bold">{stats.avgAttendance}%</div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Admin Matrix */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">
+              {selectedClass ? `${selectedClass.name} 출석 현황` : '클래스를 선택하세요'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!selectedClass ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <p className="text-muted-foreground">클래스를 선택하거나 새로 만들어주세요</p>
+                <Button 
+                  className="mt-4 gap-2" 
+                  onClick={() => setIsCreateDialogOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  새 클래스 만들기
+                </Button>
+              </div>
+            ) : !matrixData ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <AdminMatrix
+                data={matrixData}
+                onPaymentChange={handlePaymentChange}
+                onAttendanceChange={handleAttendanceChange}
+              />
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Create Class Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>새 클래스 만들기</DialogTitle>
+            <DialogDescription>
+              새로운 클래스를 생성합니다. 클래스는 4주차로 구성됩니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="className">클래스명</Label>
+              <Input
+                id="className"
+                value={newClassName}
+                onChange={(e) => setNewClassName(e.target.value)}
+                placeholder="예: 2024년 1분기 기초반"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="classDescription">설명 (선택)</Label>
+              <Textarea
+                id="classDescription"
+                value={newClassDescription}
+                onChange={(e) => setNewClassDescription(e.target.value)}
+                placeholder="클래스에 대한 설명을 입력하세요"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              취소
+            </Button>
+            <Button onClick={handleCreateClass} disabled={!newClassName.trim() || isCreating}>
+              {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : '만들기'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
