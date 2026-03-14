@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
 import useSWR from 'swr'
 import { createClient } from '@/lib/supabase/client'
 import { ClassSelector } from '@/components/class-selector'
@@ -144,34 +145,54 @@ export default function AdminDashboard() {
       setIsCreateDialogOpen(false)
       setNewClassName('')
       setNewClassDescription('')
+      toast.success('Class created successfully', {
+        description: `"${data.name}" has been created.`,
+      })
     } catch (error) {
       console.error('Failed to create class:', error)
+      const errorMessage = error instanceof Error ? error.message : 
+        (error as { message?: string })?.message || 'An unexpected error occurred'
+      toast.error('Failed to create class', {
+        description: errorMessage,
+      })
     } finally {
       setIsCreating(false)
     }
   }
 
   const handlePaymentChange = async (enrollmentId: string, status: PaymentStatus) => {
-    const { error } = await supabase
-      .from('enrollments')
-      .update({ payment_status: status })
-      .eq('id', enrollmentId)
+    try {
+      const { error } = await supabase
+        .from('enrollments')
+        .update({ payment_status: status })
+        .eq('id', enrollmentId)
 
-    if (error) throw error
-    await mutateMatrix()
+      if (error) throw error
+      await mutateMatrix()
+      toast.success('Payment status updated')
+    } catch (error) {
+      console.error('Failed to update payment:', error)
+      toast.error('Failed to update payment status')
+    }
   }
 
   const handleAttendanceChange = async (attendanceId: string, status: AttendanceStatus) => {
-    const { error } = await supabase
-      .from('attendances')
-      .update({ 
-        status, 
-        marked_at: status !== 'pending' ? new Date().toISOString() : null 
-      })
-      .eq('id', attendanceId)
+    try {
+      const { error } = await supabase
+        .from('attendances')
+        .update({ 
+          status, 
+          marked_at: status !== 'pending' ? new Date().toISOString() : null 
+        })
+        .eq('id', attendanceId)
 
-    if (error) throw error
-    await mutateMatrix()
+      if (error) throw error
+      await mutateMatrix()
+      toast.success('Attendance updated')
+    } catch (error) {
+      console.error('Failed to update attendance:', error)
+      toast.error('Failed to update attendance')
+    }
   }
 
   const handleExportCSV = useCallback(() => {
