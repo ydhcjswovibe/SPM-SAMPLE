@@ -49,7 +49,7 @@ export default function HomePage() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground">
-          Demo Mode - No login required
+          Demo Mode
         </p>
       </div>
     </div>
