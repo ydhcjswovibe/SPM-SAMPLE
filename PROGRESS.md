@@ -58,6 +58,7 @@
 - `2026-03-16 | free-only YouTube cleanup validation | start: not recorded | end: 2026-03-16 22:43 KST | status: done`
 - `2026-03-16 | weekly media shorts URL parsing hotfix | start: not recorded | end: 2026-03-16 22:57 KST | status: done`
 - `2026-03-16 | admin/student home + logout utility access | start: not recorded | end: 2026-03-16 23:03 KST | status: done`
+- `2026-03-17 | vercel deploy package manager cleanup | start: not recorded | end: 2026-03-17 00:08 KST | status: done`
 
 ## Carryover
 
@@ -165,6 +166,7 @@
 - weekly media YouTube URL 파서를 `watch / shorts / youtu.be / live / embed` 기준으로 보강 완료
 - mobile admin `운영 / 학생 / 수업` 헤더 오른쪽에 설정 진입 아이콘 추가 완료
 - admin mobile 헤더와 student/account 메뉴에 `처음으로`, `로그아웃` 전환 유틸리티 추가 완료
+- 배포 환경 혼선을 막기 위해 `pnpm-lock.yaml` 제거 및 `packageManager=npm@10.9.4` 명시 완료
 
 ## Next Up
 
