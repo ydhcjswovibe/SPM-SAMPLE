@@ -10,6 +10,7 @@ import { AdminMobileUtilityMenu } from '@/components/admin-mobile-utility-menu'
 import { AdminMobileSettingsLink } from '@/components/admin-mobile-settings-link'
 import { ClassSelector } from '@/components/class-selector'
 import { AdminMatrix } from '@/components/admin-matrix'
+import { SpmMascot } from '@/components/spm-mascot'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -474,10 +475,15 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex min-h-14 flex-wrap items-center gap-2 px-4 py-2 md:h-14 md:flex-nowrap md:justify-between md:px-6 md:py-0">
-          <h1 className="mr-auto font-semibold text-lg md:hidden">운영</h1>
+      <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-6">
+        <div className="spm-soft-panel flex min-h-16 flex-wrap items-center gap-3 px-4 py-3 md:min-h-[4.5rem] md:flex-nowrap md:justify-between">
+          <div className="flex items-center gap-3">
+            <SpmMascot size="sm" className="hidden md:block h-11 w-11" />
+            <div className="space-y-1">
+              <p className="spm-kicker">Admin Home</p>
+              <h1 className="spm-display text-3xl text-foreground">운영</h1>
+            </div>
+          </div>
           <div className="order-3 flex w-full items-center gap-2 md:order-none md:w-auto">
             <ClassSelector
               classes={selectorClasses}
@@ -508,7 +514,7 @@ export default function AdminDashboard() {
             <AdminMobileSettingsLink />
             <AdminMobileUtilityMenu />
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={handleExportCSV}
               disabled={
@@ -532,8 +538,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* Content */}
-      <div className="flex-1 p-4 md:p-6 space-y-6">
+      <div className="flex-1 space-y-5 px-4 pb-28 pt-4 md:px-6 md:pb-8 md:pt-6">
         {isAccessLoading ? (
           <Card>
             <CardContent className="flex items-center gap-3 py-4 text-sm text-muted-foreground">
@@ -597,10 +602,34 @@ export default function AdminDashboard() {
           </Card>
         ) : null}
 
-        {/* Stats Cards */}
+        <section className="spm-hero-panel overflow-hidden p-5 md:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-3">
+              <p className="spm-kicker">Daily Operations</p>
+              <div className="space-y-2">
+                <h2 className="spm-display max-w-[11ch] text-4xl leading-none text-foreground">
+                  오늘 운영 흐름을 한 장에서 빠르게 확인해요.
+                </h2>
+                <p className="max-w-2xl text-sm text-muted-foreground">
+                  귀여운 톤은 헤더와 요약 카드에만 강하게 주고, 실제 운영 데이터 본문은 기존 판독성을 유지합니다.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 text-xs font-black">
+                <span className="rounded-full border-2 border-[var(--line-strong)] bg-white px-3 py-1 text-foreground">
+                  {classSelectionHint}
+                </span>
+                <span className="rounded-full border-2 border-[var(--brand-blue-shadow)] bg-secondary px-3 py-1 text-secondary-foreground">
+                  {accessState?.canCreateClass ? '오너 도구 사용 가능' : '운영 계정 모드'}
+                </span>
+              </div>
+            </div>
+            <SpmMascot variant="welcome" size="lg" className="-mr-3 hidden sm:block" />
+          </div>
+        </section>
+
         {stats && (
           <div className="grid grid-cols-3 gap-2 md:gap-4">
-            <Card className="gap-0 py-0">
+            <Card className="spm-mint-panel gap-0 py-0">
               <CardHeader className="px-3 pt-2 pb-1 md:px-6 md:pt-4">
                 <CardTitle className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
                   <Users className="h-3.5 w-3.5 shrink-0" />
@@ -608,10 +637,10 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-3 pb-2 pt-0 md:px-6 md:pb-4">
-                <div className="text-base font-bold md:text-2xl">{stats.totalStudents}</div>
+                <div className="spm-display text-3xl text-foreground md:text-4xl">{stats.totalStudents}</div>
               </CardContent>
             </Card>
-            <Card className="gap-0 py-0">
+            <Card className="spm-yellow-panel gap-0 py-0">
               <CardHeader className="px-3 pt-2 pb-1 md:px-6 md:pt-4">
                 <CardTitle className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
                   <CreditCard className="h-3.5 w-3.5 shrink-0" />
@@ -619,10 +648,10 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-3 pb-2 pt-0 md:px-6 md:pb-4">
-                <div className="text-base font-bold text-success md:text-2xl">{stats.paidStudents}</div>
+                <div className="spm-display text-3xl text-accent-foreground md:text-4xl">{stats.paidStudents}</div>
               </CardContent>
             </Card>
-            <Card className="gap-0 py-0">
+            <Card className="spm-blue-panel gap-0 py-0">
               <CardHeader className="px-3 pt-2 pb-1 md:px-6 md:pt-4">
                 <CardTitle className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
                   <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
@@ -630,16 +659,15 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-3 pb-2 pt-0 md:px-6 md:pb-4">
-                <div className="text-base font-bold md:text-2xl">{stats.avgAttendance}%</div>
+                <div className="spm-display text-3xl text-secondary-foreground md:text-4xl">{stats.avgAttendance}%</div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Admin Matrix */}
-        <Card className="gap-0 py-0">
+        <Card className="gap-0 overflow-hidden py-0">
           <CardHeader className="px-4 pt-4 pb-2 md:px-6 md:pt-6 md:pb-3">
-            <CardTitle className="text-base">{classSelectionHint}</CardTitle>
+            <CardTitle className="spm-display text-2xl text-foreground">{classSelectionHint}</CardTitle>
             {!resolvedSelectedClass ? (
               <p className="text-sm text-muted-foreground">
                 현재 월은 기본으로 잡혀 있고, 활성 수업 중 관리할 수업을 먼저 고를 수 있습니다. 이달 등록이 있는 수업이 먼저 보이고, 미배정 수업도 이어서 선택할 수 있습니다.

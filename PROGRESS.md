@@ -2,8 +2,8 @@
 
 ## Current Status
 
-- stage: `agents hard-stop guardrails`
-- focus: `AGENTS에 hard-stop 금지사항 추가`
+- stage: `cute redesign main surfaces`
+- focus: `로그인 / 학생 메인 / 관리자 메인 1차 구현`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,8 @@
 
 ## Recent Work Windows
 
+- `2026-03-17 | cute redesign main surfaces implementation | start: not recorded | end: 2026-03-17 22:25 KST | status: done`
+- `2026-03-17 | cute redesign direction seed | start: not recorded | end: 2026-03-17 22:03 KST | status: done`
 - `2026-03-17 | AGENTS hard-stop guardrails | start: 2026-03-17 21:24 KST | end: 2026-03-17 21:24 KST | status: done`
 - `2026-03-17 | roles 4-way consolidation | start: 2026-03-17 21:20 KST | end: 2026-03-17 21:22 KST | status: done`
 - `2026-03-17 | AGENTS index + working rules/roles split | start: 2026-03-17 21:10 KST | end: 2026-03-17 21:12 KST | status: done`
@@ -81,6 +83,11 @@
 
 ## Done Recently
 
+- `/auth/login`, `/student`, `/admin` 3개 메인 화면에 cute redesign 1차를 실제 반영하고 [docs/reports/2026-03-17-cute-redesign-main-surfaces.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-cute-redesign-main-surfaces.md)로 기록 완료
+- `민트 + 블루 + 크림` 전역 토큰, `물방울 젤리형` 정적 마스코트, pill형 하단 탭, 듀오 레퍼런스 기반 CTA/progress/card 톤을 공통 UI에 반영 완료
+- 이번 1차 반영 이후 `npm run lint`, `npm run build` 통과 완료
+- 듀오링고 컴포넌트 레퍼런스 Figma를 1차 형태 언어 기준으로 확정하고, 리디자인 범위를 `/auth/login`, `/student`, `/admin` 3화면으로 좁혀 [docs/reports/2026-03-17-cute-redesign-direction.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-cute-redesign-direction.md)에 기록 완료
+- 1차 리디자인 팔레트를 `민트 + 블루 + 크림`, 기본 캐릭터를 `물방울 젤리형` 정적 마스코트로 정리하고, 아이템/애니메이션/후속 화면 확장은 보류하기로 방향 고정 완료
 - `AGENTS.md`에 hard-stop 성격의 금지사항을 추가해 active truth, mutation 우회, write scope 침범, mock 과장, env drift를 명시적으로 금지 완료
 - 역할 체계를 `Owner / Lead Builder / Feature Builder / Verifier` 4역할로 정리하고 `Delivery Owner`를 제거 완료
 - `AGENTS.md`를 목차형 진입점으로 축소하고 전역 규칙/역할 index를 `docs/WORKING_RULES.md`, `docs/roles/README.md`로 분리 완료
@@ -189,12 +196,14 @@
 
 ## Next Up
 
-1. free-only 운영 기준으로 YouTube 링크 붙여넣기 runtime smoke 재확인
-2. remote Supabase에 `update_enrollment_status`, `update_enrollment_payment_status` helper를 실제 반영하고 verify 재실행
-3. deployed student/admin media 화면에서 mobile 실기 확인 필요 시 fullscreen 진입/복귀와 영상 selector 감도 재확인
+1. 브라우저에서 `/auth/login`, `/student`, `/admin` 실화면을 확인해 admin matrix 판독성과 탭 safe area를 직접 검증
+2. 1차 톤이 맞으면 `/admin/students`, `/admin/content`, `/student/class/[classId]`에 같은 시스템을 확장
+3. 메인 화면 확장 후 아이템 액세서리와 애니메이션 2차 범위 착수 여부 결정
 
 ## Risks / Open Questions
 
+- cute redesign 1차 구현은 완료됐지만, admin main에서 귀여운 톤이 matrix 판독성을 해치지 않는지 실제 브라우저 확인이 아직 남아 있다.
+- 공통 버튼/카드/입력 톤이 바뀌어 1차 범위 밖 화면도 시각적으로 일부 영향받을 수 있다.
 - 구현 시작 전 `docs/archive/**/*`를 active truth로 다시 인용하지 않도록 주의가 필요하다.
 - connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC는 아직 schema cache에 없어, 현재 route는 compatibility fallback을 함께 유지한다.
 - remote sync credential이 없어서 connected Supabase에 helper RPC를 실제 push하지 못했다.

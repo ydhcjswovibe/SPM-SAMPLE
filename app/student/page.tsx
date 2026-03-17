@@ -2,14 +2,16 @@
 
 import useSWR from 'swr'
 import Link from 'next/link'
-import { AlertCircle, BookOpen, ChevronRight, Loader2 } from 'lucide-react'
+import { AlertCircle, ChevronRight, Loader2, Sparkles } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { formatYearMonthLabel, readStudentClassSummaries, type StudentClassSummary } from '@/lib/weekly-media'
+import { SpmMascot } from '@/components/spm-mascot'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
 
 const supabase = createClient()
 const authRequiredMessage = '로그인이 필요합니다.'
@@ -51,9 +53,12 @@ export default function StudentDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-3 px-4 text-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">수업 목록을 불러오는 중입니다.</p>
+      <div className="flex min-h-[65dvh] flex-col items-center justify-center gap-4 px-4 text-center">
+        <SpmMascot size="lg" />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          수업 목록을 불러오는 중입니다.
+        </div>
       </div>
     )
   }
@@ -62,12 +67,15 @@ export default function StudentDashboard() {
     const needsLogin = error instanceof Error && error.message === authRequiredMessage
 
     return (
-      <div className="p-4">
-        <Card className="border-destructive/30 bg-destructive/5">
-          <CardContent className="flex flex-col items-start gap-3 py-4 text-sm text-destructive">
+      <div className="px-4 pb-28 pt-4">
+        <Card className="overflow-hidden border-destructive/40 bg-[#fff0ef]">
+          <CardContent className="flex flex-col items-start gap-4 p-5 text-sm text-destructive">
             <div className="flex items-start gap-3">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <p>{getFriendlyStudentMessage(error)}</p>
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+              <div className="space-y-1">
+                <p className="font-bold">학생 수업 화면을 다시 불러오지 못했습니다.</p>
+                <p className="text-destructive/80">{getFriendlyStudentMessage(error)}</p>
+              </div>
             </div>
             {needsLogin ? (
               <Button asChild variant="outline" size="sm">
@@ -82,16 +90,17 @@ export default function StudentDashboard() {
 
   if (!summaries || summaries.length === 0) {
     return (
-      <div className="p-4">
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 rounded-full bg-muted p-4">
-              <BookOpen className="h-8 w-8 text-muted-foreground" />
+      <div className="px-4 pb-28 pt-4">
+        <Card className="spm-hero-panel overflow-hidden">
+          <CardContent className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+            <SpmMascot variant="welcome" size="lg" />
+            <div className="space-y-2">
+              <p className="spm-kicker">Ready To Start</p>
+              <h2 className="spm-display text-3xl">아직 열어볼 수 있는 수업이 없어요.</h2>
+              <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+                등록이 완료되면 이 화면에서 월별 수업과 주차 콘텐츠를 바로 이어서 확인할 수 있습니다.
+              </p>
             </div>
-            <h2 className="font-medium text-lg">아직 열어볼 수 있는 수업이 없습니다.</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              등록이 완료되면 이 화면에서 월별 수업과 주차 콘텐츠를 확인할 수 있습니다.
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -103,105 +112,145 @@ export default function StudentDashboard() {
   const totalFeedbackCount = summaries.reduce((sum, item) => sum + item.feedbackCount, 0)
 
   return (
-    <div className="space-y-4 p-4">
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold">수업</h1>
-        <p className="text-sm text-muted-foreground">
-          월별 등록 상태와 이번에 볼 수 있는 주차 콘텐츠를 확인합니다.
-        </p>
-      </div>
+    <div className="space-y-5 px-4 pb-28 pt-4">
+      <section className="spm-hero-panel overflow-hidden p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-3">
+            <p className="spm-kicker">Dance Through Class</p>
+            <div className="space-y-2">
+              <h1 className="spm-display max-w-[10ch] text-4xl leading-none text-foreground">
+                이번 달 수업 흐름을 한눈에 볼 수 있어요.
+              </h1>
+              <p className="max-w-md text-sm text-muted-foreground">
+                월별 등록 상태와 열려 있는 주차 콘텐츠를 귀엽고 빠르게 확인하는 학생 메인 화면입니다.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Badge>수강 중 {activeCount}</Badge>
+              <Badge variant="secondary">등록 예정 {pendingCount}</Badge>
+              <Badge variant="outline">피드백 {totalFeedbackCount}</Badge>
+            </div>
+          </div>
+          <SpmMascot variant="welcome" size="lg" className="-mr-3 hidden sm:block" />
+        </div>
+      </section>
 
-      <div className="grid grid-cols-3 gap-3">
-        <Card>
-          <CardHeader className="pb-2">
+      <section className="grid grid-cols-3 gap-3">
+        <Card className="spm-mint-panel gap-0 py-0">
+          <CardHeader className="px-4 pb-2 pt-4">
             <CardTitle className="text-xs text-muted-foreground">수강 중</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{activeCount}</p>
+          <CardContent className="px-4 pb-4 pt-0">
+            <p className="spm-display text-3xl text-foreground">{activeCount}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="spm-blue-panel gap-0 py-0">
+          <CardHeader className="px-4 pb-2 pt-4">
             <CardTitle className="text-xs text-muted-foreground">등록 예정</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{pendingCount}</p>
+          <CardContent className="px-4 pb-4 pt-0">
+            <p className="spm-display text-3xl text-secondary-foreground">{pendingCount}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="spm-yellow-panel gap-0 py-0">
+          <CardHeader className="px-4 pb-2 pt-4">
             <CardTitle className="text-xs text-muted-foreground">피드백</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{totalFeedbackCount}</p>
+          <CardContent className="px-4 pb-4 pt-0">
+            <p className="spm-display text-3xl text-accent-foreground">{totalFeedbackCount}</p>
           </CardContent>
         </Card>
-      </div>
+      </section>
 
-      <div className="space-y-3">
-        {summaries.map((summary) => {
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="spm-kicker">Class List</p>
+            <h2 className="spm-display text-2xl text-foreground">이번에 볼 수 있는 수업</h2>
+          </div>
+          <div className="hidden items-center gap-2 rounded-full border-2 border-[var(--line-strong)] bg-white px-3 py-1 text-xs font-bold text-muted-foreground sm:flex">
+            <Sparkles className="h-3.5 w-3.5 text-[var(--brand-blue)]" />
+            진행률과 공개 상태를 같이 확인
+          </div>
+        </div>
+
+        {summaries.map((summary, index) => {
           const progressPercent =
             summary.attendanceTotal > 0
               ? Math.round((summary.attendanceChecked / summary.attendanceTotal) * 100)
               : 0
 
+          const toneClass =
+            summary.enrollmentStatus === 'PENDING'
+              ? 'spm-blue-panel'
+              : index % 2 === 0
+                ? 'spm-mint-panel'
+                : 'bg-white'
+
           return (
             <Link
               key={`${summary.classId}:${summary.yearMonth}`}
               href={`/student/class/${summary.classId}?yearMonth=${encodeURIComponent(summary.yearMonth)}`}
+              className="block"
             >
-              <Card className="transition-colors hover:bg-accent/50">
-                <CardContent className="space-y-3 p-4">
+              <Card className={cn('overflow-hidden transition-transform hover:-translate-y-1', toneClass)}>
+                <CardContent className="space-y-4 p-5">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="font-medium">{summary.className}</h2>
                         <Badge variant={summary.enrollmentStatus === 'PENDING' ? 'secondary' : 'default'}>
                           {getEnrollmentLabel(summary.enrollmentStatus)}
                         </Badge>
                         <Badge variant="outline">{formatYearMonthLabel(summary.yearMonth)}</Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {summary.enrollmentStatus === 'PENDING' && summary.availableWeekCount === 0
-                          ? '곧 시작 예정입니다. 콘텐츠가 열리면 이 카드에서 바로 확인할 수 있습니다.'
-                          : summary.nextWeekNumber
-                            ? `${summary.nextWeekNumber}주차부터 확인할 수 있습니다.`
-                            : '아직 공개된 콘텐츠가 없습니다.'}
-                      </p>
+                      <div className="space-y-1">
+                        <h3 className="spm-display text-2xl text-foreground">{summary.className}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {summary.enrollmentStatus === 'PENDING' && summary.availableWeekCount === 0
+                            ? '곧 시작 예정이에요. 콘텐츠가 열리면 이 카드에서 바로 이어서 볼 수 있어요.'
+                            : summary.nextWeekNumber
+                              ? `${summary.nextWeekNumber}주차부터 바로 볼 수 있어요.`
+                              : '아직 공개된 콘텐츠가 없어요.'}
+                        </p>
+                      </div>
                     </div>
-                    <ChevronRight className="mt-1 h-5 w-5 shrink-0 text-muted-foreground" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-[var(--line-strong)] bg-white shadow-[0_4px_0_var(--line-strong)]">
+                      <ChevronRight className="h-4 w-4 text-secondary-foreground" />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-sm">
-                    <div className="rounded-lg bg-muted/60 px-3 py-2">
-                      <p className="text-xs text-muted-foreground">결제</p>
-                      <p className="font-medium">{summary.paymentStatus ? '완료' : '미완료'}</p>
+                    <div className="rounded-[1.2rem] border-2 border-white/90 bg-white/75 px-3 py-3 shadow-[0_4px_0_rgba(255,255,255,0.72)]">
+                      <p className="text-[11px] font-bold text-muted-foreground">결제</p>
+                      <p className="mt-1 font-black text-foreground">
+                        {summary.paymentStatus ? '완료' : '미완료'}
+                      </p>
                     </div>
-                    <div className="rounded-lg bg-muted/60 px-3 py-2">
-                      <p className="text-xs text-muted-foreground">공개 주차</p>
-                      <p className="font-medium">{summary.availableWeekCount}개</p>
+                    <div className="rounded-[1.2rem] border-2 border-white/90 bg-white/75 px-3 py-3 shadow-[0_4px_0_rgba(255,255,255,0.72)]">
+                      <p className="text-[11px] font-bold text-muted-foreground">공개 주차</p>
+                      <p className="mt-1 font-black text-foreground">{summary.availableWeekCount}개</p>
                     </div>
-                    <div className="rounded-lg bg-muted/60 px-3 py-2">
-                      <p className="text-xs text-muted-foreground">피드백</p>
-                      <p className="font-medium">{summary.feedbackCount}건</p>
+                    <div className="rounded-[1.2rem] border-2 border-white/90 bg-white/75 px-3 py-3 shadow-[0_4px_0_rgba(255,255,255,0.72)]">
+                      <p className="text-[11px] font-bold text-muted-foreground">피드백</p>
+                      <p className="mt-1 font-black text-foreground">{summary.feedbackCount}건</p>
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="space-y-2 rounded-[1.2rem] border-2 border-white/90 bg-white/75 px-4 py-3 shadow-[0_4px_0_rgba(255,255,255,0.72)]">
+                    <div className="flex items-center justify-between text-xs font-bold text-muted-foreground">
                       <span>출석 진행</span>
                       <span>
                         {summary.attendanceChecked}/{summary.attendanceTotal}
                       </span>
                     </div>
-                    <Progress value={progressPercent} className="h-1.5" />
+                    <Progress value={progressPercent} />
                   </div>
                 </CardContent>
               </Card>
             </Link>
           )
         })}
-      </div>
+      </section>
     </div>
   )
 }

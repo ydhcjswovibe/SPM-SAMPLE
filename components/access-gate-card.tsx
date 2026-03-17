@@ -3,6 +3,7 @@ import { ArrowRight, LogIn } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { SpmMascot } from '@/components/spm-mascot'
 
 interface AccessGateCardProps {
   title: string
@@ -24,19 +25,25 @@ export function AccessGateCard({
   detail,
 }: AccessGateCardProps) {
   return (
-    <div className="min-h-dvh bg-background p-4">
+    <div className="min-h-dvh bg-background px-4 py-8">
       <div className="mx-auto flex min-h-dvh max-w-md items-center justify-center">
-        <Card className="w-full">
+        <Card className="w-full overflow-hidden">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <LogIn className="h-5 w-5" />
+            <div className="spm-kicker mx-auto mb-2">Access Check</div>
+            <div className="mb-4 flex items-center justify-center gap-3">
+              <SpmMascot size="sm" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-[1.2rem] border-2 border-[var(--line-strong)] bg-white shadow-[0_4px_0_var(--line-strong)] text-secondary-foreground">
+                <LogIn className="h-5 w-5" />
+              </div>
             </div>
-            <CardTitle>{title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
+            <CardTitle className="spm-display text-3xl">{title}</CardTitle>
+            <CardDescription className="mx-auto max-w-sm text-base">
+              {description}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {detail ? (
-              <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
+              <p className="rounded-[1rem] border-2 border-[var(--line-strong)] bg-secondary px-4 py-3 text-sm text-muted-foreground">
                 {detail}
               </p>
             ) : null}
