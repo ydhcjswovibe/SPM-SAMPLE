@@ -2,8 +2,8 @@
 
 ## Current Status
 
-- stage: `vercel auth login restore`
-- focus: `배포 로그인 실패 원인 분리: callback route 복구 + Supabase env drift 확인`
+- stage: `google gis login migration`
+- focus: `redirect 기반 Google login을 GIS id-token login으로 전환 + client id env handoff`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -60,6 +60,7 @@
 - `2026-03-16 | admin/student home + logout utility access | start: not recorded | end: 2026-03-16 23:03 KST | status: done`
 - `2026-03-17 | vercel deploy package manager cleanup | start: not recorded | end: 2026-03-17 00:08 KST | status: done`
 - `2026-03-17 | vercel auth callback restore + env drift note | start: not recorded | end: 2026-03-17 03:16 KST | status: done`
+- `2026-03-17 | google GIS id-token login migration | start: 2026-03-17 18:49 KST | end: 2026-03-17 18:56 KST | status: done`
 
 ## Carryover
 
@@ -170,10 +171,12 @@
 - 배포 환경 혼선을 막기 위해 `pnpm-lock.yaml` 제거 및 `packageManager=npm@10.9.4` 명시 완료
 - 빠져 있던 [app/auth/callback/route.ts](/home/ydhcjswo/projects/SPM_SAMPLE/app/auth/callback/route.ts) 복구 완료
 - Vercel auth hotfix와 Supabase project drift 분석을 [docs/reports/2026-03-17-vercel-auth-login-hotfix.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-vercel-auth-login-hotfix.md)로 기록 완료
+- `/auth/login` Google entry를 GIS ID token + Supabase `signInWithIdToken` 우선, redirect 기반 compatibility fallback 포함 구조로 전환 완료
+- local no-client-id 환경에서 Google compatibility fallback 렌더와 auth/role smoke 재검증을 [docs/reports/2026-03-17-google-gis-login-migration.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-google-gis-login-migration.md)로 기록 완료
 
 ## Next Up
 
-1. Vercel env를 로컬 active truth와 같은 Supabase project로 맞춘 뒤 deployed login runtime 재확인
+1. Vercel과 필요한 local env에 `NEXT_PUBLIC_GOOGLE_CLIENT_ID`를 추가하고 deployed GIS login runtime 재확인
 2. free-only 운영 기준으로 YouTube 링크 붙여넣기 runtime smoke 재확인
 3. remote Supabase에 `update_enrollment_status`, `update_enrollment_payment_status` helper를 실제 반영하고 verify 재실행
 
@@ -182,7 +185,8 @@
 - 구현 시작 전 `docs/archive/**/*`를 active truth로 다시 인용하지 않도록 주의가 필요하다.
 - connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC는 아직 schema cache에 없어, 현재 route는 compatibility fallback을 함께 유지한다.
 - remote sync credential이 없어서 connected Supabase에 helper RPC를 실제 push하지 못했다.
-- Vercel 환경변수는 현재 `.env.local`의 active Supabase project(`kpcujcnw...`)가 아니라 `dtqdmnry...` project를 가리키고 있어 배포 auth truth drift가 있다.
+- 현재 `.env.local`에는 `NEXT_PUBLIC_GOOGLE_CLIENT_ID`가 없어, 로컬 `/auth/login`은 redirect 기반 compatibility fallback으로 동작한다.
+- configured GIS success path는 local runtime에서 아직 재현하지 못했고, deployed env 또는 client id가 들어간 local env에서 별도 runtime 확인이 필요하다.
 
 ## Legacy Snapshot
 

@@ -124,6 +124,8 @@ student-facing 흐름도 중요하지만,
 ### Auth / Role / Access
 - email login
 - configured 환경에서의 Google login
+- configured 환경에서 Google login은 Google Identity Services 기반 ID token sign-in을 우선 사용하고, 사용자-facing 기본 UX에서 Supabase-hosted OAuth redirect hop을 전면에 두지 않는다
+- GIS client 설정이 없는 환경이나 GIS 표면 로드 실패 시에는 로그인 화면이 Google login을 끊지 않고 기존 redirect 기반 flow로 compatibility fallback 할 수 있어야 한다
 - role-based access behavior
 - role-aware page access
 - access가 제한되거나 불명확할 때의 safe fallback behavior

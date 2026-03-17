@@ -125,6 +125,8 @@ If the package is docs-only, commands are optional; say which source docs or rep
 
 ### Auth / Access behavior
 - login entry works
+- configured 환경에서는 `/auth/login`의 Google entry가 GIS button 기반으로 열리고, 성공 path는 ID token sign-in 뒤 역할 화면으로 이어져야 한다
+- Google client 설정이 없거나 GIS script load가 실패한 환경에서는 `/auth/login`이 Google entry를 끊지 않고 redirect 기반 compatibility fallback으로 이어져야 한다
 - logout still works
 - protected page access still behaves correctly
 - unauthorized users do not see misleading success states
