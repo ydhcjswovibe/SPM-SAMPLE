@@ -15,6 +15,11 @@ import { loginAs, request, resolveBaseUrl } from './lib/runtime-http.mjs'
 const baseUrl = resolveBaseUrl()
 const adminAccount = LOCAL_RUNTIME_ACCOUNTS.find((account) => account.role === 'ADMIN')
 const studentAccount = LOCAL_RUNTIME_ACCOUNTS.find((account) => account.role === 'STUDENT')
+const browserSmokeVideoUrls = [
+  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  'https://www.youtube.com/watch?v=M7lc1UVf-VE',
+]
+const browserSmokeVideoIds = ['dQw4w9WgXcQ', 'M7lc1UVf-VE']
 
 if (!adminAccount || !studentAccount) {
   throw new Error('Missing runtime QA accounts')
@@ -53,24 +58,29 @@ function configureLocalBrowserLibs() {
 }
 
 async function createBrowserSmokeMedia(adminJar) {
-  const videoResponse = await request(
-    baseUrl,
-    '/api/admin/weekly-media',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+  const videoIds = []
+
+  for (const url of browserSmokeVideoUrls) {
+    const videoResponse = await request(
+      baseUrl,
+      '/api/admin/weekly-media',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          classId: RUNTIME_QA_CLASS_ID,
+          yearMonth: RUNTIME_QA_YEAR_MONTH,
+          weekNumber: 1,
+          url,
+        }),
       },
-      body: JSON.stringify({
-        classId: RUNTIME_QA_CLASS_ID,
-        yearMonth: RUNTIME_QA_YEAR_MONTH,
-        weekNumber: 1,
-        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      }),
-    },
-    adminJar,
-  )
-  const videoPayload = await readJson(videoResponse, 'Failed to create browser smoke video')
+      adminJar,
+    )
+    const videoPayload = await readJson(videoResponse, 'Failed to create browser smoke video')
+    videoIds.push(videoPayload.data.id)
+  }
 
   const imageForm = new FormData()
   imageForm.set('classId', RUNTIME_QA_CLASS_ID)
@@ -90,7 +100,8 @@ async function createBrowserSmokeMedia(adminJar) {
   const imagePayload = await readJson(imageResponse, 'Failed to create browser smoke image')
 
   return {
-    videoId: videoPayload.data.id,
+    videoIds,
+    videoYoutubeIds: browserSmokeVideoIds,
     imageId: imagePayload.data.id,
   }
 }
@@ -128,28 +139,79 @@ async function verifyStudentDom(page, results) {
   const weekTab = page.getByRole('tab').filter({ hasText: '1주차' }).first()
   await weekTab.click()
 
-  const videoFrame = page.locator('iframe[title*="1주차 영상"]').first()
+  const videoFrame = page.locator('iframe[title="1주차 선택 영상"]').first()
   await videoFrame.waitFor({ state: 'visible', timeout: 15000 })
+  const firstVideoChip = page.getByRole('button', { name: '1주차 영상 1 선택' })
+  const secondVideoChip = page.getByRole('button', { name: '1주차 영상 2 선택' })
+  const firstVideoChipId = (await firstVideoChip.locator('p').textContent())?.trim() ?? null
+  const secondVideoChipId = (await secondVideoChip.locator('p').textContent())?.trim() ?? null
+  expect(firstVideoChipId, 'Student first video chip should expose a YouTube video id')
+  expect(secondVideoChipId, 'Student second video chip should expose a YouTube video id')
 
-  const image = page.locator('img[alt="1주차 이미지"]').first()
+  await firstVideoChip.click()
+  await page.waitForFunction(
+    ({ selector, videoId }) => {
+      const frame = document.querySelector(selector)
+      return frame instanceof HTMLIFrameElement && frame.src.includes(videoId)
+    },
+    { selector: 'iframe[title="1주차 선택 영상"]', videoId: firstVideoChipId },
+  )
+  const initialFrameSrc = await videoFrame.getAttribute('src')
+
+  const nextVideoButton = page.getByRole('button', { name: '다음 영상' })
+  await nextVideoButton.click()
+  await page.waitForFunction(
+    ({ selector, videoId }) => {
+      const frame = document.querySelector(selector)
+      return frame instanceof HTMLIFrameElement && frame.src.includes(videoId)
+    },
+    { selector: 'iframe[title="1주차 선택 영상"]', videoId: secondVideoChipId },
+  )
+  const afterNextSrc = await videoFrame.getAttribute('src')
+  expect(afterNextSrc && afterNextSrc !== initialFrameSrc, 'Student next-video action should change the iframe src')
+
+  await firstVideoChip.click()
+  await page.waitForFunction(
+    ({ selector, videoId }) => {
+      const frame = document.querySelector(selector)
+      return frame instanceof HTMLIFrameElement && frame.src.includes(videoId)
+    },
+    { selector: 'iframe[title="1주차 선택 영상"]', videoId: firstVideoChipId },
+  )
+
+  const image = page.locator('img[alt*="1주차 이미지"]').first()
   await image.waitFor({ state: 'visible', timeout: 15000 })
   const imageHandle = await image.elementHandle()
   expect(imageHandle, 'Student image handle not found')
   await page.waitForFunction((element) => element.complete && element.naturalWidth > 0, imageHandle)
 
+  await image.click()
+  const imageDialog = page.getByRole('dialog', { name: '이미지 크게 보기' })
+  await imageDialog.waitFor({ state: 'visible', timeout: 15000 })
+  const dialogImage = imageDialog.locator('img[alt*="1주차 이미지"]').first()
+  await dialogImage.waitFor({ state: 'visible', timeout: 15000 })
+
   results.student = {
     detailPath: `/student/class/${RUNTIME_QA_CLASS_ID}?yearMonth=${RUNTIME_QA_YEAR_MONTH}`,
     frameVisible: await videoFrame.isVisible(),
+    frameSrc: await videoFrame.getAttribute('src'),
+    initialFrameSrc,
+    afterNextSrc,
+    firstVideoChipId,
     imageVisible: await image.isVisible(),
     imageLoaded: await image.evaluate((element) => element.complete && element.naturalWidth > 0),
+    imageDialogVisible: await imageDialog.isVisible(),
   }
+
+  await page.keyboard.press('Escape')
+  await imageDialog.waitFor({ state: 'hidden', timeout: 15000 })
 
   await page.reload({ waitUntil: 'domcontentloaded' })
   const weekTabAfterReload = page.getByRole('tab').filter({ hasText: '1주차' }).first()
   await weekTabAfterReload.click()
 
-  const reloadedFrame = page.locator('iframe[title*="1주차 영상"]').first()
-  const reloadedImage = page.locator('img[alt="1주차 이미지"]').first()
+  const reloadedFrame = page.locator('iframe[title="1주차 선택 영상"]').first()
+  const reloadedImage = page.locator('img[alt*="1주차 이미지"]').first()
   await reloadedFrame.waitFor({ state: 'visible', timeout: 15000 })
   await reloadedImage.waitFor({ state: 'visible', timeout: 15000 })
 
@@ -164,14 +226,18 @@ async function verifyStudentDom(page, results) {
 
   results.student.afterReload = {
     frameVisible: await reloadedFrame.isVisible(),
+    frameSrc: await reloadedFrame.getAttribute('src'),
     imageVisible: await reloadedImage.isVisible(),
     deniedAdminFetch,
   }
 
   expect(results.student.frameVisible, 'Student video iframe should be visible')
+  expect(results.student.frameSrc?.includes(firstVideoChipId), 'Student video iframe should point to the chip-selected video')
   expect(results.student.imageVisible, 'Student image should be visible')
   expect(results.student.imageLoaded, 'Student image should load successfully')
+  expect(results.student.imageDialogVisible, 'Student image zoom dialog should be visible after click')
   expect(results.student.afterReload.frameVisible, 'Student iframe should remain visible after reload')
+  expect(results.student.afterReload.frameSrc?.includes(firstVideoChipId), 'Student iframe should return to the first chip video after reload')
   expect(results.student.afterReload.imageVisible, 'Student image should remain visible after reload')
   expect(deniedAdminFetch.status === 403, 'Student admin weekly-media fetch should return 403')
 }
@@ -193,7 +259,8 @@ async function main() {
   const { jar: adminJar } = await loginAs(baseUrl, adminAccount)
   const created = await createBrowserSmokeMedia(adminJar)
   results.admin = {
-    seededVideoId: created.videoId,
+    seededVideoIds: created.videoIds,
+    seededVideoYoutubeIds: created.videoYoutubeIds,
     seededImageId: created.imageId,
   }
 
@@ -212,7 +279,9 @@ async function main() {
   } finally {
     await browser.close()
     await deleteMedia(adminJar, created.imageId)
-    await deleteMedia(adminJar, created.videoId)
+    for (const mediaId of created.videoIds) {
+      await deleteMedia(adminJar, mediaId)
+    }
   }
 
   console.log(JSON.stringify(results, null, 2))

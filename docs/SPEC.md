@@ -159,6 +159,9 @@ student-facing 흐름도 중요하지만,
 - 영상과 이미지는 최상위 navigation을 따로 갖지 않는다
 - admin은 `수업` 탭 안에서 주차별 콘텐츠를 관리한다
 - admin `수업` 탭의 헤더 control은 현재 월을 기본으로 유지하되, 관리할 수업을 먼저 고르고 필요할 때만 월을 바꾸는 흐름을 baseline으로 둔다
+- admin 주차 영상 편집은 여러 영상을 세로로 모두 펼치기보다, 현재 선택된 영상 1개 preview와 가로 선택 strip을 중심으로 다룬다
+- admin 선택 영상은 전체화면 진입 버튼을 통해 가능하면 landscape fullscreen으로 볼 수 있어야 하고, 종료 후 같은 편집 맥락으로 자연스럽게 돌아와야 한다
+- admin 주차 이미지 목록도 한 줄 가로 스크롤로 훑고, 필요 시 확대해 확인할 수 있어야 한다
 - student는 `수업` 탭 안에서 주차별 콘텐츠를 소비한다
 - student는 선택한 주차 화면 안에서 영상을 바로 재생할 수 있는 방향을 baseline으로 둔다
 - 영상 baseline은 `YouTube 연동`
@@ -250,11 +253,17 @@ student-facing 흐름도 중요하지만,
 - 운영자는 `수업` 탭에서 클래스와 주차 맥락 안에 주차별 영상/이미지 콘텐츠를 다룰 수 있어야 한다
 - 영상은 YouTube 기준으로 연결할 수 있어야 한다
 - 현재 구현 baseline은 admin weekly YouTube URL 다건 저장/수정/삭제 + admin weekly image 다건 업로드/교체/삭제 + student inline video/image 다건 확인까지다
+- admin은 여러 저장 영상을 가로 선택 strip에서 고르고, 현재 선택된 영상 1개를 기준으로 preview/edit/delete 할 수 있어야 한다
+- admin 이미지 목록은 가로 스크롤로 훑고, click/tap 확대와 교체/삭제 action을 함께 사용할 수 있어야 한다
 - 이미지는 업로드 기준으로 다룰 수 있어야 한다
 - 현재 active image contract는 `spm-media` public bucket, `media.url` public URL, `upload_method=MANUAL`, fixed weekly image path convention이다
 - 공개 / 수정 / 삭제는 주차 콘텐츠 관리의 기본 행동이어야 한다
 - 학생은 `수업` 탭에서 클래스와 주차 맥락 안에서 주차별 영상/이미지를 볼 수 있어야 한다
 - 학생은 선택한 주차 화면 안에서 영상을 바로 재생할 수 있어야 한다
+- 학생 주차 영상은 현재 선택된 1개 플레이어를 기준으로 보고, 여러 영상은 가로 선택 strip이나 좌우 이동으로 바꿔 볼 수 있어야 한다
+- 학생 선택 영상도 전체화면 버튼으로 가능하면 landscape fullscreen에 들어갈 수 있어야 하고, 종료 후 같은 주차 선택 상태로 자연스럽게 돌아와야 한다
+- 학생 주차 이미지는 한 줄 가로 스크롤로 훑을 수 있어야 한다
+- 학생 주차 이미지 카드는 tap/click으로 확대해 자세히 볼 수 있어야 한다
 - 학생은 주차별 피드백도 함께 볼 수 있어야 한다
 - 주차별 피드백의 노출 규칙은 아래 `피드백 가시성 기준`을 따른다
 - invalid media row가 있어도 유효한 media consume은 계속 가능해야 하고, 경고는 별도로 분리되어야 한다

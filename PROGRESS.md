@@ -2,8 +2,8 @@
 
 ## Current Status
 
-- stage: `google gis login migration`
-- focus: `redirect 기반 Google login을 GIS id-token login으로 전환 + client id env handoff`
+- stage: `agents hard-stop guardrails`
+- focus: `AGENTS에 hard-stop 금지사항 추가`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,9 @@
 
 ## Recent Work Windows
 
+- `2026-03-17 | AGENTS hard-stop guardrails | start: 2026-03-17 21:24 KST | end: 2026-03-17 21:24 KST | status: done`
+- `2026-03-17 | roles 4-way consolidation | start: 2026-03-17 21:20 KST | end: 2026-03-17 21:22 KST | status: done`
+- `2026-03-17 | AGENTS index + working rules/roles split | start: 2026-03-17 21:10 KST | end: 2026-03-17 21:12 KST | status: done`
 - `2026-03-16 | package 8 weekly media copy/state polish + follow-up QA | start: not recorded | end: 2026-03-16 02:02 KST | status: done`
 - `2026-03-16 | package 10 proxy migration | start: not recorded | end: 2026-03-16 02:07 KST | status: done`
 - `2026-03-16 | package 11 local runtime auth harness | start: not recorded | end: 2026-03-16 13:01 KST | status: done`
@@ -61,12 +64,15 @@
 - `2026-03-17 | vercel deploy package manager cleanup | start: not recorded | end: 2026-03-17 00:08 KST | status: done`
 - `2026-03-17 | vercel auth callback restore + env drift note | start: not recorded | end: 2026-03-17 03:16 KST | status: done`
 - `2026-03-17 | google GIS id-token login migration | start: 2026-03-17 18:49 KST | end: 2026-03-17 18:56 KST | status: done`
+- `2026-03-17 | student admin media selector polish | start: 2026-03-17 19:08 KST | end: 2026-03-17 19:51 KST | status: done`
+- `2026-03-17 | student admin video fullscreen polish | start: not recorded | end: 2026-03-17 20:23 KST | status: done`
 
 ## Carryover
 
 - 로컬 실행은 확보되어 있다.
 - Supabase 프로젝트/환경은 현재 연결값을 유지한다.
 - 제품/검증/기술 truth는 각각 `docs/SPEC.md`, `docs/VERIFY.md`, `docs/db/*`를 따른다.
+- 저장소 진입점은 `AGENTS.md`, 전역 작업 규칙은 `docs/WORKING_RULES.md`, 역할/ownership index는 `docs/roles/README.md`를 따른다.
 - legacy/archive docs/code snapshot은 `docs/legacy/**/*`, `docs/archive/**/*`만 참고한다.
 
 ## In Progress
@@ -75,6 +81,9 @@
 
 ## Done Recently
 
+- `AGENTS.md`에 hard-stop 성격의 금지사항을 추가해 active truth, mutation 우회, write scope 침범, mock 과장, env drift를 명시적으로 금지 완료
+- 역할 체계를 `Owner / Lead Builder / Feature Builder / Verifier` 4역할로 정리하고 `Delivery Owner`를 제거 완료
+- `AGENTS.md`를 목차형 진입점으로 축소하고 전역 규칙/역할 index를 `docs/WORKING_RULES.md`, `docs/roles/README.md`로 분리 완료
 - local runtime 정리 완료
 - active docs와 legacy snapshot 분리 완료
 - 역할 문서 구조(`AGENTS` + `docs/roles/*`) 정리 완료
@@ -173,12 +182,16 @@
 - Vercel auth hotfix와 Supabase project drift 분석을 [docs/reports/2026-03-17-vercel-auth-login-hotfix.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-vercel-auth-login-hotfix.md)로 기록 완료
 - `/auth/login` Google entry를 GIS ID token + Supabase `signInWithIdToken` 우선, redirect 기반 compatibility fallback 포함 구조로 전환 완료
 - local no-client-id 환경에서 Google compatibility fallback 렌더와 auth/role smoke 재검증을 [docs/reports/2026-03-17-google-gis-login-migration.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-google-gis-login-migration.md)로 기록 완료
+- student 주차 영상은 단일 플레이어 + 선택 strip 구조로, 이미지는 가로 스크롤 + click/tap 확대 구조로 정리 완료
+- admin 주차 미디어 편집기도 단일 preview + 선택 strip / 가로 이미지 + 확대 구조로 정렬 완료
+- student media browser smoke를 영상 selector + 이미지 확대 포함 기준으로 보강하고 [docs/reports/2026-03-17-student-media-horizontal-scroll-and-zoom.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-student-media-horizontal-scroll-and-zoom.md)로 기록 완료
+- 학생/관리자 선택 영상에 fullscreen 버튼과 best-effort landscape lock/restore 동작 추가 완료
 
 ## Next Up
 
-1. Vercel과 필요한 local env에 `NEXT_PUBLIC_GOOGLE_CLIENT_ID`를 추가하고 deployed GIS login runtime 재확인
-2. free-only 운영 기준으로 YouTube 링크 붙여넣기 runtime smoke 재확인
-3. remote Supabase에 `update_enrollment_status`, `update_enrollment_payment_status` helper를 실제 반영하고 verify 재실행
+1. free-only 운영 기준으로 YouTube 링크 붙여넣기 runtime smoke 재확인
+2. remote Supabase에 `update_enrollment_status`, `update_enrollment_payment_status` helper를 실제 반영하고 verify 재실행
+3. deployed student/admin media 화면에서 mobile 실기 확인 필요 시 fullscreen 진입/복귀와 영상 selector 감도 재확인
 
 ## Risks / Open Questions
 

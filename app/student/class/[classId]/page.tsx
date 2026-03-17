@@ -4,14 +4,27 @@ import { use, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
-import { AlertCircle, ArrowLeft, CheckCircle2, Clock3, Image as ImageIcon, Loader2, PlayCircle, XCircle } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
+  Clock3,
+  Image as ImageIcon,
+  Loader2,
+  PlayCircle,
+  ZoomIn,
+  XCircle,
+} from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
-import { extractYoutubeId, formatYearMonthLabel, readStudentClassDetail, type StudentClassDetail } from '@/lib/weekly-media'
+import { formatYearMonthLabel, readStudentClassDetail, type StudentClassDetail } from '@/lib/weekly-media'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { SelectedVideoPlayer } from '@/components/selected-video-player'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
 
 const supabase = createClient()
 const authRequiredMessage = '로그인이 필요합니다.'
@@ -84,6 +97,11 @@ export default function StudentClassDetailPage({
   const searchParams = useSearchParams()
   const yearMonth = searchParams.get('yearMonth') ?? ''
   const [activeWeek, setActiveWeek] = useState<string | null>(null)
+  const [selectedVideoByWeek, setSelectedVideoByWeek] = useState<Record<string, string>>({})
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string
+    alt: string
+  } | null>(null)
 
   const {
     data: detail,
@@ -264,6 +282,28 @@ export default function StudentClassDetailPage({
               const AttendanceIcon = attendance.icon
               const youtubeItems = week.video.items
               const imageItems = week.image.items
+              const weekKey = String(week.weekNumber)
+              const selectedVideo =
+                youtubeItems.find((item) => item.mediaId === selectedVideoByWeek[weekKey]) ??
+                youtubeItems[0] ??
+                null
+              const selectedVideoIndex = selectedVideo
+                ? youtubeItems.findIndex((item) => item.mediaId === selectedVideo.mediaId)
+                : -1
+
+              function moveSelectedVideo(direction: -1 | 1) {
+                if (youtubeItems.length <= 1 || selectedVideoIndex === -1) {
+                  return
+                }
+
+                const nextIndex =
+                  (selectedVideoIndex + direction + youtubeItems.length) % youtubeItems.length
+
+                setSelectedVideoByWeek((current) => ({
+                  ...current,
+                  [weekKey]: youtubeItems[nextIndex]?.mediaId ?? current[weekKey],
+                }))
+              }
 
               return (
                 <TabsContent key={week.weekNumber} value={String(week.weekNumber)} className="mt-4 space-y-4">
@@ -277,7 +317,7 @@ export default function StudentClassDetailPage({
                         </Badge>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-3">
                       {week.video.invalidItems.length > 0 || week.image.invalidItems.length > 0 ? (
                         <div className="rounded-xl border border-amber-300/40 bg-amber-50/60 px-3 py-3 text-sm text-amber-950">
                           <p className="font-medium">일부 콘텐츠는 아직 열 수 없습니다.</p>
@@ -296,43 +336,114 @@ export default function StudentClassDetailPage({
                       ) : null}
 
                       {youtubeItems.length > 0 ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 text-sm font-medium">
-                            <PlayCircle className="h-4 w-4 text-red-500" />
-                            영상
-                          </div>
-                          {youtubeItems.map((item) => (
-                            <div key={item.mediaId} className="overflow-hidden rounded-xl border bg-muted">
-                              <div className="aspect-video">
-                                <iframe
-                                  src={`https://www.youtube.com/embed/${item.youtubeId}`}
-                                  title={`${week.weekNumber}주차 영상`}
-                                  className="h-full w-full"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                />
-                              </div>
+                        <div className="space-y-2.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                              <PlayCircle className="h-4 w-4 text-red-500" />
+                              영상
                             </div>
-                          ))}
+                            {youtubeItems.length > 1 ? (
+                              <p className="text-xs text-muted-foreground">화살표나 아래 목록에서 재생할 영상을 고를 수 있습니다.</p>
+                            ) : null}
+                          </div>
+                          {selectedVideo ? (
+                            <SelectedVideoPlayer
+                              label="현재 재생 영상"
+                              countLabel={
+                                youtubeItems.length > 1
+                                  ? `${selectedVideoIndex + 1} / ${youtubeItems.length}`
+                                  : null
+                              }
+                              canNavigate={youtubeItems.length > 1}
+                              onPrevious={() => moveSelectedVideo(-1)}
+                              onNext={() => moveSelectedVideo(1)}
+                              surfaceClassName="bg-card"
+                            >
+                              <iframe
+                                src={`https://www.youtube.com/embed/${selectedVideo.youtubeId}`}
+                                title={`${week.weekNumber}주차 선택 영상`}
+                                className="h-full w-full"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            </SelectedVideoPlayer>
+                          ) : null}
+                          {youtubeItems.length > 1 ? (
+                            <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2">
+                              {youtubeItems.map((item, index) => {
+                                const isSelected = item.mediaId === selectedVideo?.mediaId
+
+                                return (
+                                  <button
+                                    key={item.mediaId}
+                                    type="button"
+                                    aria-label={`${week.weekNumber}주차 영상 ${index + 1} 선택`}
+                                    onClick={() =>
+                                      setSelectedVideoByWeek((current) => ({
+                                        ...current,
+                                        [weekKey]: item.mediaId,
+                                      }))
+                                    }
+                                    className={cn(
+                                      'min-w-[11rem] snap-start rounded-xl border px-3 py-3 text-left shadow-sm transition',
+                                      isSelected
+                                        ? 'border-primary bg-primary/5'
+                                        : 'bg-background hover:border-primary/40',
+                                    )}
+                                  >
+                                    <div className="space-y-1">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="text-sm font-medium">영상 {index + 1}</span>
+                                        {isSelected ? <Badge variant="secondary">현재</Badge> : null}
+                                      </div>
+                                    </div>
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          ) : null}
                         </div>
                       ) : null}
 
                       {imageItems.length > 0 ? (
                         <div className="space-y-3">
-                          <div className="flex items-center gap-2 text-sm font-medium">
-                            <ImageIcon className="h-4 w-4 text-blue-500" />
-                            이미지
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 text-sm font-medium">
+                              <ImageIcon className="h-4 w-4 text-blue-500" />
+                              이미지
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              좌우로 넘기고, 이미지를 누르면 크게 볼 수 있습니다.
+                            </p>
                           </div>
-                          <div className="grid gap-3">
-                            {imageItems.map((item) => (
-                              <div key={item.mediaId} className="overflow-hidden rounded-xl border">
-                                <img
-                                  src={item.url}
-                                  alt={`${week.weekNumber}주차 이미지`}
-                                  className="h-auto w-full object-cover"
-                                />
-                              </div>
-                            ))}
+                          <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2">
+                            {imageItems.map((item, index) => {
+                              const alt = `${week.weekNumber}주차 이미지 ${index + 1}`
+
+                              return (
+                                <button
+                                  key={item.mediaId}
+                                  type="button"
+                                  onClick={() => setSelectedImage({ url: item.url, alt })}
+                                  className="group min-w-[75%] snap-start overflow-hidden rounded-xl border bg-background text-left shadow-sm transition hover:border-primary/40 sm:min-w-[22rem]"
+                                >
+                                  <div className="relative">
+                                    <img
+                                      src={item.url}
+                                      alt={alt}
+                                      className="h-56 w-full object-cover transition duration-200 group-hover:scale-[1.02]"
+                                    />
+                                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/50 px-3 py-2 text-xs text-white">
+                                      <span>이미지 {index + 1}</span>
+                                      <span className="inline-flex items-center gap-1">
+                                        <ZoomIn className="h-3.5 w-3.5" />
+                                        확대
+                                      </span>
+                                    </div>
+                                  </div>
+                                </button>
+                              )
+                            })}
                           </div>
                         </div>
                       ) : null}
@@ -392,6 +503,26 @@ export default function StudentClassDetailPage({
           </Tabs>
         )}
       </div>
+
+      <Dialog open={selectedImage !== null} onOpenChange={(open) => (!open ? setSelectedImage(null) : null)}>
+        <DialogContent className="max-h-[90dvh] overflow-hidden p-3 sm:max-w-5xl">
+          <DialogHeader className="pr-8">
+            <DialogTitle>이미지 크게 보기</DialogTitle>
+            <DialogDescription>
+              현재 주차 이미지를 크게 확인합니다.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedImage ? (
+            <div className="overflow-auto rounded-xl bg-muted/40">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.alt}
+                className="max-h-[75dvh] w-full object-contain"
+              />
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

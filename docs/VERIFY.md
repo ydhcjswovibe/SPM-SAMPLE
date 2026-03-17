@@ -89,6 +89,10 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - selected class -> week -> content order is still understandable
 - touched cards, tabs, and panels do not disagree on `loading` / `syncing` / `empty` / `selection-needed` / `all-clear` meaning
 - current selection label matches the actual selected class and week, or clearly says that nothing is selected
+- student weekly media에서 영상은 현재 선택된 1개 플레이어와 이전/다음 또는 가로 선택 strip이 함께 유지돼야 한다
+- student 선택 영상의 전체화면 버튼은 fullscreen 진입을 시도하고, 종료 뒤에도 같은 주차/영상 맥락으로 자연스럽게 복귀해야 한다
+- student weekly image는 여러 건일 때 한 줄 가로 스크롤로 훑히고, snap 없이 엉키지 않아야 한다
+- student 이미지 카드는 tap/click으로 확대 다이얼로그가 열리고, 닫은 뒤 주차 맥락으로 자연스럽게 돌아와야 한다
 - CTA labels match the real action:
   - tab move
   - class or week selection
@@ -150,6 +154,9 @@ If the package is docs-only, commands are optional; say which source docs or rep
 ### Weekly media input UX
 - admin `수업` 탭의 새 영상 입력은 YouTube 주소/영상 ID 붙여넣기와 링크 드롭을 받아야 한다
 - 유효한 입력은 canonical YouTube watch URL로 정리돼 저장 전 preview가 가능해야 한다
+- admin 저장 영상이 여러 건일 때 현재 선택된 1개 preview/edit surface와 가로 선택 strip이 함께 유지돼야 한다
+- admin 선택 영상의 전체화면 버튼은 fullscreen 진입을 시도하고, 종료 뒤에도 같은 편집 맥락으로 복귀해야 한다
+- admin 이미지 목록은 가로 스크롤 카드와 확대 보기, 교체/삭제 action이 함께 동작해야 한다
 - 무료 운영 기준에서는 영상 파일 선택/드롭 업로드를 열지 않고, YouTube에 먼저 업로드한 뒤 링크를 붙여 넣는 흐름만 유지해야 한다
 
 ### Route guard / wrong-role rendered smoke

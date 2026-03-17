@@ -1,7 +1,17 @@
 'use client'
 
 import { type DragEvent, useEffect, useState } from 'react'
-import { AlertCircle, Image as ImageIcon, Loader2, Plus, Save, Trash2, Upload, Youtube } from 'lucide-react'
+import {
+  AlertCircle,
+  Image as ImageIcon,
+  Loader2,
+  Plus,
+  Save,
+  Trash2,
+  Upload,
+  Youtube,
+  ZoomIn,
+} from 'lucide-react'
 
 import type { WeeklyMediaWeek } from '@/lib/weekly-media'
 import { extractYoutubeId, formatYearMonthLabel, normalizeYoutubeInput } from '@/lib/weekly-media'
@@ -9,8 +19,10 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { SelectedVideoPlayer } from '@/components/selected-video-player'
 
 interface WeekContentEditorProps {
   week: WeeklyMediaWeek
@@ -34,6 +46,11 @@ export function WeekContentEditor({
   const [busyKey, setBusyKey] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [isVideoDropActive, setIsVideoDropActive] = useState(false)
+  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null)
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string
+    alt: string
+  } | null>(null)
 
   useEffect(() => {
     const nextDrafts = Object.fromEntries(
@@ -41,6 +58,11 @@ export function WeekContentEditor({
     )
     setVideoDrafts(nextDrafts)
     setActionError(null)
+    setSelectedVideoId((current) =>
+      week.video.items.some((item) => item.mediaId === current)
+        ? current
+        : week.video.items[0]?.mediaId ?? null,
+    )
   }, [week])
 
   function normalizeVideoDraft(mediaId: string) {
@@ -96,6 +118,25 @@ export function WeekContentEditor({
     week.video.invalidItems.length > 0 ||
     week.image.invalidItems.length > 0
   const newVideoPreviewId = extractYoutubeId(newVideoUrl)
+  const selectedVideo =
+    week.video.items.find((item) => item.mediaId === selectedVideoId) ?? week.video.items[0] ?? null
+  const selectedVideoIndex = selectedVideo
+    ? week.video.items.findIndex((item) => item.mediaId === selectedVideo.mediaId)
+    : -1
+  const selectedVideoPreviewId = selectedVideo
+    ? extractYoutubeId(videoDrafts[selectedVideo.mediaId] ?? selectedVideo.url)
+    : null
+
+  function moveSelectedVideo(direction: -1 | 1) {
+    if (week.video.items.length <= 1 || selectedVideoIndex === -1) {
+      return
+    }
+
+    const nextIndex =
+      (selectedVideoIndex + direction + week.video.items.length) % week.video.items.length
+
+    setSelectedVideoId(week.video.items[nextIndex]?.mediaId ?? null)
+  }
 
   async function handleCreateVideo() {
     const normalized = normalizeYoutubeInput(newVideoUrl)
@@ -214,69 +255,108 @@ export function WeekContentEditor({
           {week.video.items.length === 0 ? (
             <p className="text-sm text-muted-foreground">아직 등록된 영상이 없습니다.</p>
           ) : (
-            week.video.items.map((item) => {
-              const previewId = extractYoutubeId(videoDrafts[item.mediaId] ?? item.url)
-
-              return (
-                <div key={item.mediaId} className="space-y-3 rounded-xl border p-3">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">저장된 영상</Badge>
-                  </div>
-                  <Input
-                    value={videoDrafts[item.mediaId] ?? item.url}
-                    onChange={(event) =>
-                      setVideoDrafts((current) => ({
-                        ...current,
-                        [item.mediaId]: event.target.value,
-                      }))
+            <div className="space-y-3">
+              {selectedVideo ? (
+                <>
+                  <SelectedVideoPlayer
+                    label="현재 선택된 영상"
+                    countLabel={
+                      week.video.items.length > 1
+                        ? `${selectedVideoIndex + 1} / ${week.video.items.length}`
+                        : null
                     }
-                    onBlur={() => {
-                      if (!videoDrafts[item.mediaId]?.trim()) return
-                      normalizeVideoDraft(item.mediaId)
-                    }}
-                    placeholder="YouTube 주소 또는 영상 ID"
-                  />
-                  {previewId ? (
-                    <div className="aspect-video overflow-hidden rounded-lg bg-muted">
+                    canNavigate={week.video.items.length > 1}
+                    onPrevious={() => moveSelectedVideo(-1)}
+                    onNext={() => moveSelectedVideo(1)}
+                    surfaceClassName="bg-background"
+                  >
+                    {selectedVideoPreviewId ? (
                       <iframe
-                        src={`https://www.youtube.com/embed/${previewId}`}
+                        src={`https://www.youtube.com/embed/${selectedVideoPreviewId}`}
                         title={`${week.weekNumber}주차 영상 미리보기`}
                         className="h-full w-full"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                        유효한 YouTube 주소를 입력하면 여기서 미리보기를 확인할 수 있습니다.
+                      </div>
+                    )}
+                  </SelectedVideoPlayer>
+                  <div className="space-y-3 rounded-xl border bg-background p-3">
+                    <Input
+                      value={videoDrafts[selectedVideo.mediaId] ?? selectedVideo.url}
+                      onChange={(event) =>
+                        setVideoDrafts((current) => ({
+                          ...current,
+                          [selectedVideo.mediaId]: event.target.value,
+                        }))
+                      }
+                      onBlur={() => {
+                        if (!videoDrafts[selectedVideo.mediaId]?.trim()) return
+                        normalizeVideoDraft(selectedVideo.mediaId)
+                      }}
+                      placeholder="YouTube 주소 또는 영상 ID"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => void handleUpdateVideo(selectedVideo.mediaId)}
+                        disabled={busyKey === `update-video-${selectedVideo.mediaId}`}
+                        className="gap-2"
+                      >
+                        {busyKey === `update-video-${selectedVideo.mediaId}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4" />
+                        )}
+                        저장
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => void handleDeleteMedia(selectedVideo.mediaId)}
+                        disabled={busyKey === `delete-media-${selectedVideo.mediaId}`}
+                        className="gap-2"
+                      >
+                        {busyKey === `delete-media-${selectedVideo.mediaId}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                        삭제
+                      </Button>
                     </div>
-                  ) : null}
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => void handleUpdateVideo(item.mediaId)}
-                      disabled={busyKey === `update-video-${item.mediaId}`}
-                      className="gap-2"
-                    >
-                      {busyKey === `update-video-${item.mediaId}` ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Save className="h-4 w-4" />
-                      )}
-                      저장
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => void handleDeleteMedia(item.mediaId)}
-                      disabled={busyKey === `delete-media-${item.mediaId}`}
-                      className="gap-2"
-                    >
-                      {busyKey === `delete-media-${item.mediaId}` ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                      삭제
-                    </Button>
                   </div>
-                </div>
-              )
-            })
+                </>
+              ) : null}
+
+              <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2">
+                {week.video.items.map((item, index) => {
+                  const isSelected = item.mediaId === selectedVideo?.mediaId
+
+                  return (
+                    <button
+                      key={item.mediaId}
+                      type="button"
+                      onClick={() => setSelectedVideoId(item.mediaId)}
+                      className={cn(
+                        'min-w-[11rem] snap-start rounded-xl border px-3 py-3 text-left shadow-sm transition',
+                        isSelected
+                          ? 'border-primary bg-primary/5'
+                          : 'bg-background hover:border-primary/40',
+                      )}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-medium">영상 {index + 1}</span>
+                          {isSelected ? <Badge variant="secondary">현재</Badge> : null}
+                        </div>
+                                    </div>
+                                  </button>
+                                )
+                })}
+              </div>
+            </div>
           )}
 
           <div
@@ -352,60 +432,82 @@ export function WeekContentEditor({
           {week.image.items.length === 0 ? (
             <p className="text-sm text-muted-foreground">아직 업로드된 이미지가 없습니다.</p>
           ) : (
-            week.image.items.map((item) => (
-              <div key={item.mediaId} className="space-y-3 rounded-xl border p-3">
-                <div className="overflow-hidden rounded-lg border bg-muted">
-                  <img
-                    src={item.url}
-                    alt={`${week.weekNumber}주차 이미지`}
-                    className="h-auto w-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">저장된 이미지</Badge>
-                  <span className="text-xs text-muted-foreground">새 파일을 고르면 바로 교체됩니다.</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Label
-                    htmlFor={`replace-image-${item.mediaId}`}
-                    className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
+            <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2">
+              {week.image.items.map((item, index) => {
+                const imageAlt = `${week.weekNumber}주차 이미지 ${index + 1}`
+
+                return (
+                  <div
+                    key={item.mediaId}
+                    className="min-w-[78%] snap-start space-y-3 rounded-xl border p-3 shadow-sm sm:min-w-[22rem]"
                   >
-                    {busyKey === `upload-image-${item.mediaId}-${week.weekNumber}` ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4" />
-                    )}
-                    교체
-                  </Label>
-                  <input
-                    id={`replace-image-${item.mediaId}`}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0]
-                      if (file) {
-                        void handleUploadImage(file, item.mediaId)
-                      }
-                      event.currentTarget.value = ''
-                    }}
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => void handleDeleteMedia(item.mediaId)}
-                    disabled={busyKey === `delete-media-${item.mediaId}`}
-                    className="gap-2"
-                  >
-                    {busyKey === `delete-media-${item.mediaId}` ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                    삭제
-                  </Button>
-                </div>
-              </div>
-            ))
+                    <button
+                      type="button"
+                      onClick={() => setSelectedImage({ url: item.url, alt: imageAlt })}
+                      className="group w-full overflow-hidden rounded-lg border bg-muted text-left"
+                    >
+                      <div className="relative">
+                        <img
+                          src={item.url}
+                          alt={imageAlt}
+                          className="h-56 w-full object-cover transition duration-200 group-hover:scale-[1.02]"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/50 px-3 py-2 text-xs text-white">
+                          <span>이미지 {index + 1}</span>
+                          <span className="inline-flex items-center gap-1">
+                            <ZoomIn className="h-3.5 w-3.5" />
+                            확대
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">저장된 이미지</Badge>
+                      <span className="text-xs text-muted-foreground">새 파일을 고르면 바로 교체됩니다.</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Label
+                        htmlFor={`replace-image-${item.mediaId}`}
+                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
+                      >
+                        {busyKey === `upload-image-${item.mediaId}-${week.weekNumber}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="h-4 w-4" />
+                        )}
+                        교체
+                      </Label>
+                      <input
+                        id={`replace-image-${item.mediaId}`}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0]
+                          if (file) {
+                            void handleUploadImage(file, item.mediaId)
+                          }
+                          event.currentTarget.value = ''
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => void handleDeleteMedia(item.mediaId)}
+                        disabled={busyKey === `delete-media-${item.mediaId}`}
+                        className="gap-2"
+                      >
+                        {busyKey === `delete-media-${item.mediaId}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                        삭제
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           )}
 
           <div className="space-y-2 rounded-xl border border-dashed p-3">
@@ -447,6 +549,26 @@ export function WeekContentEditor({
           </CardContent>
         </Card>
       ) : null}
+
+      <Dialog open={selectedImage !== null} onOpenChange={(open) => (!open ? setSelectedImage(null) : null)}>
+        <DialogContent className="max-h-[90dvh] overflow-hidden p-3 sm:max-w-5xl">
+          <DialogHeader className="pr-8">
+            <DialogTitle>이미지 크게 보기</DialogTitle>
+            <DialogDescription>
+              업로드된 주차 이미지를 크게 확인합니다.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedImage ? (
+            <div className="overflow-auto rounded-xl bg-muted/40">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.alt}
+                className="max-h-[75dvh] w-full object-contain"
+              />
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
