@@ -2,8 +2,8 @@
 
 ## Current Status
 
-- stage: `free-only YouTube link flow restored`
-- focus: `YouTube 파일 자동 업로드 제거 후 free-only truth 정리`
+- stage: `vercel auth login restore`
+- focus: `배포 로그인 실패 원인 분리: callback route 복구 + Supabase env drift 확인`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -59,6 +59,7 @@
 - `2026-03-16 | weekly media shorts URL parsing hotfix | start: not recorded | end: 2026-03-16 22:57 KST | status: done`
 - `2026-03-16 | admin/student home + logout utility access | start: not recorded | end: 2026-03-16 23:03 KST | status: done`
 - `2026-03-17 | vercel deploy package manager cleanup | start: not recorded | end: 2026-03-17 00:08 KST | status: done`
+- `2026-03-17 | vercel auth callback restore + env drift note | start: not recorded | end: 2026-03-17 03:16 KST | status: done`
 
 ## Carryover
 
@@ -167,17 +168,21 @@
 - mobile admin `운영 / 학생 / 수업` 헤더 오른쪽에 설정 진입 아이콘 추가 완료
 - admin mobile 헤더와 student/account 메뉴에 `처음으로`, `로그아웃` 전환 유틸리티 추가 완료
 - 배포 환경 혼선을 막기 위해 `pnpm-lock.yaml` 제거 및 `packageManager=npm@10.9.4` 명시 완료
+- 빠져 있던 [app/auth/callback/route.ts](/home/ydhcjswo/projects/SPM_SAMPLE/app/auth/callback/route.ts) 복구 완료
+- Vercel auth hotfix와 Supabase project drift 분석을 [docs/reports/2026-03-17-vercel-auth-login-hotfix.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-vercel-auth-login-hotfix.md)로 기록 완료
 
 ## Next Up
 
-1. free-only 운영 기준으로 YouTube 링크 붙여넣기 runtime smoke 재확인
-2. remote Supabase에 `update_enrollment_status`, `update_enrollment_payment_status` helper를 실제 반영하고 verify 재실행
+1. Vercel env를 로컬 active truth와 같은 Supabase project로 맞춘 뒤 deployed login runtime 재확인
+2. free-only 운영 기준으로 YouTube 링크 붙여넣기 runtime smoke 재확인
+3. remote Supabase에 `update_enrollment_status`, `update_enrollment_payment_status` helper를 실제 반영하고 verify 재실행
 
 ## Risks / Open Questions
 
 - 구현 시작 전 `docs/archive/**/*`를 active truth로 다시 인용하지 않도록 주의가 필요하다.
 - connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC는 아직 schema cache에 없어, 현재 route는 compatibility fallback을 함께 유지한다.
 - remote sync credential이 없어서 connected Supabase에 helper RPC를 실제 push하지 못했다.
+- Vercel 환경변수는 현재 `.env.local`의 active Supabase project(`kpcujcnw...`)가 아니라 `dtqdmnry...` project를 가리키고 있어 배포 auth truth drift가 있다.
 
 ## Legacy Snapshot
 
