@@ -71,7 +71,7 @@ export default async function HomePage() {
                 </div>
                 <div className="space-y-1">
                   <CardTitle className="text-lg">학생 화면</CardTitle>
-                  <CardDescription className="text-sm">등록된 수업과 주차별 콘텐츠 확인</CardDescription>
+                  <CardDescription className="text-sm">등록 수업 확인과 새 수업 승인 요청</CardDescription>
                 </div>
               </CardHeader>
             </Card>

@@ -16,6 +16,7 @@ import {
 } from '@/lib/student-lessons'
 import { SpmMascot } from '@/components/spm-mascot'
 import { StudentClassDetailView } from '@/components/student-class-detail-view'
+import { StudentEnrollmentRequestCard } from '@/components/student-enrollment-request-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -155,7 +156,7 @@ export default function StudentDashboard() {
 
   if (!summaries || summaries.length === 0) {
     return (
-      <div className="px-4 pb-28 pt-4">
+      <div className="space-y-4 px-4 pb-28 pt-4">
         <Card className="overflow-hidden rounded-[2rem] border border-[rgba(23,33,42,0.08)] bg-white/96 py-0 shadow-[0_24px_64px_rgba(21,28,38,0.1)]">
           <CardContent className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-[#eef8f4]">
@@ -167,11 +168,15 @@ export default function StudentDashboard() {
               </p>
               <h2 className="spm-display text-3xl text-[#17212a]">아직 볼 수 있는 수업이 없어요.</h2>
               <p className="mx-auto max-w-sm text-sm leading-6 text-[#66707b]">
-                등록이 완료되면 이 화면에서 월별 수업과 주차 콘텐츠를 바로 이어서 확인할 수 있습니다.
+                아직 배정된 수업이 없다면 아래에서 원하는 수업과 월을 골라 승인 요청을 보낼 수 있습니다.
               </p>
             </div>
           </CardContent>
         </Card>
+        <StudentEnrollmentRequestCard
+          title="첫 수업 신청"
+          description="원하는 수업과 월을 먼저 고르면 운영 쪽에서 확인 후 등록 예정 상태로 바로 올려 둡니다."
+        />
       </div>
     )
   }
@@ -214,6 +219,9 @@ export default function StudentDashboard() {
               className="h-2.5 flex-1 border border-[rgba(23,33,42,0.08)] bg-[#ebece6]"
             />
           </div>
+          <Button asChild variant="outline" size="sm" className="rounded-full">
+            <Link href="/student/profile#enrollment-request">수업 신청</Link>
+          </Button>
         </div>
       </section>
 

@@ -148,6 +148,8 @@ student-facing 흐름도 중요하지만,
 - 학생은 `ACTIVE`와 `PENDING` 월을 본다
 - 학생 헤더 selector는 해당 학생의 `ACTIVE`/`PENDING` 등록만 보여 주고, soft delete된 inactive 수업은 숨긴다
 - 학생 `수업` 탭은 기존 최상단 헤더 바에서 수업과 월을 바꾸고, 첫 화면에서 바로 선택된 수업의 간단한 상황판과 주차 콘텐츠를 본다
+- 학생은 수업이 없거나 추가 요청이 필요할 때 `수업 신청` 표면에서 활성 수업과 월을 고르고 승인 요청을 보낼 수 있다
+- 학생 수업 신청은 새 계정 생성이 아니라 자기 `enrollments`를 `PENDING`으로 생성하거나, 취소된 같은 달 요청을 `PENDING`으로 다시 여는 흐름이다
 - 학생 `수업` 탭의 간단한 상황판은 핵심 상태만 한 줄 요약으로 보여 주고, 같은 의미를 범례/상태칩/빈 상태로 반복 설명하지 않는다
 - `PENDING` 월은 `등록 예정` 또는 이에 준하는 상태 라벨로 명확히 구분한다
 - `CANCELLED` 월은 학생 수업 목록에 노출하지 않는다
@@ -212,7 +214,8 @@ student-facing 흐름도 중요하지만,
 
 ### Student Enrollment Management
 - 운영자는 `/admin`에서 기존 `STUDENT` profile을 현재 class/month enrollment로 배정할 수 있어야 한다
-- 현재 구현 baseline은 새 auth 계정 생성이 아니라 기존 profile 배정 + enrollment status(`ACTIVE / PENDING / CANCELLED`) 조정 + `OWNER` 전용 실제 delete다
+- 현재 구현 baseline은 새 auth 계정 생성이 아니라 기존 profile 배정 + student self-request + enrollment status(`ACTIVE / PENDING / CANCELLED`) 조정 + `OWNER` 전용 실제 delete다
+- 학생 self-request가 들어오면 같은 `PENDING` enrollment로 운영 표면에 나타나고, 운영자는 상태를 `ACTIVE`로 바꿔 승인한다
 - `CANCELLED` enrollment는 ops 표에서 결제/출석 토글이 비활성화되어야 한다
 - 학생 배정 표면은 `현재 월 기본 선택 + 수업 먼저 선택 + 필요 시 월 변경` 순서를 따르고, 선택 가능한 수업 목록은 활성 수업 전체를 보여 주되 해당 월 등록 기준 수업을 먼저 노출한다
 - 학생 배정 표면 첫 진입 시에는 해당 월 수업 목록의 첫 항목을 기본 선택으로 사용하고, 목록 재검증 중에도 그 기본 선택이 불안정하게 비지 않아야 하며 월 변경 시에도 선택한 수업이 계속 활성 상태면 유지한다

@@ -10,6 +10,7 @@ import type { Profile } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
 import { formatYearMonthLabel, readStudentClassSummaries, type StudentClassSummary } from '@/lib/weekly-media'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { StudentEnrollmentRequestCard } from '@/components/student-enrollment-request-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -234,6 +235,11 @@ export default function StudentProfilePage() {
           )}
         </CardContent>
       </Card>
+
+      <StudentEnrollmentRequestCard
+        title="새 수업 요청"
+        description="등록이 안 된 수업도 여기서 먼저 요청할 수 있습니다. 운영이 확인하면 수업 탭에 등록 예정으로 바로 나타납니다."
+      />
 
       <Card>
         <CardHeader>

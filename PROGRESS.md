@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `학생 active 수업 selector 정리 + 오너 삭제 모드 가시화 완료, 실브라우저 QA와 runtime 검증 대기`
+- focus: `학생 수업 신청 flow 복구 완료, 실브라우저 QA와 runtime 검증 대기`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-03-18 | student enrollment request flow recovery | start: not recorded | end: 2026-03-18 16:21 KST | status: done`
 - `2026-03-18 | student active selector + owner delete visibility hotfix | start: not recorded | end: 2026-03-18 14:49 KST | status: done`
 - `2026-03-18 | overall usability + copy cleanup package | start: not recorded | end: 2026-03-18 14:33 KST | status: done`
 - `2026-03-18 | student header inline row follow-up | start: not recorded | end: 2026-03-18 14:04 KST | status: done`
@@ -90,6 +91,11 @@
 
 ## Done Recently
 
+- 학생이 `/student`, `/student/profile`에서 활성 수업과 월을 골라 승인 요청을 보내는 `수업 신청` 표면을 복구 완료
+- `/api/student/enrollment-request` route를 추가해 student self-request를 `PENDING` enrollment create/reopen contract로 정렬 완료
+- 학생 수업 탭 empty state와 profile에서 같은 신청 surface를 재사용하고, 신청 성공 뒤 `수업` 탭 deep link를 바로 열 수 있게 정리 완료
+- 이번 student enrollment request 복구를 [docs/reports/2026-03-18-student-enrollment-request-recovery.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-enrollment-request-recovery.md)로 기록 완료
+- 이번 복구 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
 - `/student` 수업 selector를 active class 기준으로 다시 정렬해 soft delete된 수업 enrollment가 헤더 선택기에 남지 않도록 정리 완료
 - `/admin`에서 `오늘 운영` 블록을 제거하고, 오너 전용 `삭제 모드` trigger를 헤더에 상시 노출하도록 정리 완료
 - 이번 selector/delete visibility hotfix를 [docs/reports/2026-03-18-student-active-selector-and-owner-delete-visibility.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-active-selector-and-owner-delete-visibility.md)로 기록 완료
@@ -230,7 +236,7 @@
 
 ## Next Up
 
-1. 브라우저에서 `/auth/login`, `/student`, `/student/profile`, `/admin`, `/admin/students` 실화면을 확인해 헤더 control 노출, Enter submit, admin matrix touch target, 탭 safe area를 직접 검증
+1. 브라우저에서 `/auth/login`, `/student`, `/student/profile`, `/admin`, `/admin/students` 실화면을 확인해 학생 수업 신청 -> `PENDING` 반영 -> 운영 승인 전환, 헤더 control 노출, Enter submit, admin matrix touch target, 탭 safe area를 직접 검증
 2. 1차 톤이 맞으면 `/admin/content`, `/admin/settings`, wrong-role/access gate 표면에도 같은 간결한 copy 기준을 확장
 3. configured env에서 GIS Google login success path를 실제 runtime으로 확인
 4. connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC를 remote에 반영하고 fallback 제거 여부 재판단
@@ -238,7 +244,7 @@
 
 ## Risks / Open Questions
 
-- 이번 패키지는 source-backed + static validation까지는 닫혔지만, 모바일 실브라우저에서 학생 헤더 select 노출 폭과 admin matrix touch target 체감은 아직 직접 확인하지 않았다.
+- 이번 패키지는 source-backed + static validation까지는 닫혔지만, 모바일 실브라우저에서 학생 수업 신청 흐름과 헤더 select 노출 폭, admin matrix touch target 체감은 아직 직접 확인하지 않았다.
 - cute redesign 1차 구현은 완료됐지만, admin main에서 귀여운 톤이 matrix 판독성을 해치지 않는지 실제 브라우저 확인이 아직 남아 있다.
 - 학생 수업 탭 헤더 inline row follow-up은 source-backed와 build/typecheck 기준으로는 닫혔지만, 모바일 브라우저에서 헤더 안 수업/월 select와 주차 스크롤 감각이 자연스러운지는 직접 확인이 아직 남아 있다.
 - 공통 버튼/카드/입력 톤이 바뀌어 1차 범위 밖 화면도 시각적으로 일부 영향받을 수 있다.
