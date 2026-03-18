@@ -40,6 +40,9 @@ export function StudentNav({ userName }: StudentNavProps) {
   const { data: summaries } = useSWR(
     isLessonHome ? 'student-class-summaries' : null,
     () => fetchStudentSummaries(supabase),
+    {
+      refreshInterval: 15000,
+    },
   )
 
   const featuredSummary =

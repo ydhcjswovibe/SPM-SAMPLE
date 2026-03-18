@@ -37,8 +37,9 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 운영 탭 class selector는 활성 수업 전체를 보여 주되, 해당 월 등록이 있는 수업이 먼저 와야 한다
 - 학생 탭 class selector는 해당 학생의 `ACTIVE`/`PENDING` 등록만 보여 주고, soft delete된 inactive 수업은 숨겨야 한다
 - 운영/학생/수업 탭 헤더 control은 수업 selector가 월 input보다 먼저 보여야 한다
-- 학생은 `수업 신청` 표면에서 활성 수업과 월을 골라 승인 요청을 보낼 수 있어야 한다
+- 학생은 `수업` 탭의 `수업 신청` 다이얼로그에서 활성 수업과 월을 골라 승인 요청을 보낼 수 있어야 한다
 - 학생의 중복 요청은 `이미 수강 중` 또는 `이미 승인 요청`처럼 구분된 결과로 보여야 한다
+- 오너가 `PENDING -> ACTIVE` 승인한 뒤 학생 수업 상세는 같은 `class + month` 키여도 stale status에 머물지 않고 다시 읽혀야 한다
 - 모바일에서는 matrix가 얇은 학생 카드 + `1~4주` 가로 출석 버튼 구조로 읽히고, 한 화면에서 여러 학생을 훑기 어렵지 않아야 한다
 - 운영 메인 첫 진입에서는 현재 월과 해당 월 첫 수업이 기본 선택으로 열려야 하고, 월 변경 시에도 선택 수업이 활성 상태면 유지돼야 한다
 - owner class delete mode는 운영 헤더의 `삭제 모드` trigger로 진입되고, `-` 표시된 항목 선택 -> 확인 다이얼로그 -> soft delete로 이어져야 한다

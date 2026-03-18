@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `학생 수업 신청 flow 복구 완료, 실브라우저 QA와 runtime 검증 대기`
+- focus: `학생 수업 신청 dialog 정리 + 승인 후 stale 표시 보정 완료, 실브라우저 QA와 runtime 검증 대기`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-03-18 | student request dialog + approved refresh follow-up | start: not recorded | end: 2026-03-18 16:34 KST | status: done`
 - `2026-03-18 | student enrollment request flow recovery | start: not recorded | end: 2026-03-18 16:21 KST | status: done`
 - `2026-03-18 | student active selector + owner delete visibility hotfix | start: not recorded | end: 2026-03-18 14:49 KST | status: done`
 - `2026-03-18 | overall usability + copy cleanup package | start: not recorded | end: 2026-03-18 14:33 KST | status: done`
@@ -91,9 +92,13 @@
 
 ## Done Recently
 
-- 학생이 `/student`, `/student/profile`에서 활성 수업과 월을 골라 승인 요청을 보내는 `수업 신청` 표면을 복구 완료
+- 학생 `수업 신청`을 `/student/profile` 반복 카드가 아니라 `/student` 탭 안 다이얼로그 action으로 다시 모으고, `내상태`는 전체 요약/계정 관리 중심으로 정리 완료
+- 학생 상세 SWR key에 enrollment status를 포함하고 student summary/detail에 짧은 polling을 추가해 오너 승인 뒤 stale `PENDING` 표시가 남지 않도록 보정 완료
+- 이번 request dialog / approved refresh follow-up을 [docs/reports/2026-03-18-student-request-dialog-and-approved-refresh-follow-up.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-request-dialog-and-approved-refresh-follow-up.md)로 기록 완료
+- 이번 follow-up 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
+- 학생이 `/student` 탭에서 활성 수업과 월을 골라 승인 요청을 보내는 `수업 신청` 표면을 복구 완료
 - `/api/student/enrollment-request` route를 추가해 student self-request를 `PENDING` enrollment create/reopen contract로 정렬 완료
-- 학생 수업 탭 empty state와 profile에서 같은 신청 surface를 재사용하고, 신청 성공 뒤 `수업` 탭 deep link를 바로 열 수 있게 정리 완료
+- 학생 수업 탭 empty state와 상단 action에서 같은 신청 다이얼로그를 재사용하도록 정리 완료
 - 이번 student enrollment request 복구를 [docs/reports/2026-03-18-student-enrollment-request-recovery.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-enrollment-request-recovery.md)로 기록 완료
 - 이번 복구 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
 - `/student` 수업 selector를 active class 기준으로 다시 정렬해 soft delete된 수업 enrollment가 헤더 선택기에 남지 않도록 정리 완료

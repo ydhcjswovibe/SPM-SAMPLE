@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import useSWR, { useSWRConfig } from 'swr'
 import { CalendarDays, CheckCircle2, Loader2, Send } from 'lucide-react'
 
@@ -9,7 +8,13 @@ import { getCurrentYearMonth, isValidYearMonth } from '@/lib/admin/matrix'
 import type { EnrollmentLifecycleStatus } from '@/lib/types'
 import { formatYearMonthLabel } from '@/lib/weekly-media'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -18,11 +23,6 @@ interface StudentRequestableClass {
   id: string
   name: string
   existingStatus: EnrollmentLifecycleStatus | null
-}
-
-interface StudentEnrollmentRequestCardProps {
-  description?: string
-  title?: string
 }
 
 interface RequestResponse {
@@ -36,6 +36,13 @@ interface RequestResponse {
     reopened?: boolean
   }
   error?: string
+}
+
+interface StudentEnrollmentRequestDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title?: string
+  description?: string
 }
 
 async function readRouteError(response: Response) {
@@ -82,7 +89,7 @@ function getFriendlyRequestError(message: string) {
 }
 
 function getStatusHint(option: StudentRequestableClass | null) {
-  if (!option) return null
+  if (!option) return '요청할 수업을 골라 주세요.'
 
   if (option.existingStatus === 'ACTIVE') {
     return '이미 이 달 수강 중인 수업입니다.'
@@ -99,16 +106,17 @@ function getStatusHint(option: StudentRequestableClass | null) {
   return '운영 확인 전까지는 등록 예정 상태로 보입니다.'
 }
 
-export function StudentEnrollmentRequestCard({
-  title = '수업 신청',
+export function StudentEnrollmentRequestDialog({
+  open,
+  onOpenChange,
+  title = '새 수업 요청',
   description = '원하는 수업과 월을 고르면 운영 쪽에 승인 요청이 바로 들어갑니다.',
-}: StudentEnrollmentRequestCardProps) {
+}: StudentEnrollmentRequestDialogProps) {
   const { mutate } = useSWRConfig()
   const [selectedYearMonth, setSelectedYearMonth] = useState(getCurrentYearMonth())
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [successHref, setSuccessHref] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
@@ -117,11 +125,19 @@ export function StudentEnrollmentRequestCard({
     isLoading,
     mutate: mutateRequestableClasses,
   } = useSWR(
-    isValidYearMonth(selectedYearMonth)
+    open && isValidYearMonth(selectedYearMonth)
       ? ['student-enrollment-request-options', selectedYearMonth]
       : null,
     ([, yearMonth]) => fetchRequestableClasses(yearMonth),
   )
+
+  useEffect(() => {
+    if (!open) {
+      setActionError(null)
+      setSuccessMessage(null)
+      setIsSubmitting(false)
+    }
+  }, [open])
 
   useEffect(() => {
     if (!requestableClasses || requestableClasses.length === 0) {
@@ -158,6 +174,7 @@ export function StudentEnrollmentRequestCard({
     setIsSubmitting(true)
     setActionError(null)
     setSuccessMessage(null)
+
     try {
       const response = await fetch('/api/student/enrollment-request', {
         method: 'POST',
@@ -177,14 +194,12 @@ export function StudentEnrollmentRequestCard({
       const payload = (await response.json()) as RequestResponse
       const className = payload.meta?.className ?? selectedOption.name
       const reopened = payload.meta?.reopened ?? false
-      const targetHref = `/student?classId=${encodeURIComponent(selectedOption.id)}&yearMonth=${encodeURIComponent(selectedYearMonth)}`
 
       setSuccessMessage(
         reopened
           ? `${className} / ${formatYearMonthLabel(selectedYearMonth)} 요청을 다시 열었습니다. 운영 승인 전까지 등록 예정으로 보입니다.`
-          : `${className} / ${formatYearMonthLabel(selectedYearMonth)} 승인 요청을 보냈습니다. 운영 확인 후 바로 수업 탭에 나타납니다.`,
+          : `${className} / ${formatYearMonthLabel(selectedYearMonth)} 승인 요청을 보냈습니다. 운영 확인 후 수업 탭에서 바로 확인할 수 있습니다.`,
       )
-      setSuccessHref(targetHref)
 
       await Promise.all([
         mutateRequestableClasses(),
@@ -203,115 +218,119 @@ export function StudentEnrollmentRequestCard({
   }
 
   return (
-    <Card
-      id="enrollment-request"
-      className="overflow-hidden rounded-[1.9rem] border border-[rgba(23,33,42,0.08)] bg-white py-0 shadow-[0_18px_48px_rgba(21,28,38,0.08)]"
-    >
-      <CardHeader className="space-y-2 px-5 pt-5 pb-3">
-        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#eef8f4] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1d4e46]">
-          <Send className="h-3.5 w-3.5" />
-          승인 요청
-        </div>
-        <div className="space-y-1">
-          <CardTitle className="spm-display text-2xl text-[#17212a]">{title}</CardTitle>
-          <CardDescription className="text-sm leading-6 text-[#66707b]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="overflow-hidden rounded-[1.8rem] border border-[rgba(23,33,42,0.08)] bg-white p-0 sm:max-w-[34rem]">
+        <DialogHeader className="space-y-2 px-5 pt-5 pb-2 text-left">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#eef8f4] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1d4e46]">
+            <Send className="h-3.5 w-3.5" />
+            승인 요청
+          </div>
+          <DialogTitle className="spm-display text-2xl text-[#17212a]">{title}</DialogTitle>
+          <DialogDescription className="text-sm leading-6 text-[#66707b]">
             {description}
-          </CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4 px-5 pb-5 pt-0">
-        {successMessage ? (
-          <div className="rounded-[1.2rem] border border-[rgba(41,163,118,0.22)] bg-[#effaf4] px-4 py-3 text-sm text-[#155c47]">
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-              <div className="space-y-2">
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 px-5 pb-5 pt-2">
+          {successMessage ? (
+            <div className="rounded-[1.2rem] border border-[rgba(41,163,118,0.22)] bg-[#effaf4] px-4 py-3 text-sm text-[#155c47]">
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                 <p className="font-medium">{successMessage}</p>
-                {successHref ? (
-                  <Button asChild variant="outline" size="sm" className="h-8 rounded-full px-3">
-                    <Link href={successHref}>요청한 수업 보기</Link>
-                  </Button>
-                ) : null}
               </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        {actionError || error ? (
-          <div className="rounded-[1.2rem] border border-[rgba(214,104,96,0.26)] bg-[#fff3f1] px-4 py-3 text-sm text-[#b65046]">
-            {actionError ?? getFriendlyRequestError(error instanceof Error ? error.message : 'REQUESTABLE_CLASSES_READ_FAILED')}
-          </div>
-        ) : null}
+          {actionError || error ? (
+            <div className="rounded-[1.2rem] border border-[rgba(214,104,96,0.26)] bg-[#fff3f1] px-4 py-3 text-sm text-[#b65046]">
+              {actionError ??
+                getFriendlyRequestError(
+                  error instanceof Error ? error.message : 'REQUESTABLE_CLASSES_READ_FAILED',
+                )}
+            </div>
+          ) : null}
 
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_9rem]">
-          <div className="space-y-2">
-            <Label htmlFor="student-request-class">수업 선택</Label>
-            <Select
-              value={selectedClassId ?? undefined}
-              onValueChange={(nextValue) => {
-                setSelectedClassId(nextValue)
-                setActionError(null)
-              }}
-              disabled={isLoading || !requestableClasses || requestableClasses.length === 0}
-            >
-              <SelectTrigger
-                id="student-request-class"
-                aria-label="요청할 수업 선택"
-                className="h-11 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]"
-              >
-                <SelectValue placeholder={isLoading ? '수업 불러오는 중' : '수업을 골라 주세요'} />
-              </SelectTrigger>
-              <SelectContent>
-                {(requestableClasses ?? []).map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="student-request-month">월 선택</Label>
-            <div className="relative">
-              <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7a8390]" />
-              <Input
-                id="student-request-month"
-                type="month"
-                value={selectedYearMonth}
-                onChange={(event) => {
-                  setSelectedYearMonth(event.target.value)
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_9rem]">
+            <div className="space-y-2">
+              <Label htmlFor="student-request-class">수업 선택</Label>
+              <Select
+                value={selectedClassId ?? undefined}
+                onValueChange={(nextValue) => {
+                  setSelectedClassId(nextValue)
                   setActionError(null)
                   setSuccessMessage(null)
                 }}
-                className="h-11 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] pl-10 text-[#17212a]"
-              />
+                disabled={isLoading || !requestableClasses || requestableClasses.length === 0}
+              >
+                <SelectTrigger
+                  id="student-request-class"
+                  aria-label="요청할 수업 선택"
+                  className="h-11 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]"
+                >
+                  <SelectValue placeholder={isLoading ? '수업 불러오는 중' : '수업을 골라 주세요'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(requestableClasses ?? []).map((option) => (
+                    <SelectItem key={option.id} value={option.id}>
+                      {option.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="student-request-month">월 선택</Label>
+              <div className="relative">
+                <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7a8390]" />
+                <Input
+                  id="student-request-month"
+                  type="month"
+                  value={selectedYearMonth}
+                  onChange={(event) => {
+                    setSelectedYearMonth(event.target.value)
+                    setActionError(null)
+                    setSuccessMessage(null)
+                  }}
+                  className="h-11 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] pl-10 text-[#17212a]"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="rounded-[1.1rem] border border-[rgba(23,33,42,0.06)] bg-[#fbfaf7] px-4 py-3 text-sm text-[#17212a]">
-          {isLoading ? (
-            <div className="flex items-center gap-2 text-[#66707b]">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              요청 가능한 수업을 불러오는 중입니다.
-            </div>
-          ) : requestableClasses && requestableClasses.length > 0 ? (
-            <p>{getStatusHint(selectedOption)}</p>
-          ) : (
-            <p className="text-[#66707b]">지금 요청 가능한 활성 수업이 없습니다.</p>
-          )}
-        </div>
+          <div className="rounded-[1.1rem] border border-[rgba(23,33,42,0.06)] bg-[#fbfaf7] px-4 py-3 text-sm text-[#17212a]">
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-[#66707b]">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                요청 가능한 수업을 불러오는 중입니다.
+              </div>
+            ) : requestableClasses && requestableClasses.length > 0 ? (
+              <p>{getStatusHint(selectedOption)}</p>
+            ) : (
+              <p className="text-[#66707b]">지금 요청 가능한 활성 수업이 없습니다.</p>
+            )}
+          </div>
 
-        <Button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          className="h-11 w-full rounded-[1rem] gap-2"
-        >
-          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {selectedOption?.existingStatus === 'CANCELLED' ? '다시 승인 요청' : '승인 요청 보내기'}
-        </Button>
-      </CardContent>
-    </Card>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              닫기
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="gap-2"
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              {selectedOption?.existingStatus === 'CANCELLED' ? '다시 승인 요청' : '승인 요청 보내기'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

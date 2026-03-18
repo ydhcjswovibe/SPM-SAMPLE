@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { AlertCircle, Loader2 } from 'lucide-react'
@@ -16,7 +17,7 @@ import {
 } from '@/lib/student-lessons'
 import { SpmMascot } from '@/components/spm-mascot'
 import { StudentClassDetailView } from '@/components/student-class-detail-view'
-import { StudentEnrollmentRequestCard } from '@/components/student-enrollment-request-card'
+import { StudentEnrollmentRequestDialog } from '@/components/student-enrollment-request-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -76,11 +77,14 @@ function getNextWeekLabel(summary: StudentClassSummary) {
 
 export default function StudentDashboard() {
   const searchParams = useSearchParams()
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false)
   const {
     data: summaries,
     error,
     isLoading,
-  } = useSWR('student-class-summaries', () => fetchStudentSummaries(supabase))
+  } = useSWR('student-class-summaries', () => fetchStudentSummaries(supabase), {
+    refreshInterval: 15000,
+  })
 
   const featuredSummary =
     summaries && summaries.length > 0
@@ -110,9 +114,12 @@ export default function StudentDashboard() {
     isLoading: isDetailLoading,
   } = useSWR(
     selectedSummary
-      ? ['student-class-detail', selectedSummary.classId, selectedSummary.yearMonth]
+      ? ['student-class-detail', selectedSummary.classId, selectedSummary.yearMonth, selectedSummary.enrollmentStatus]
       : null,
     ([, classId, yearMonth]) => fetchStudentClassDetail(classId, yearMonth),
+    {
+      refreshInterval: 15000,
+    },
   )
 
   if (isLoading) {
@@ -173,7 +180,12 @@ export default function StudentDashboard() {
             </div>
           </CardContent>
         </Card>
-        <StudentEnrollmentRequestCard
+        <Button onClick={() => setIsRequestDialogOpen(true)} className="h-11 w-full rounded-[1rem] gap-2">
+          수업 신청
+        </Button>
+        <StudentEnrollmentRequestDialog
+          open={isRequestDialogOpen}
+          onOpenChange={setIsRequestDialogOpen}
           title="첫 수업 신청"
           description="원하는 수업과 월을 먼저 고르면 운영 쪽에서 확인 후 등록 예정 상태로 바로 올려 둡니다."
         />
@@ -219,8 +231,8 @@ export default function StudentDashboard() {
               className="h-2.5 flex-1 border border-[rgba(23,33,42,0.08)] bg-[#ebece6]"
             />
           </div>
-          <Button asChild variant="outline" size="sm" className="rounded-full">
-            <Link href="/student/profile#enrollment-request">수업 신청</Link>
+          <Button variant="outline" size="sm" className="rounded-full" onClick={() => setIsRequestDialogOpen(true)}>
+            새 수업 요청
           </Button>
         </div>
       </section>
@@ -259,6 +271,13 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
       )}
+
+      <StudentEnrollmentRequestDialog
+        open={isRequestDialogOpen}
+        onOpenChange={setIsRequestDialogOpen}
+        title="새 수업 요청"
+        description="추가로 듣고 싶은 수업이 있다면 여기서 바로 승인 요청을 보낼 수 있습니다."
+      />
     </div>
   )
 }

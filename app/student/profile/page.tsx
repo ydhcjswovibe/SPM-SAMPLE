@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import { CheckCircle, Loader2, Monitor, Moon, Save, Sun, User } from 'lucide-react'
@@ -8,9 +7,8 @@ import { useTheme } from 'next-themes'
 
 import type { Profile } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
-import { formatYearMonthLabel, readStudentClassSummaries, type StudentClassSummary } from '@/lib/weekly-media'
+import { readStudentClassSummaries, type StudentClassSummary } from '@/lib/weekly-media'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { StudentEnrollmentRequestCard } from '@/components/student-enrollment-request-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -62,7 +60,9 @@ export default function StudentProfilePage() {
     isLoading: isProfileLoading,
     mutate,
   } = useSWR('student-profile', fetchProfile)
-  const { data: summaries } = useSWR('student-status-summary', fetchStudentStatus)
+  const { data: summaries } = useSWR('student-status-summary', fetchStudentStatus, {
+    refreshInterval: 15000,
+  })
   const savedName = profile?.full_name ?? ''
   const hasPendingNameChange = fullName.trim() !== savedName
 
@@ -70,11 +70,6 @@ export default function StudentProfilePage() {
   const pendingCount = summaries?.filter((item) => item.enrollmentStatus === 'PENDING').length ?? 0
   const unpaidCount = summaries?.filter((item) => !item.paymentStatus).length ?? 0
   const feedbackCount = summaries?.reduce((sum, item) => sum + item.feedbackCount, 0) ?? 0
-  const nextLesson = summaries?.find((item) => item.nextWeekNumber)
-  const nextLessonHref = nextLesson
-    ? `/student?classId=${encodeURIComponent(nextLesson.classId)}&yearMonth=${encodeURIComponent(nextLesson.yearMonth)}`
-    : '/student'
-
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || '')
@@ -206,40 +201,6 @@ export default function StudentProfilePage() {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">수업 바로 가기</CardTitle>
-          <CardDescription>확인할 수업으로 바로 돌아갑니다.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {nextLesson ? (
-            <>
-              <div className="rounded-xl bg-muted/60 px-3 py-3 text-sm">
-                <p className="font-medium">{nextLesson.className}</p>
-                <p className="mt-1 text-muted-foreground">
-                  {formatYearMonthLabel(nextLesson.yearMonth)} · {nextLesson.nextWeekNumber}주차
-                </p>
-              </div>
-              <Button asChild size="sm" className="gap-2">
-                <Link href={nextLessonHref}>이어서 보기</Link>
-              </Button>
-            </>
-          ) : (
-            <>
-              <p className="text-sm text-muted-foreground">지금 바로 열 수 있는 주차가 없어도 수업 탭에서 전체 수업을 확인할 수 있습니다.</p>
-              <Button asChild variant="outline" size="sm" className="gap-2">
-                <Link href={nextLessonHref}>수업 탭 열기</Link>
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      <StudentEnrollmentRequestCard
-        title="새 수업 요청"
-        description="등록이 안 된 수업도 여기서 먼저 요청할 수 있습니다. 운영이 확인하면 수업 탭에 등록 예정으로 바로 나타납니다."
-      />
 
       <Card>
         <CardHeader>
