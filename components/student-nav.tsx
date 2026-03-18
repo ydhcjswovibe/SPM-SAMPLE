@@ -110,15 +110,18 @@ export function StudentNav({ userName }: StudentNavProps) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7a8390]">
-                    Student Home
+                    수업 홈
                   </p>
-                  <div className="mt-1 flex min-w-0 items-center gap-2">
-                    <span className="spm-display shrink-0 text-xl text-[#17212a]">SPM</span>
+                  <div className="mt-1 flex min-w-0 items-center gap-1.5">
+                    <span className="spm-display shrink-0 text-lg text-[#17212a] sm:text-xl">SPM</span>
                     {isLessonHome && selectedSummary ? (
-                      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
+                      <div className="ml-1 flex min-w-0 flex-1 items-center justify-end gap-1.5">
                         <Select value={selectedSummary.classId} onValueChange={handleClassChange}>
-                          <SelectTrigger className="h-9 min-w-[7.5rem] rounded-[0.95rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
-                            <SelectValue placeholder="수업 선택" />
+                          <SelectTrigger
+                            aria-label="수업 선택"
+                            className="h-9 w-[6.75rem] rounded-[0.95rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a] sm:w-[8rem]"
+                          >
+                            <SelectValue placeholder="수업" />
                           </SelectTrigger>
                           <SelectContent>
                             {monthSummaries.map((summary) => (
@@ -130,8 +133,11 @@ export function StudentNav({ userName }: StudentNavProps) {
                         </Select>
 
                         <Select value={selectedSummary.yearMonth} onValueChange={handleMonthChange}>
-                          <SelectTrigger className="h-9 min-w-[6.5rem] rounded-[0.95rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
-                            <SelectValue placeholder="월 선택" />
+                          <SelectTrigger
+                            aria-label="월 선택"
+                            className="h-9 w-[5.5rem] rounded-[0.95rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a] sm:w-[7rem]"
+                          >
+                            <SelectValue placeholder="월" />
                           </SelectTrigger>
                           <SelectContent>
                             {visibleYearMonths.map((yearMonth) => (
@@ -153,6 +159,7 @@ export function StudentNav({ userName }: StudentNavProps) {
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="학생 메뉴"
                   className="rounded-full border border-[rgba(23,33,42,0.08)] bg-[#f8f6f1]"
                 >
                   <Avatar className="h-9 w-9 border border-[rgba(23,33,42,0.08)]">

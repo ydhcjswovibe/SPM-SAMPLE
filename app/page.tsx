@@ -33,7 +33,7 @@ export default async function HomePage() {
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">로그인 후 시작합니다</h2>
             <p className="text-sm text-muted-foreground">
-              로그인하면 계정 역할에 맞는 화면으로 자동 이동합니다.
+              이메일 또는 Google 로그인 후 역할에 맞는 첫 화면으로 이동합니다.
             </p>
           </div>
 
@@ -78,9 +78,6 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">
-          이메일 또는 Google 로그인 후 계정 역할에 맞는 화면으로 이동합니다.
-        </p>
       </div>
     </div>
   )

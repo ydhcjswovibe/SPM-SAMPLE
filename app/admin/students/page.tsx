@@ -591,7 +591,7 @@ export default function StudentsPage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {!hasValidYearMonth
                     ? '먼저 유효한 월을 선택해 주세요.'
-                    : '현재 월은 기본으로 잡혀 있고, 이달 등록 수업이 먼저 보입니다. 필요한 수업을 먼저 고른 뒤 월을 바꿔도 됩니다.'}
+                    : '수업과 월을 먼저 선택해 주세요.'}
                 </p>
               </div>
             ) : !hasValidYearMonth ? (
@@ -611,7 +611,7 @@ export default function StudentsPage() {
                 </div>
                 <h3 className="font-medium">아직 배정된 학생이 없습니다.</h3>
                 <p className="mt-1 mb-4 text-sm text-muted-foreground">
-                  새 계정을 만드는 대신 기존 학생 계정을 현재 월 등록으로 배정할 수 있습니다.
+                  기존 학생 계정을 바로 현재 월 등록으로 배정할 수 있습니다.
                 </p>
                 <Button
                   onClick={() => setIsAddDialogOpen(true)}
@@ -640,6 +640,7 @@ export default function StudentsPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            aria-label={`${enrollment.profiles.full_name || '학생'} 결제 상태`}
                             className={`h-8 shrink-0 px-2 text-xs ${paymentStatusMeta[enrollment.payment_status ? 'paid' : 'unpaid'].buttonClassName}`}
                             disabled={isUpdatingPayment === enrollment.id || !accessState?.canManage}
                           >
@@ -666,6 +667,7 @@ export default function StudentsPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            aria-label={`${enrollment.profiles.full_name || '학생'} 등록 상태`}
                             className="h-8 shrink-0 px-2 text-xs"
                             disabled={isUpdatingStatus === enrollment.id}
                           >
@@ -719,8 +721,8 @@ export default function StudentsPage() {
             <DialogTitle>학생 배정</DialogTitle>
             <DialogDescription>
               {resolvedSelectedClass
-                ? `새 계정을 만드는 대신 기존 학생 계정을 ${resolvedSelectedClass.name} / ${formatYearMonthLabel(selectedYearMonth)} 등록에 배정합니다.`
-                : '현재 월은 기본으로 잡혀 있습니다. 배정할 수업을 먼저 고른 뒤 필요하면 월을 바꿔 주세요.'}
+                ? `${resolvedSelectedClass.name} / ${formatYearMonthLabel(selectedYearMonth)}에 기존 학생 계정을 배정합니다.`
+                : '수업과 월을 먼저 선택해 주세요.'}
             </DialogDescription>
           </DialogHeader>
 

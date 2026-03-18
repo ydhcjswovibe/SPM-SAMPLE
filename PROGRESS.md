@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `학생 헤더 선택을 SPM 같은 줄로 정렬 완료, 실브라우저 QA와 후속 확장 큐 정리`
+- focus: `총검토 반영 사용성/copy 정리 완료, 실브라우저 QA와 runtime 검증 대기`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-03-18 | overall usability + copy cleanup package | start: not recorded | end: 2026-03-18 14:33 KST | status: done`
 - `2026-03-18 | student header inline row follow-up | start: not recorded | end: 2026-03-18 14:04 KST | status: done`
 - `2026-03-18 | student header bar controls follow-up | start: not recorded | end: 2026-03-18 14:00 KST | status: done`
 - `2026-03-18 | student inline topbar controls follow-up | start: not recorded | end: 2026-03-18 13:51 KST | status: done`
@@ -88,6 +89,15 @@
 
 ## Done Recently
 
+- 모바일 viewport에서 browser zoom 차단을 제거하고, `/auth/login` 이메일 로그인 form에 Enter submit + input `name/autocomplete`를 정렬 완료
+- `/auth/login` 카피를 역할 이동 안내 중심으로 압축하고, 학생/운영 역할 설명만 남기도록 중복 소개 정리 완료
+- `/student` 헤더의 수업/월 선택 control에 `aria-label`을 보강하고, 숨겨진 가로 스크롤에 덜 의존하는 inline 폭으로 다시 정리 완료
+- `/student` 상황판의 중복 `상태` 칩과 주차 범례를 제거하고, 빈 상태/점검 상태 문구를 더 짧은 한 세트 표현으로 통일 완료
+- `/student/profile` 초기 로딩을 오류 상태와 분리하고, `다음에 볼 수업` 반복 카드 대신 `수업 바로 가기` shortcut 구조로 정리 완료
+- `/admin` hero와 matrix header의 중복 설명을 압축하고, `/admin/students` empty/dialog helper도 더 짧은 선택/배정 문구로 정리 완료
+- `components/admin-matrix.tsx` 출석 변경 trigger에 `aria-label`을 추가하고 mobile compact target을 더 키움
+- 이번 총검토 반영 패키지를 [docs/reports/2026-03-18-usability-copy-structure-cleanup.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-usability-copy-structure-cleanup.md)로 기록 완료
+- 이번 패키지 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
 - 학생 헤더에서 `수업 선택`, `월 선택`을 `SPM`과 같은 줄로 다시 정렬하고, 이번 follow-up을 [docs/reports/2026-03-18-student-header-inline-row-follow-up.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-header-inline-row-follow-up.md)로 기록 완료
 - 이번 inline row follow-up 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
 - `/student`의 수업/월 선택을 페이지 내부 sticky bar가 아니라 기존 최상단 헤더 바로 옮기고, 상황판의 `수강중 / 2026.03 / 클래스명` 묶음을 제거 완료
@@ -215,16 +225,15 @@
 
 ## Next Up
 
-1. 브라우저에서 `/auth/login`, `/student`, `/admin` 실화면을 확인해 학생 수업 선택기 전환감, admin matrix 판독성, 탭 safe area를 직접 검증
-2. 1차 톤이 맞으면 `/admin/students`, `/admin/content`, `/student/profile`에 같은 시스템을 확장
-3. 운영 홈 matrix/export 문구와 empty/error helper를 더 직접적으로 다듬는 operator polish 패키지 진행
-4. `내상태`에서 다음에 볼 수업과 현재 선택된 수업으로 이어지는 cross-link 보강
-5. configured env에서 GIS Google login success path를 실제 runtime으로 확인
-6. connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC를 remote에 반영하고 fallback 제거 여부 재판단
-7. weekly media / route guards / enrollments를 한 번에 돌리는 smoke entry를 정리
+1. 브라우저에서 `/auth/login`, `/student`, `/student/profile`, `/admin`, `/admin/students` 실화면을 확인해 헤더 control 노출, Enter submit, admin matrix touch target, 탭 safe area를 직접 검증
+2. 1차 톤이 맞으면 `/admin/content`, `/admin/settings`, wrong-role/access gate 표면에도 같은 간결한 copy 기준을 확장
+3. configured env에서 GIS Google login success path를 실제 runtime으로 확인
+4. connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC를 remote에 반영하고 fallback 제거 여부 재판단
+5. weekly media / route guards / enrollments를 한 번에 돌리는 smoke entry를 정리
 
 ## Risks / Open Questions
 
+- 이번 패키지는 source-backed + static validation까지는 닫혔지만, 모바일 실브라우저에서 학생 헤더 select 노출 폭과 admin matrix touch target 체감은 아직 직접 확인하지 않았다.
 - cute redesign 1차 구현은 완료됐지만, admin main에서 귀여운 톤이 matrix 판독성을 해치지 않는지 실제 브라우저 확인이 아직 남아 있다.
 - 학생 수업 탭 헤더 inline row follow-up은 source-backed와 build/typecheck 기준으로는 닫혔지만, 모바일 브라우저에서 헤더 안 수업/월 select와 주차 스크롤 감각이 자연스러운지는 직접 확인이 아직 남아 있다.
 - 공통 버튼/카드/입력 톤이 바뀌어 1차 범위 밖 화면도 시각적으로 일부 영향받을 수 있다.

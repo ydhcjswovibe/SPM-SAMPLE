@@ -61,20 +61,16 @@ function getFriendlyStudentDetailMessage(error: unknown) {
   return '선택한 수업 상세를 다시 불러오지 못했습니다.'
 }
 
-function getSummaryStateLabel(summary: StudentClassSummary) {
+function getNextWeekLabel(summary: StudentClassSummary) {
   if (summary.enrollmentStatus === 'PENDING' && summary.availableWeekCount === 0) {
     return '곧 시작'
   }
 
   if (summary.nextWeekNumber) {
-    return `${summary.nextWeekNumber}주차부터`
+    return `${summary.nextWeekNumber}주차`
   }
 
-  if (summary.availableWeekCount > 0) {
-    return '공개됨'
-  }
-
-  return '공개 없음'
+  return '대기'
 }
 
 export default function StudentDashboard() {
@@ -167,9 +163,9 @@ export default function StudentDashboard() {
             </div>
             <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7a8390]">
-                Ready To Start
+                수업 준비
               </p>
-              <h2 className="spm-display text-3xl text-[#17212a]">아직 열어볼 수 있는 수업이 없어요.</h2>
+              <h2 className="spm-display text-3xl text-[#17212a]">아직 볼 수 있는 수업이 없어요.</h2>
               <p className="mx-auto max-w-sm text-sm leading-6 text-[#66707b]">
                 등록이 완료되면 이 화면에서 월별 수업과 주차 콘텐츠를 바로 이어서 확인할 수 있습니다.
               </p>
@@ -190,9 +186,7 @@ export default function StudentDashboard() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
             <span className="text-[11px] font-semibold text-[#7a8390]">다음</span>
-            <span className="font-semibold">
-              {selectedSummary.nextWeekNumber ? `${selectedSummary.nextWeekNumber}주차` : '대기'}
-            </span>
+            <span className="font-semibold">{getNextWeekLabel(selectedSummary)}</span>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
             <span className="text-[11px] font-semibold text-[#7a8390]">결제</span>
@@ -219,10 +213,6 @@ export default function StudentDashboard() {
               value={selectedProgressPercent}
               className="h-2.5 flex-1 border border-[rgba(23,33,42,0.08)] bg-[#ebece6]"
             />
-          </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(23,33,42,0.06)] bg-white px-3 py-2 text-sm text-[#66707b]">
-            <span className="text-[11px] font-semibold text-[#7a8390]">상태</span>
-            <span>{getSummaryStateLabel(selectedSummary)}</span>
           </div>
         </div>
       </section>

@@ -63,7 +63,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
       <Card className="overflow-hidden rounded-[1.9rem] border border-[rgba(23,33,42,0.08)] bg-white py-0 shadow-[0_18px_50px_rgba(21,28,38,0.1)]">
         <CardContent className="px-5 py-12 text-center">
           <p className="text-base font-semibold text-[#17212a]">
-            {detail.enrollmentStatus === 'PENDING' ? '곧 시작 예정입니다.' : '아직 공개된 콘텐츠가 없습니다.'}
+            {detail.enrollmentStatus === 'PENDING' ? '곧 열릴 예정입니다.' : '아직 공개된 항목이 없습니다.'}
           </p>
           <p className="mt-2 text-sm leading-6 text-[#66707b]">
             새로운 콘텐츠가 열리면 이 화면에서 바로 확인할 수 있습니다.
@@ -96,10 +96,6 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
   return (
     <>
       <div className="space-y-4">
-        <div className="rounded-[1.6rem] border border-dashed border-[rgba(23,33,42,0.12)] bg-white/70 px-4 py-3 text-xs leading-5 text-[#66707b]">
-          공개 중은 지금 바로 볼 수 있는 주차, 점검 필요는 일부 항목만 먼저 열리는 주차, 준비 중은 아직 공개 전인 주차를 뜻합니다.
-        </div>
-
         <Tabs value={resolvedActiveWeek ?? String(detail.weeks[0]?.weekNumber ?? 1)} onValueChange={setActiveWeek}>
           <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-[1.6rem] border border-[rgba(23,33,42,0.08)] bg-white px-2 py-2 shadow-[0_14px_34px_rgba(21,28,38,0.08)]">
             {detail.weeks.map((week) => {
@@ -168,8 +164,8 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                   <CardContent className="space-y-4 px-5 pb-5">
                     {week.video.invalidItems.length > 0 || week.image.invalidItems.length > 0 ? (
                       <div className="rounded-[1.25rem] border border-amber-300/40 bg-amber-50/60 px-4 py-4 text-sm text-amber-950">
-                        <p className="font-medium">일부 콘텐츠는 아직 열 수 없습니다.</p>
-                        <p className="mt-1">운영자가 다시 정리하는 동안 먼저 열리는 항목부터 확인해 주세요.</p>
+                        <p className="font-medium">일부 항목은 아직 점검 중입니다.</p>
+                        <p className="mt-1">먼저 열리는 항목부터 확인해 주세요.</p>
                         {week.video.invalidItems.map((item) => (
                           <p key={item.mediaId} className="mt-1">
                             영상 경고: {item.message}
@@ -197,7 +193,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
 
                         {selectedVideo ? (
                           <SelectedVideoPlayer
-                            label="현재 재생 영상"
+                            label="재생 중"
                             countLabel={
                               youtubeItems.length > 1
                                 ? `${selectedVideoIndex + 1} / ${youtubeItems.length}`
@@ -264,7 +260,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                             <ImageIcon className="h-4 w-4 text-blue-500" />
                             이미지
                           </div>
-                          <p className="text-xs text-[#66707b]">좌우로 넘기고, 이미지를 누르면 크게 볼 수 있습니다.</p>
+                          <p className="text-xs text-[#66707b]">좌우로 넘기고 눌러 크게 봅니다.</p>
                         </div>
 
                         <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-1">
@@ -328,7 +324,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                     !week.sharedFeedbackText &&
                     !week.privateFeedbackText ? (
                       <div className="rounded-[1.25rem] border border-dashed px-4 py-8 text-center text-sm text-[#66707b]">
-                        일부 항목은 아직 점검 중이며, 지금 바로 볼 수 있는 콘텐츠는 없습니다.
+                        점검 중인 항목만 있습니다.
                       </div>
                     ) : null}
 
@@ -342,8 +338,8 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                     !week.privateFeedbackText ? (
                       <div className="rounded-[1.25rem] border border-dashed px-4 py-8 text-center text-sm text-[#66707b]">
                         {detail.enrollmentStatus === 'PENDING'
-                          ? '곧 시작 예정입니다. 이 주차 콘텐츠가 공개되면 여기에서 바로 볼 수 있습니다.'
-                          : '아직 공개된 콘텐츠가 없습니다.'}
+                          ? '곧 열릴 예정입니다.'
+                          : '아직 공개된 항목이 없습니다.'}
                       </div>
                     ) : null}
                   </CardContent>
@@ -358,7 +354,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
         <DialogContent className="max-h-[90dvh] overflow-hidden p-3 sm:max-w-5xl">
           <DialogHeader className="pr-8">
             <DialogTitle>이미지 크게 보기</DialogTitle>
-            <DialogDescription>현재 주차 이미지를 크게 확인합니다.</DialogDescription>
+            <DialogDescription>선택한 이미지를 크게 봅니다.</DialogDescription>
           </DialogHeader>
           {selectedImage ? (
             <div className="overflow-auto rounded-xl bg-muted/40">

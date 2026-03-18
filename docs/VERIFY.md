@@ -88,6 +88,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 ### Student read flow / weekly content consume UI
 - `/student` 첫 진입에서 기본 선택된 월별 수업 상세가 바로 보여야 한다
 - 기존 최상단 헤더 바의 수업/월 선택 control에서 다른 월별 수업으로 바꾸면 같은 탭 안에서 간단한 상황판과 주차 콘텐츠가 함께 바뀌어야 한다
+- 학생 헤더의 수업/월 선택 control은 일반적인 mobile width에서 숨겨진 가로 스크롤에 의존하지 않고 바로 보여야 한다
 - selected class -> week -> content order is still understandable
 - touched cards, tabs, and panels do not disagree on `loading` / `syncing` / `empty` / `selection-needed` / `all-clear` meaning
 - current selection label matches the actual selected class, month, and week, or clearly says that nothing is selected
@@ -118,6 +119,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - touched labels, helper text, status chips, and empty/error copy must match the real reachable state in the touched block
 - when the same state is shown on mobile and desktop surfaces, label and tone should keep the same meaning unless the package explicitly changed that rule
 - internal contract words such as `row`, `scope`, `class_log`, `media_id`, `upload_method`, or `storage contract` should not leak into operator-facing or student-facing copy unless the product text intentionally requires them
+- 한 화면 안에서 같은 상태 의미를 요약칩 / 범례 / empty helper로 반복 설명하지 않는지 확인한다
 - if the interaction contract itself did not change, a file-scoped source-backed review is enough; say explicitly that runtime proof was not attempted
 
 ### Route-local local-mock / prototype truth
@@ -131,6 +133,8 @@ If the package is docs-only, commands are optional; say which source docs or rep
 
 ### Auth / Access behavior
 - login entry works
+- mobile viewport는 browser zoom을 막지 않아야 한다
+- 이메일 로그인 form은 Enter submit이 가능해야 하고, 이메일/비밀번호 input은 기본 name/autocomplete 흐름을 유지해야 한다
 - configured 환경에서는 `/auth/login`의 Google entry가 GIS button 기반으로 열리고, 성공 path는 ID token sign-in 뒤 역할 화면으로 이어져야 한다
 - Google client 설정이 없거나 GIS script load가 실패한 환경에서는 `/auth/login`이 Google entry를 끊지 않고 redirect 기반 compatibility fallback으로 이어져야 한다
 - logout still works

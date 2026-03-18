@@ -60,6 +60,12 @@ const attendanceColors: Record<AttendanceStatus, string> = {
   excused: 'bg-info text-info-foreground',
 }
 
+function getAttendanceTriggerLabel(
+  attendance: AdminMatrixData['students'][number]['attendances'][number],
+) {
+  return `${attendance.week}주차 출석 상태 ${attendanceLabels[attendance.status]}`
+}
+
 export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
   const [updatingAttendance, setUpdatingAttendance] = useState<string | null>(null)
 
@@ -84,9 +90,11 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
         <Button
           variant="outline"
           size="sm"
+          aria-label={getAttendanceTriggerLabel(attendance)}
+          title={getAttendanceTriggerLabel(attendance)}
           className={cn(
             options?.compact
-              ? 'h-8 w-full rounded-md border px-0 text-[10px] font-medium'
+              ? 'h-9 w-full touch-manipulation rounded-md border px-0 text-[11px] font-medium'
               : 'h-9 justify-between gap-2 rounded-full border px-3 text-xs font-medium',
             attendanceColors[attendance.status],
             updatingAttendance === attendance.attendanceId && 'opacity-50',
@@ -232,8 +240,11 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
+                          type="button"
+                          aria-label={getAttendanceTriggerLabel(attendance)}
+                          title={getAttendanceTriggerLabel(attendance)}
                           className={cn(
-                            'inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+                            'inline-flex h-9 w-9 touch-manipulation items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
                             attendanceColors[attendance.status],
                             updatingAttendance === attendance.attendanceId && 'opacity-50',
                             attendance.canUpdate === false && 'cursor-not-allowed opacity-50',

@@ -123,6 +123,7 @@ student-facing 흐름도 중요하지만,
 
 ### Auth / Role / Access
 - email login
+- 로그인 화면은 이메일 form submit과 Google login을 같은 화면에서 직접 제공하고, 역할 이동 설명은 짧고 직접적인 한 번의 안내로 끝낸다
 - configured 환경에서의 Google login
 - configured 환경에서 Google login은 Google Identity Services 기반 ID token sign-in을 우선 사용하고, 사용자-facing 기본 UX에서 Supabase-hosted OAuth redirect hop을 전면에 두지 않는다
 - GIS client 설정이 없는 환경이나 GIS 표면 로드 실패 시에는 로그인 화면이 Google login을 끊지 않고 기존 redirect 기반 flow로 compatibility fallback 할 수 있어야 한다
@@ -135,6 +136,7 @@ student-facing 흐름도 중요하지만,
 - 현재 baseline은 로그인 계정 확인, 이름 수정, 테마 선택이다
 - 이메일은 읽기 전용으로만 보여 준다
 - 계정 정보를 불러오지 못하면 local demo 데이터를 대신 보여주지 않고 명시적 오류/재시도로 처리한다
+- `/student/profile`은 전체 상태 요약을 우선하고, 수업 상세 요약을 반복하기보다 `수업` 탭으로 돌아가는 shortcut을 함께 제공할 수 있다
 
 ### Student Surface
 - 학생용 기본 화면
@@ -144,6 +146,7 @@ student-facing 흐름도 중요하지만,
 - 학생 수업 목록은 `class + year_month` 단위로 구성한다
 - 학생은 `ACTIVE`와 `PENDING` 월을 본다
 - 학생 `수업` 탭은 기존 최상단 헤더 바에서 수업과 월을 바꾸고, 첫 화면에서 바로 선택된 수업의 간단한 상황판과 주차 콘텐츠를 본다
+- 학생 `수업` 탭의 간단한 상황판은 핵심 상태만 한 줄 요약으로 보여 주고, 같은 의미를 범례/상태칩/빈 상태로 반복 설명하지 않는다
 - `PENDING` 월은 `등록 예정` 또는 이에 준하는 상태 라벨로 명확히 구분한다
 - `CANCELLED` 월은 학생 수업 목록에 노출하지 않는다
 - admin core보다 우선순위는 낮지만 active scope 안에 있음

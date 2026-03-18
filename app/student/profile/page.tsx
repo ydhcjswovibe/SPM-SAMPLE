@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import { CheckCircle, Loader2, Monitor, Moon, Save, Sun, User } from 'lucide-react'
@@ -7,7 +8,7 @@ import { useTheme } from 'next-themes'
 
 import type { Profile } from '@/lib/types'
 import { createClient } from '@/lib/supabase/client'
-import { readStudentClassSummaries, type StudentClassSummary } from '@/lib/weekly-media'
+import { formatYearMonthLabel, readStudentClassSummaries, type StudentClassSummary } from '@/lib/weekly-media'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -54,7 +55,12 @@ export default function StudentProfilePage() {
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  const { data: profile, error: profileError, mutate } = useSWR('student-profile', fetchProfile)
+  const {
+    data: profile,
+    error: profileError,
+    isLoading: isProfileLoading,
+    mutate,
+  } = useSWR('student-profile', fetchProfile)
   const { data: summaries } = useSWR('student-status-summary', fetchStudentStatus)
   const savedName = profile?.full_name ?? ''
   const hasPendingNameChange = fullName.trim() !== savedName
@@ -64,6 +70,9 @@ export default function StudentProfilePage() {
   const unpaidCount = summaries?.filter((item) => !item.paymentStatus).length ?? 0
   const feedbackCount = summaries?.reduce((sum, item) => sum + item.feedbackCount, 0) ?? 0
   const nextLesson = summaries?.find((item) => item.nextWeekNumber)
+  const nextLessonHref = nextLesson
+    ? `/student?classId=${encodeURIComponent(nextLesson.classId)}&yearMonth=${encodeURIComponent(nextLesson.yearMonth)}`
+    : '/student'
 
   useEffect(() => {
     if (profile) {
@@ -104,6 +113,26 @@ export default function StudentProfilePage() {
     } finally {
       setIsSaving(false)
     }
+  }
+
+  if (isProfileLoading) {
+    return (
+      <div className="space-y-4 p-4">
+        <div className="space-y-1">
+          <h1 className="text-xl font-semibold">내 상태</h1>
+          <p className="text-sm text-muted-foreground">
+            출석, 결제, 피드백 상태를 먼저 확인하고 계정 정보는 아래에서 관리합니다.
+          </p>
+        </div>
+
+        <Card>
+          <CardContent className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            계정 정보를 불러오는 중입니다.
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (profileError || !profile) {
@@ -179,19 +208,29 @@ export default function StudentProfilePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">다음에 볼 수업</CardTitle>
-          <CardDescription>현재 바로 열어볼 수 있는 가장 가까운 주차입니다.</CardDescription>
+          <CardTitle className="text-base">수업 바로 가기</CardTitle>
+          <CardDescription>확인할 수업으로 바로 돌아갑니다.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           {nextLesson ? (
-            <div className="rounded-xl bg-muted/60 px-3 py-3 text-sm">
-              <p className="font-medium">{nextLesson.className}</p>
-              <p className="mt-1 text-muted-foreground">
-                {nextLesson.yearMonth} / {nextLesson.nextWeekNumber}주차
-              </p>
-            </div>
+            <>
+              <div className="rounded-xl bg-muted/60 px-3 py-3 text-sm">
+                <p className="font-medium">{nextLesson.className}</p>
+                <p className="mt-1 text-muted-foreground">
+                  {formatYearMonthLabel(nextLesson.yearMonth)} · {nextLesson.nextWeekNumber}주차
+                </p>
+              </div>
+              <Button asChild size="sm" className="gap-2">
+                <Link href={nextLessonHref}>이어서 보기</Link>
+              </Button>
+            </>
           ) : (
-            <p className="text-sm text-muted-foreground">아직 바로 열 수 있는 공개 콘텐츠가 없습니다.</p>
+            <>
+              <p className="text-sm text-muted-foreground">지금 바로 열 수 있는 주차가 없어도 수업 탭에서 전체 수업을 확인할 수 있습니다.</p>
+              <Button asChild variant="outline" size="sm" className="gap-2">
+                <Link href={nextLessonHref}>수업 탭 열기</Link>
+              </Button>
+            </>
           )}
         </CardContent>
       </Card>

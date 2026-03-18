@@ -477,13 +477,13 @@ export default function AdminDashboard() {
     <div className="flex flex-col">
       <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-6">
         <div className="spm-soft-panel flex min-h-16 flex-wrap items-center gap-3 px-4 py-3 md:min-h-[4.5rem] md:flex-nowrap md:justify-between">
-          <div className="flex items-center gap-3">
-            <SpmMascot size="sm" className="hidden md:block h-11 w-11" />
-            <div className="space-y-1">
-              <p className="spm-kicker">Admin Home</p>
-              <h1 className="spm-display text-3xl text-foreground">운영</h1>
+            <div className="flex items-center gap-3">
+              <SpmMascot size="sm" className="hidden md:block h-11 w-11" />
+              <div className="space-y-1">
+                <p className="spm-kicker">운영 홈</p>
+                <h1 className="spm-display text-3xl text-foreground">운영</h1>
+              </div>
             </div>
-          </div>
           <div className="order-3 flex w-full items-center gap-2 md:order-none md:w-auto">
             <ClassSelector
               classes={selectorClasses}
@@ -605,13 +605,13 @@ export default function AdminDashboard() {
         <section className="spm-hero-panel overflow-hidden p-5 md:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-3">
-              <p className="spm-kicker">Daily Operations</p>
+              <p className="spm-kicker">오늘 운영</p>
               <div className="space-y-2">
                 <h2 className="spm-display max-w-[11ch] text-4xl leading-none text-foreground">
-                  오늘 운영 흐름을 한 장에서 빠르게 확인해요.
+                  오늘 운영을 빠르게 확인해요.
                 </h2>
                 <p className="max-w-2xl text-sm text-muted-foreground">
-                  귀여운 톤은 헤더와 요약 카드에만 강하게 주고, 실제 운영 데이터 본문은 기존 판독성을 유지합니다.
+                  선택한 수업과 월의 출석 현황을 한 화면에서 보고 바로 수정합니다.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 text-xs font-black">
@@ -667,12 +667,14 @@ export default function AdminDashboard() {
 
         <Card className="gap-0 overflow-hidden py-0">
           <CardHeader className="px-4 pt-4 pb-2 md:px-6 md:pt-6 md:pb-3">
-            <CardTitle className="spm-display text-2xl text-foreground">{classSelectionHint}</CardTitle>
-            {!resolvedSelectedClass ? (
+            <CardTitle className="spm-display text-2xl text-foreground">운영 매트릭스</CardTitle>
+            {resolvedSelectedClass ? (
+              <p className="text-sm text-muted-foreground">{classSelectionHint}</p>
+            ) : (
               <p className="text-sm text-muted-foreground">
-                현재 월은 기본으로 잡혀 있고, 활성 수업 중 관리할 수업을 먼저 고를 수 있습니다. 이달 등록이 있는 수업이 먼저 보이고, 미배정 수업도 이어서 선택할 수 있습니다.
+                수업과 월을 먼저 선택해 주세요.
               </p>
-            ) : null}
+            )}
           </CardHeader>
           <CardContent className="px-2 pb-2 pt-0 md:px-6 md:pb-6">
             {!resolvedSelectedClass ? (
@@ -684,7 +686,7 @@ export default function AdminDashboard() {
                       ? '먼저 유효한 월을 선택해 주세요.'
                       : isClassesLoading
                         ? '수업 목록을 불러오는 중입니다.'
-                        : '선택할 수 있는 활성 수업이 없습니다.'}
+                        : '선택할 수 있는 수업이 없습니다.'}
                 </p>
                 {accessState?.canCreateClass ? (
                   <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
