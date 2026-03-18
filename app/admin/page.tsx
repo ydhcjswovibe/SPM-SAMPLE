@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, CalendarCheck, CreditCard, Download, Loader2, LogIn, Plus, Users } from 'lucide-react'
+import { AlertCircle, CalendarCheck, CreditCard, Download, Loader2, LogIn, Plus, Trash2, Users } from 'lucide-react'
 import type { Class, AdminMatrixData, AttendanceStatus } from '@/lib/types'
 
 const supabase = createClient()
@@ -493,6 +493,7 @@ export default function AdminDashboard() {
               isDeleteMode={isDeleteMode}
               onToggleDeleteMode={accessState?.canCreateClass ? handleToggleDeleteMode : undefined}
               onDeleteRequest={accessState?.canCreateClass ? handleDeleteRequest : undefined}
+              showDeleteActionInMenu={false}
               placeholder={isDeleteMode ? (isAllClassesLoading ? '수업 불러오는 중' : '삭제할 수업 선택') : isClassesLoading ? '수업 불러오는 중' : '수업 선택'}
               emptyLabel={
                 isDeleteMode
@@ -509,6 +510,21 @@ export default function AdminDashboard() {
               className="w-[132px] sm:w-[148px]"
               aria-label="운영 월 선택"
             />
+            {accessState?.canCreateClass ? (
+              <Button
+                type="button"
+                variant={isDeleteMode ? 'destructive' : 'outline'}
+                size="sm"
+                onClick={handleToggleDeleteMode}
+                disabled={isAllClassesLoading || (allClasses?.length ?? 0) === 0}
+                aria-pressed={isDeleteMode}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="hidden sm:inline">{isDeleteMode ? '삭제 취소' : '삭제 모드'}</span>
+                <span className="sm:hidden">{isDeleteMode ? '취소' : '삭제'}</span>
+              </Button>
+            ) : null}
           </div>
           <div className="ml-auto flex items-center gap-2 md:ml-0">
             <AdminMobileSettingsLink />
@@ -602,31 +618,6 @@ export default function AdminDashboard() {
           </Card>
         ) : null}
 
-        <section className="spm-hero-panel overflow-hidden p-5 md:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-3">
-              <p className="spm-kicker">오늘 운영</p>
-              <div className="space-y-2">
-                <h2 className="spm-display max-w-[11ch] text-4xl leading-none text-foreground">
-                  오늘 운영을 빠르게 확인해요.
-                </h2>
-                <p className="max-w-2xl text-sm text-muted-foreground">
-                  선택한 수업과 월의 출석 현황을 한 화면에서 보고 바로 수정합니다.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs font-black">
-                <span className="rounded-full border-2 border-[var(--line-strong)] bg-white px-3 py-1 text-foreground">
-                  {classSelectionHint}
-                </span>
-                <span className="rounded-full border-2 border-[var(--brand-blue-shadow)] bg-secondary px-3 py-1 text-secondary-foreground">
-                  {accessState?.canCreateClass ? '오너 도구 사용 가능' : '운영 계정 모드'}
-                </span>
-              </div>
-            </div>
-            <SpmMascot variant="welcome" size="lg" className="-mr-3 hidden sm:block" />
-          </div>
-        </section>
-
         {stats && (
           <div className="grid grid-cols-3 gap-2 md:gap-4">
             <Card className="spm-mint-panel gap-0 py-0">
@@ -702,9 +693,9 @@ export default function AdminDashboard() {
                       variant="outline"
                       className="gap-2"
                       onClick={() => setIsDeleteMode((current) => !current)}
-                      disabled={!accessState.canCreateClass || (classes?.length ?? 0) === 0}
+                      disabled={!accessState.canCreateClass || isAllClassesLoading || (allClasses?.length ?? 0) === 0}
                     >
-                      삭제
+                      삭제 모드
                     </Button>
                   </div>
                 ) : accessState?.canManage ? (

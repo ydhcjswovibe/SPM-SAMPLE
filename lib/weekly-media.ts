@@ -79,7 +79,10 @@ type EnrollmentRow = {
   year_month: string
   payment_status: boolean | null
   status: 'ACTIVE' | 'PENDING' | 'CANCELLED' | null
-  classes: { name: string | null } | { name: string | null }[] | null
+  classes:
+    | { name: string | null; is_active?: boolean | null }
+    | { name: string | null; is_active?: boolean | null }[]
+    | null
 }
 
 export interface StudentClassSummary {
@@ -203,6 +206,13 @@ function getClassName(classes: EnrollmentRow['classes']) {
     return classes[0]?.name ?? '이름 없는 클래스'
   }
   return classes.name ?? '이름 없는 클래스'
+}
+
+function isActiveEnrollmentClass(classes: EnrollmentRow['classes']) {
+  if (!classes) return false
+  const relation = Array.isArray(classes) ? classes[0] ?? null : classes
+  if (!relation) return false
+  return relation.is_active !== false
 }
 
 function toMediaRows(media: MediaRelation) {
@@ -423,14 +433,16 @@ export async function readStudentClassSummaries(
 ) {
   const { data: enrollmentRows, error: enrollmentError } = await supabase
     .from('enrollments')
-    .select('class_id, year_month, payment_status, status, classes(name)')
+    .select('class_id, year_month, payment_status, status, classes(name, is_active)')
     .eq('student_id', userId)
     .in('status', ['ACTIVE', 'PENDING'])
     .order('year_month', { ascending: false })
 
   if (enrollmentError) throw enrollmentError
 
-  const enrollments = (enrollmentRows ?? []) as EnrollmentRow[]
+  const enrollments = ((enrollmentRows ?? []) as EnrollmentRow[]).filter((row) =>
+    isActiveEnrollmentClass(row.classes),
+  )
   if (enrollments.length === 0) return [] as StudentClassSummary[]
 
   const classIds = Array.from(new Set(enrollments.map((row) => row.class_id)))
@@ -511,7 +523,7 @@ export async function readStudentClassDetail(
 ) {
   const { data: enrollmentRow, error: enrollmentError } = await supabase
     .from('enrollments')
-    .select('class_id, year_month, payment_status, status, classes(name)')
+    .select('class_id, year_month, payment_status, status, classes(name, is_active)')
     .eq('class_id', classId)
     .eq('year_month', yearMonth)
     .eq('student_id', userId)
@@ -522,6 +534,7 @@ export async function readStudentClassDetail(
   if (!enrollmentRow) return null
 
   const enrollment = enrollmentRow as EnrollmentRow
+  if (!isActiveEnrollmentClass(enrollment.classes)) return null
 
   const { data: classLogRows, error: classLogError } = await supabase
     .from('class_logs')

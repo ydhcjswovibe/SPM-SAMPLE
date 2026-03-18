@@ -23,6 +23,7 @@ interface ClassSelectorProps {
   isDeleteMode?: boolean
   onToggleDeleteMode?: () => void
   onDeleteRequest?: (classItem: Class) => void
+  showDeleteActionInMenu?: boolean
 }
 
 export function ClassSelector({ 
@@ -35,9 +36,10 @@ export function ClassSelector({
   isDeleteMode = false,
   onToggleDeleteMode,
   onDeleteRequest,
+  showDeleteActionInMenu = true,
 }: ClassSelectorProps) {
   const [open, setOpen] = useState(false)
-  const canDelete = Boolean(onToggleDeleteMode && onDeleteRequest)
+  const canDelete = Boolean(showDeleteActionInMenu && onToggleDeleteMode && onDeleteRequest)
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -50,7 +52,7 @@ export function ClassSelector({
           )}
         >
           <span className="truncate">
-            {selectedClass?.name || (isDeleteMode ? '삭제할 수업 선택' : placeholder)}
+            {isDeleteMode ? '삭제할 수업 선택' : selectedClass?.name || placeholder}
           </span>
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>

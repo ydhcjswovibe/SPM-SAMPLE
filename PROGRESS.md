@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `총검토 반영 사용성/copy 정리 완료, 실브라우저 QA와 runtime 검증 대기`
+- focus: `학생 active 수업 selector 정리 + 오너 삭제 모드 가시화 완료, 실브라우저 QA와 runtime 검증 대기`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-03-18 | student active selector + owner delete visibility hotfix | start: not recorded | end: 2026-03-18 14:49 KST | status: done`
 - `2026-03-18 | overall usability + copy cleanup package | start: not recorded | end: 2026-03-18 14:33 KST | status: done`
 - `2026-03-18 | student header inline row follow-up | start: not recorded | end: 2026-03-18 14:04 KST | status: done`
 - `2026-03-18 | student header bar controls follow-up | start: not recorded | end: 2026-03-18 14:00 KST | status: done`
@@ -89,6 +90,10 @@
 
 ## Done Recently
 
+- `/student` 수업 selector를 active class 기준으로 다시 정렬해 soft delete된 수업 enrollment가 헤더 선택기에 남지 않도록 정리 완료
+- `/admin`에서 `오늘 운영` 블록을 제거하고, 오너 전용 `삭제 모드` trigger를 헤더에 상시 노출하도록 정리 완료
+- 이번 selector/delete visibility hotfix를 [docs/reports/2026-03-18-student-active-selector-and-owner-delete-visibility.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-active-selector-and-owner-delete-visibility.md)로 기록 완료
+- 이번 hotfix 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
 - 모바일 viewport에서 browser zoom 차단을 제거하고, `/auth/login` 이메일 로그인 form에 Enter submit + input `name/autocomplete`를 정렬 완료
 - `/auth/login` 카피를 역할 이동 안내 중심으로 압축하고, 학생/운영 역할 설명만 남기도록 중복 소개 정리 완료
 - `/student` 헤더의 수업/월 선택 control에 `aria-label`을 보강하고, 숨겨진 가로 스크롤에 덜 의존하는 inline 폭으로 다시 정리 완료

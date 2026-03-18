@@ -120,6 +120,7 @@ student-facing 흐름도 중요하지만,
 - 모바일 운영 표면에서는 matrix를 축소된 표로만 강제하지 않고, 얇은 학생 카드 안에서 최소 정보와 `1~4주` 가로 출석 버튼을 빠르게 읽고 수정할 수 있어야 한다
 - 운영 표면의 결제 상태는 read-only로 보이되, 실제 수정은 학생 배정 표면에서 수행한다
 - 오너는 운영 메인 class selector에서 삭제 모드를 켜고 수업을 soft delete(`is_active=false`)할 수 있다
+- 오너의 운영 메인 헤더에는 `삭제 모드` trigger가 별도로 보여야 하고, delete mode 안에서는 삭제 대상 수업을 명시적으로 다시 고른다
 
 ### Auth / Role / Access
 - email login
@@ -145,6 +146,7 @@ student-facing 흐름도 중요하지만,
 - mobile tab baseline(`수업 / 내상태`) 위의 학생 read flow
 - 학생 수업 목록은 `class + year_month` 단위로 구성한다
 - 학생은 `ACTIVE`와 `PENDING` 월을 본다
+- 학생 헤더 selector는 해당 학생의 `ACTIVE`/`PENDING` 등록만 보여 주고, soft delete된 inactive 수업은 숨긴다
 - 학생 `수업` 탭은 기존 최상단 헤더 바에서 수업과 월을 바꾸고, 첫 화면에서 바로 선택된 수업의 간단한 상황판과 주차 콘텐츠를 본다
 - 학생 `수업` 탭의 간단한 상황판은 핵심 상태만 한 줄 요약으로 보여 주고, 같은 의미를 범례/상태칩/빈 상태로 반복 설명하지 않는다
 - `PENDING` 월은 `등록 예정` 또는 이에 준하는 상태 라벨로 명확히 구분한다
