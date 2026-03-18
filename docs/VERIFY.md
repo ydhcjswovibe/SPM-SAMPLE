@@ -87,7 +87,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 
 ### Student read flow / weekly content consume UI
 - `/student` 첫 진입에서 기본 선택된 월별 수업 상세가 바로 보여야 한다
-- 상단 수업 선택기에서 다른 월별 수업으로 바꾸면 같은 탭 안에서 상태 요약과 주차 콘텐츠가 함께 바뀌어야 한다
+- 상단바의 수업/월 선택 control에서 다른 월별 수업으로 바꾸면 같은 탭 안에서 간단한 상황판과 주차 콘텐츠가 함께 바뀌어야 한다
 - selected class -> week -> content order is still understandable
 - touched cards, tabs, and panels do not disagree on `loading` / `syncing` / `empty` / `selection-needed` / `all-clear` meaning
 - current selection label matches the actual selected class, month, and week, or clearly says that nothing is selected

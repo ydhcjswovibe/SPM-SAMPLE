@@ -92,7 +92,7 @@ student-facing 흐름도 중요하지만,
 - 하단 탭 구조:
   - `수업`
   - `내상태`
-- `수업` 탭의 첫 화면은 상단 선택기와 선택된 월별 수업 상세를 함께 보여주며 student home 역할을 흡수한다
+- `수업` 탭의 첫 화면은 상단바의 수업/월 선택 control과 선택된 월별 수업 상세를 함께 보여주며 student home 역할을 흡수한다
 - 프로필/로그아웃은 하단 탭이 아니라 헤더 유틸리티 메뉴 또는 보조 화면으로 둔다
 - `수업` 탭은 step UI보다 자연스러운 `클래스 -> 주차 -> 콘텐츠` 소비 흐름을 우선한다
 - 영상/이미지는 최상위 분리 탭이 아니라 주차 콘텐츠 안에서 함께 본다
@@ -143,7 +143,7 @@ student-facing 흐름도 중요하지만,
 - mobile tab baseline(`수업 / 내상태`) 위의 학생 read flow
 - 학생 수업 목록은 `class + year_month` 단위로 구성한다
 - 학생은 `ACTIVE`와 `PENDING` 월을 본다
-- 학생 `수업` 탭은 상단에서 월별 수업을 바꾸고, 첫 화면에서 바로 선택된 수업의 상태와 주차 콘텐츠를 본다
+- 학생 `수업` 탭은 상단바에서 수업과 월을 바꾸고, 첫 화면에서 바로 선택된 수업의 간단한 상황판과 주차 콘텐츠를 본다
 - `PENDING` 월은 `등록 예정` 또는 이에 준하는 상태 라벨로 명확히 구분한다
 - `CANCELLED` 월은 학생 수업 목록에 노출하지 않는다
 - admin core보다 우선순위는 낮지만 active scope 안에 있음
@@ -151,7 +151,7 @@ student-facing 흐름도 중요하지만,
 ### Mobile Tab Prototype Baseline
 - `/admin`은 `운영 / 학생 / 수업` mobile tab baseline을 가진다
 - `/student`는 `수업 / 내상태` mobile tab baseline을 가진다
-- student home 성격의 요약과 선택된 수업 상세는 `수업` 탭 첫 화면 안으로 흡수한다
+- student home 성격의 요약과 선택된 수업의 간단한 상황판, 상세는 `수업` 탭 첫 화면 안으로 흡수한다
 - account/profile/logout은 primary tab이 아니라 header utility 또는 secondary route로 둔다
 - 이 구조는 현재 active scope에서 `keep`으로 잠긴 baseline이며, 다음 slice는 이 위에서 좁게 열린다
 
