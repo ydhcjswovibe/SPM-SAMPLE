@@ -102,50 +102,49 @@ export function StudentNav({ userName }: StudentNavProps) {
     <>
       <header className="sticky top-0 z-50 px-4 pt-4">
         <div className="rounded-[1.7rem] border border-[rgba(23,33,42,0.08)] bg-white/92 px-4 py-3 shadow-[0_14px_40px_rgba(19,26,34,0.08)] backdrop-blur">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex min-w-0 items-center gap-2">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-[1rem] bg-[#eef8f4]">
-                    <SpmMascot size="sm" className="h-7 w-7" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7a8390]">
-                      Student Home
-                    </p>
-                    <span className="spm-display text-xl text-[#17212a]">SPM</span>
+              <div className="flex min-w-0 items-center gap-2">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-[#eef8f4]">
+                  <SpmMascot size="sm" className="h-7 w-7" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7a8390]">
+                    Student Home
+                  </p>
+                  <div className="mt-1 flex min-w-0 items-center gap-2">
+                    <span className="spm-display shrink-0 text-xl text-[#17212a]">SPM</span>
+                    {isLessonHome && selectedSummary ? (
+                      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
+                        <Select value={selectedSummary.classId} onValueChange={handleClassChange}>
+                          <SelectTrigger className="h-9 min-w-[7.5rem] rounded-[0.95rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
+                            <SelectValue placeholder="수업 선택" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {monthSummaries.map((summary) => (
+                              <SelectItem key={summary.classId} value={summary.classId}>
+                                {summary.className}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Select value={selectedSummary.yearMonth} onValueChange={handleMonthChange}>
+                          <SelectTrigger className="h-9 min-w-[6.5rem] rounded-[0.95rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
+                            <SelectValue placeholder="월 선택" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {visibleYearMonths.map((yearMonth) => (
+                              <SelectItem key={yearMonth} value={yearMonth}>
+                                {formatYearMonthLabel(yearMonth)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
-
-                {isLessonHome && selectedSummary ? (
-                  <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 lg:ml-auto lg:max-w-[25rem]">
-                    <Select value={selectedSummary.classId} onValueChange={handleClassChange}>
-                      <SelectTrigger className="h-10 rounded-[0.95rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
-                        <SelectValue placeholder="수업 선택" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {monthSummaries.map((summary) => (
-                          <SelectItem key={summary.classId} value={summary.classId}>
-                            {summary.className}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={selectedSummary.yearMonth} onValueChange={handleMonthChange}>
-                      <SelectTrigger className="h-10 rounded-[0.95rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
-                        <SelectValue placeholder="월 선택" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {visibleYearMonths.map((yearMonth) => (
-                          <SelectItem key={yearMonth} value={yearMonth}>
-                            {formatYearMonthLabel(yearMonth)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : null}
               </div>
             </div>
 
