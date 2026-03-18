@@ -1,47 +1,26 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { AlertCircle, Loader2 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
+import { readStudentClassDetail, type StudentClassDetail, type StudentClassSummary } from '@/lib/weekly-media'
 import {
-  formatYearMonthLabel,
-  readStudentClassDetail,
-  readStudentClassSummaries,
-  type StudentClassDetail,
-  type StudentClassSummary,
-} from '@/lib/weekly-media'
+  fetchStudentSummaries,
+  getFeaturedSummary,
+  getVisibleYearMonths,
+  readSelectedSummary,
+  studentAuthRequiredMessage,
+} from '@/lib/student-lessons'
 import { SpmMascot } from '@/components/spm-mascot'
 import { StudentClassDetailView } from '@/components/student-class-detail-view'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Progress } from '@/components/ui/progress'
-import { cn } from '@/lib/utils'
 
 const supabase = createClient()
-const authRequiredMessage = '로그인이 필요합니다.'
-
-async function fetchStudentSummaries(): Promise<StudentClassSummary[]> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error(authRequiredMessage)
-  }
-
-  return readStudentClassSummaries(supabase, user.id)
-}
 
 async function fetchStudentClassDetail(
   classId: string,
@@ -52,7 +31,7 @@ async function fetchStudentClassDetail(
   } = await supabase.auth.getUser()
 
   if (!user) {
-    throw new Error(authRequiredMessage)
+    throw new Error(studentAuthRequiredMessage)
   }
 
   return readStudentClassDetail(supabase, user.id, classId, yearMonth)
@@ -63,8 +42,8 @@ function getFriendlyStudentMessage(error: unknown) {
     return '수업 목록을 다시 불러오지 못했습니다.'
   }
 
-  if (error.message === authRequiredMessage) {
-    return authRequiredMessage
+  if (error.message === studentAuthRequiredMessage) {
+    return studentAuthRequiredMessage
   }
 
   return '수업 목록을 다시 불러오지 못했습니다.'
@@ -75,66 +54,36 @@ function getFriendlyStudentDetailMessage(error: unknown) {
     return '선택한 수업 상세를 다시 불러오지 못했습니다.'
   }
 
-  if (error.message === authRequiredMessage) {
-    return authRequiredMessage
+  if (error.message === studentAuthRequiredMessage) {
+    return studentAuthRequiredMessage
   }
 
   return '선택한 수업 상세를 다시 불러오지 못했습니다.'
 }
 
-function getEnrollmentLabel(status: StudentClassSummary['enrollmentStatus']) {
-  return status === 'PENDING' ? '등록 예정' : '수강 중'
-}
-
-function getFeaturedSummary(summaries: StudentClassSummary[]) {
-  return (
-    summaries.find((item) => item.enrollmentStatus === 'ACTIVE' && item.nextWeekNumber !== null) ??
-    summaries.find((item) => item.enrollmentStatus === 'ACTIVE') ??
-    summaries[0]
-  )
-}
-
-function getSummaryDescription(summary: StudentClassSummary) {
+function getSummaryStateLabel(summary: StudentClassSummary) {
   if (summary.enrollmentStatus === 'PENDING' && summary.availableWeekCount === 0) {
-    return '아직 시작 전인 수업입니다. 공개되면 아래에서 바로 볼 수 있어요.'
+    return '곧 시작'
   }
 
   if (summary.nextWeekNumber) {
-    return `${summary.nextWeekNumber}주차부터 바로 이어서 볼 수 있어요.`
+    return `${summary.nextWeekNumber}주차부터`
   }
 
   if (summary.availableWeekCount > 0) {
-    return '공개된 주차를 아래에서 바로 확인할 수 있어요.'
+    return '공개됨'
   }
 
-  return '현재 공개된 콘텐츠는 없지만, 등록 상태와 진행 상황은 이 화면에서 계속 확인할 수 있어요.'
-}
-
-function getVisibleYearMonths(summaries: StudentClassSummary[]) {
-  return Array.from(new Set(summaries.map((item) => item.yearMonth))).sort((left, right) =>
-    right.localeCompare(left),
-  )
-}
-
-function readSelectedSummary(
-  summaries: StudentClassSummary[],
-  classId: string | null,
-  yearMonth: string | null,
-) {
-  return (
-    summaries.find((item) => item.classId === classId && item.yearMonth === yearMonth) ??
-    getFeaturedSummary(summaries)
-  )
+  return '공개 없음'
 }
 
 export default function StudentDashboard() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const {
     data: summaries,
     error,
     isLoading,
-  } = useSWR('student-class-summaries', fetchStudentSummaries)
+  } = useSWR('student-class-summaries', () => fetchStudentSummaries(supabase))
 
   const featuredSummary =
     summaries && summaries.length > 0
@@ -184,7 +133,7 @@ export default function StudentDashboard() {
   }
 
   if (error) {
-    const needsLogin = error instanceof Error && error.message === authRequiredMessage
+    const needsLogin = error instanceof Error && error.message === studentAuthRequiredMessage
 
     return (
       <div className="px-4 pb-28 pt-4">
@@ -235,149 +184,45 @@ export default function StudentDashboard() {
     return null
   }
 
-  const resolvedSummaries = summaries
-  const activeSummary = selectedSummary
-
-  function replaceSelection(nextSummary: StudentClassSummary) {
-    const nextParams = new URLSearchParams(searchParams.toString())
-    nextParams.set('classId', nextSummary.classId)
-    nextParams.set('yearMonth', nextSummary.yearMonth)
-    router.replace(`/student?${nextParams.toString()}`, { scroll: false })
-  }
-
-  function handleClassChange(classId: string) {
-    const nextSummary = monthSummaries.find((item) => item.classId === classId)
-    if (!nextSummary) {
-      return
-    }
-
-    replaceSelection(nextSummary)
-  }
-
-  function handleMonthChange(yearMonth: string) {
-    const nextMonthSummaries = resolvedSummaries.filter((item) => item.yearMonth === yearMonth)
-    if (nextMonthSummaries.length === 0) {
-      return
-    }
-
-    const nextSummary =
-      nextMonthSummaries.find((item) => item.classId === activeSummary.classId) ??
-      getFeaturedSummary(nextMonthSummaries)
-
-    replaceSelection(nextSummary)
-  }
-
   return (
     <div className="space-y-4 px-4 pb-28 pt-4">
-      <section className="sticky top-[5.2rem] z-20">
-        <div className="rounded-[1.8rem] border border-[rgba(23,33,42,0.08)] bg-white/95 px-4 py-4 shadow-[0_18px_48px_rgba(21,28,38,0.1)] backdrop-blur">
-          <div className="flex flex-wrap items-center gap-3 lg:flex-nowrap">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-[1.1rem] bg-[#eef8f4]">
-                <SpmMascot size="sm" className="h-7 w-7" />
-              </div>
-              <div className="min-w-0 space-y-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7a8390]">
-                  Student Lessons
-                </p>
-                <h1 className="spm-display text-[2rem] leading-none text-[#17212a]">수업</h1>
-              </div>
-            </div>
-
-            <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 lg:ml-auto lg:max-w-[26rem]">
-              <div className="min-w-0">
-                <Select value={selectedSummary.classId} onValueChange={handleClassChange}>
-                  <SelectTrigger className="h-12 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
-                    <SelectValue placeholder="수업 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {monthSummaries.map((summary) => (
-                      <SelectItem key={summary.classId} value={summary.classId}>
-                        {summary.className}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="min-w-0">
-                <Select value={selectedSummary.yearMonth} onValueChange={handleMonthChange}>
-                  <SelectTrigger className="h-12 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
-                    <SelectValue placeholder="월 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {visibleYearMonths.map((yearMonth) => (
-                      <SelectItem key={yearMonth} value={yearMonth}>
-                        {formatYearMonthLabel(yearMonth)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="rounded-[1.9rem] border border-[rgba(23,33,42,0.08)] bg-white px-4 py-4 shadow-[0_18px_48px_rgba(21,28,38,0.1)]">
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              className={cn(
-                selectedSummary.enrollmentStatus === 'PENDING'
-                  ? 'border-[#d9e4ff] bg-[#f1f5ff] text-[#4e73c5]'
-                  : 'border-[#cbe8df] bg-[#eff9f5] text-[#1d4e46]'
-              )}
-            >
-              {getEnrollmentLabel(selectedSummary.enrollmentStatus)}
-            </Badge>
-            <Badge className="border-[rgba(23,33,42,0.1)] bg-white text-[#4f5864]">
-              {formatYearMonthLabel(selectedSummary.yearMonth)}
-            </Badge>
-            <h2 className="truncate text-base font-semibold text-[#17212a]">
-              {selectedSummary.className}
-            </h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
+            <span className="text-[11px] font-semibold text-[#7a8390]">다음</span>
+            <span className="font-semibold">
+              {selectedSummary.nextWeekNumber ? `${selectedSummary.nextWeekNumber}주차` : '대기'}
+            </span>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
-              <span className="text-[11px] font-semibold text-[#7a8390]">다음</span>
-              <span className="font-semibold">
-                {selectedSummary.nextWeekNumber ? `${selectedSummary.nextWeekNumber}주차` : '대기'}
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
+            <span className="text-[11px] font-semibold text-[#7a8390]">결제</span>
+            <span className="font-semibold">
+              {selectedSummary.paymentStatus ? '완료' : '미완료'}
+            </span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
+            <span className="text-[11px] font-semibold text-[#7a8390]">공개</span>
+            <span className="font-semibold">{selectedSummary.availableWeekCount}개</span>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
+            <span className="text-[11px] font-semibold text-[#7a8390]">피드백</span>
+            <span className="font-semibold">{selectedSummary.feedbackCount}건</span>
+          </div>
+          <div className="flex min-w-[16rem] flex-1 items-center gap-3 rounded-full border border-[rgba(23,33,42,0.06)] bg-[#fbfaf7] px-3 py-2">
+            <div className="shrink-0 text-sm">
+              <span className="text-[11px] font-semibold text-[#7a8390]">출석</span>{' '}
+              <span className="font-semibold text-[#17212a]">
+                {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
               </span>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
-              <span className="text-[11px] font-semibold text-[#7a8390]">결제</span>
-              <span className="font-semibold">
-                {selectedSummary.paymentStatus ? '완료' : '미완료'}
-              </span>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
-              <span className="text-[11px] font-semibold text-[#7a8390]">공개</span>
-              <span className="font-semibold">
-                {selectedSummary.availableWeekCount}개
-              </span>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
-              <span className="text-[11px] font-semibold text-[#7a8390]">피드백</span>
-              <span className="font-semibold">{selectedSummary.feedbackCount}건</span>
-            </div>
-            <div className="flex min-w-[16rem] flex-1 items-center gap-3 rounded-full border border-[rgba(23,33,42,0.06)] bg-[#fbfaf7] px-3 py-2">
-              <div className="shrink-0 text-sm">
-                <span className="text-[11px] font-semibold text-[#7a8390]">출석</span>{' '}
-                <span className="font-semibold text-[#17212a]">
-                  {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
-                </span>
-              </div>
-              <Progress
-                value={selectedProgressPercent}
-                className="h-2.5 flex-1 border border-[rgba(23,33,42,0.08)] bg-[#ebece6]"
-              />
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(23,33,42,0.06)] bg-white px-3 py-2 text-sm text-[#66707b]">
-              <span className="text-[11px] font-semibold text-[#7a8390]">상태</span>
-              <span>{getSummaryDescription(selectedSummary)}</span>
-            </div>
+            <Progress
+              value={selectedProgressPercent}
+              className="h-2.5 flex-1 border border-[rgba(23,33,42,0.08)] bg-[#ebece6]"
+            />
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(23,33,42,0.06)] bg-white px-3 py-2 text-sm text-[#66707b]">
+            <span className="text-[11px] font-semibold text-[#7a8390]">상태</span>
+            <span>{getSummaryStateLabel(selectedSummary)}</span>
           </div>
         </div>
       </section>
