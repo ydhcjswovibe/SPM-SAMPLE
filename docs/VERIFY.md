@@ -86,9 +86,11 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - profile read failure must not fabricate local demo data
 
 ### Student read flow / weekly content consume UI
+- `/student` 첫 진입에서 기본 선택된 월별 수업 상세가 바로 보여야 한다
+- 상단 수업 선택기에서 다른 월별 수업으로 바꾸면 같은 탭 안에서 상태 요약과 주차 콘텐츠가 함께 바뀌어야 한다
 - selected class -> week -> content order is still understandable
 - touched cards, tabs, and panels do not disagree on `loading` / `syncing` / `empty` / `selection-needed` / `all-clear` meaning
-- current selection label matches the actual selected class and week, or clearly says that nothing is selected
+- current selection label matches the actual selected class, month, and week, or clearly says that nothing is selected
 - student weekly media에서 영상은 현재 선택된 1개 플레이어와 이전/다음 또는 가로 선택 strip이 함께 유지돼야 한다
 - student 선택 영상의 전체화면 버튼은 fullscreen 진입을 시도하고, 종료 뒤에도 같은 주차/영상 맥락으로 자연스럽게 복귀해야 한다
 - student weekly image는 여러 건일 때 한 줄 가로 스크롤로 훑히고, snap 없이 엉키지 않아야 한다

@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `로그인 / 학생 메인 / 관리자 메인 1차 구현`
+- focus: `학생 수업 탭 통합 완료, 실브라우저 QA와 후속 확장 큐 정리`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-03-18 | student lesson home selector integration + follow-up queue | start: not recorded | end: 2026-03-18 11:24 KST | status: done`
 - `2026-03-17 | cute redesign main surfaces implementation | start: not recorded | end: 2026-03-17 22:25 KST | status: done`
 - `2026-03-17 | cute redesign direction seed | start: not recorded | end: 2026-03-17 22:03 KST | status: done`
 - `2026-03-17 | AGENTS hard-stop guardrails | start: 2026-03-17 21:24 KST | end: 2026-03-17 21:24 KST | status: done`
@@ -83,6 +84,9 @@
 
 ## Done Recently
 
+- `/student`를 상단 월별 수업 선택기 + 선택된 수업 상세 구조로 통합하고, 홈 카드에서 보이던 선택 수업 상태 요약을 같은 화면 안으로 흡수 완료
+- `/student/class/[classId]`는 root 선택 상태로 이어지는 deep-link compatibility redirect로 정리하고, 이번 패키지를 [docs/reports/2026-03-18-student-lesson-home-selector-integration.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-lesson-home-selector-integration.md)로 기록 완료
+- 이번 학생 수업 탭 통합 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
 - `/auth/login`, `/student`, `/admin` 3개 메인 화면에 cute redesign 1차를 실제 반영하고 [docs/reports/2026-03-17-cute-redesign-main-surfaces.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-cute-redesign-main-surfaces.md)로 기록 완료
 - `민트 + 블루 + 크림` 전역 토큰, `물방울 젤리형` 정적 마스코트, pill형 하단 탭, 듀오 레퍼런스 기반 CTA/progress/card 톤을 공통 UI에 반영 완료
 - 이번 1차 반영 이후 `npm run lint`, `npm run build` 통과 완료
@@ -196,13 +200,18 @@
 
 ## Next Up
 
-1. 브라우저에서 `/auth/login`, `/student`, `/admin` 실화면을 확인해 admin matrix 판독성과 탭 safe area를 직접 검증
-2. 1차 톤이 맞으면 `/admin/students`, `/admin/content`, `/student/class/[classId]`에 같은 시스템을 확장
-3. 메인 화면 확장 후 아이템 액세서리와 애니메이션 2차 범위 착수 여부 결정
+1. 브라우저에서 `/auth/login`, `/student`, `/admin` 실화면을 확인해 학생 수업 선택기 전환감, admin matrix 판독성, 탭 safe area를 직접 검증
+2. 1차 톤이 맞으면 `/admin/students`, `/admin/content`, `/student/profile`에 같은 시스템을 확장
+3. 운영 홈 matrix/export 문구와 empty/error helper를 더 직접적으로 다듬는 operator polish 패키지 진행
+4. `내상태`에서 다음에 볼 수업과 현재 선택된 수업으로 이어지는 cross-link 보강
+5. configured env에서 GIS Google login success path를 실제 runtime으로 확인
+6. connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC를 remote에 반영하고 fallback 제거 여부 재판단
+7. weekly media / route guards / enrollments를 한 번에 돌리는 smoke entry를 정리
 
 ## Risks / Open Questions
 
 - cute redesign 1차 구현은 완료됐지만, admin main에서 귀여운 톤이 matrix 판독성을 해치지 않는지 실제 브라우저 확인이 아직 남아 있다.
+- 학생 수업 탭 통합은 source-backed와 build/typecheck 기준으로는 닫혔지만, 모바일 브라우저에서 상단 선택기와 주차 스크롤 감각이 자연스러운지는 직접 확인이 아직 남아 있다.
 - 공통 버튼/카드/입력 톤이 바뀌어 1차 범위 밖 화면도 시각적으로 일부 영향받을 수 있다.
 - 구현 시작 전 `docs/archive/**/*`를 active truth로 다시 인용하지 않도록 주의가 필요하다.
 - connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC는 아직 schema cache에 없어, 현재 route는 compatibility fallback을 함께 유지한다.
