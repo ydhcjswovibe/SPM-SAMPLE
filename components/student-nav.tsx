@@ -30,6 +30,8 @@ interface StudentNavProps {
   userName: string
 }
 
+const STUDENT_NAV_REFRESH_INTERVAL_MS = 5000
+
 export function StudentNav({ userName }: StudentNavProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -41,7 +43,7 @@ export function StudentNav({ userName }: StudentNavProps) {
     isLessonHome ? 'student-class-summaries' : null,
     () => fetchStudentSummaries(supabase),
     {
-      refreshInterval: 15000,
+      refreshInterval: STUDENT_NAV_REFRESH_INTERVAL_MS,
     },
   )
 

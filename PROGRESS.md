@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `학생 수업 신청 dialog 정리 + 승인 후 stale 표시 보정 완료, 실브라우저 QA와 runtime 검증 대기`
+- focus: `학생 수강 상태 가시성 보정 완료, 실브라우저 QA와 runtime 검증 대기`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-03-18 | student active visibility follow-up | start: not recorded | end: 2026-03-18 16:45 KST | status: done`
 - `2026-03-18 | student request dialog + approved refresh follow-up | start: not recorded | end: 2026-03-18 16:34 KST | status: done`
 - `2026-03-18 | student enrollment request flow recovery | start: not recorded | end: 2026-03-18 16:21 KST | status: done`
 - `2026-03-18 | student active selector + owner delete visibility hotfix | start: not recorded | end: 2026-03-18 14:49 KST | status: done`
@@ -92,6 +93,10 @@
 
 ## Done Recently
 
+- 학생 수업 상황판에 `상태` 칩을 다시 추가하고, `PENDING/ACTIVE` 빈 상태 문구를 분리해 `수강 중인데도 체감상 안 바뀐 것처럼 보이던` 문제를 완화 완료
+- 학생 summary/detail/nav/profile polling을 5초로 줄이고 detail key에 status를 반영해 오너 승인 후 학생 표면 반영이 더 빠르고 직접적으로 보이게 보정 완료
+- 이번 student active visibility follow-up을 [docs/reports/2026-03-18-student-active-visibility-follow-up.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-active-visibility-follow-up.md)로 기록 완료
+- 이번 follow-up 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
 - 학생 `수업 신청`을 `/student/profile` 반복 카드가 아니라 `/student` 탭 안 다이얼로그 action으로 다시 모으고, `내상태`는 전체 요약/계정 관리 중심으로 정리 완료
 - 학생 상세 SWR key에 enrollment status를 포함하고 student summary/detail에 짧은 polling을 추가해 오너 승인 뒤 stale `PENDING` 표시가 남지 않도록 보정 완료
 - 이번 request dialog / approved refresh follow-up을 [docs/reports/2026-03-18-student-request-dialog-and-approved-refresh-follow-up.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-request-dialog-and-approved-refresh-follow-up.md)로 기록 완료

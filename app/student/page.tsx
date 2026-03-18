@@ -23,6 +23,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 
 const supabase = createClient()
+const STUDENT_REFRESH_INTERVAL_MS = 5000
 
 async function fetchStudentClassDetail(
   classId: string,
@@ -65,14 +66,22 @@ function getFriendlyStudentDetailMessage(error: unknown) {
 
 function getNextWeekLabel(summary: StudentClassSummary) {
   if (summary.enrollmentStatus === 'PENDING' && summary.availableWeekCount === 0) {
-    return '곧 시작'
+    return '승인 대기'
   }
 
   if (summary.nextWeekNumber) {
     return `${summary.nextWeekNumber}주차`
   }
 
+  if (summary.enrollmentStatus === 'ACTIVE') {
+    return '준비 중'
+  }
+
   return '대기'
+}
+
+function getEnrollmentStatusLabel(summary: StudentClassSummary) {
+  return summary.enrollmentStatus === 'PENDING' ? '등록 예정' : '수강 중'
 }
 
 export default function StudentDashboard() {
@@ -83,7 +92,7 @@ export default function StudentDashboard() {
     error,
     isLoading,
   } = useSWR('student-class-summaries', () => fetchStudentSummaries(supabase), {
-    refreshInterval: 15000,
+    refreshInterval: STUDENT_REFRESH_INTERVAL_MS,
   })
 
   const featuredSummary =
@@ -118,7 +127,7 @@ export default function StudentDashboard() {
       : null,
     ([, classId, yearMonth]) => fetchStudentClassDetail(classId, yearMonth),
     {
-      refreshInterval: 15000,
+      refreshInterval: STUDENT_REFRESH_INTERVAL_MS,
     },
   )
 
@@ -201,6 +210,10 @@ export default function StudentDashboard() {
     <div className="space-y-4 px-4 pb-28 pt-4">
       <section className="rounded-[1.9rem] border border-[rgba(23,33,42,0.08)] bg-white px-4 py-4 shadow-[0_18px_48px_rgba(21,28,38,0.1)]">
         <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#eef8f4] px-3 py-2 text-sm text-[#17212a]">
+            <span className="text-[11px] font-semibold text-[#7a8390]">상태</span>
+            <span className="font-semibold">{getEnrollmentStatusLabel(selectedSummary)}</span>
+          </div>
           <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
             <span className="text-[11px] font-semibold text-[#7a8390]">다음</span>
             <span className="font-semibold">{getNextWeekLabel(selectedSummary)}</span>
@@ -258,7 +271,7 @@ export default function StudentDashboard() {
         </Card>
       ) : selectedDetail ? (
         <StudentClassDetailView
-          key={`${selectedDetail.classId}:${selectedDetail.yearMonth}`}
+          key={`${selectedDetail.classId}:${selectedDetail.yearMonth}:${selectedDetail.enrollmentStatus}`}
           detail={selectedDetail}
         />
       ) : (

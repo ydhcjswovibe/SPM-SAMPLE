@@ -63,10 +63,14 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
       <Card className="overflow-hidden rounded-[1.9rem] border border-[rgba(23,33,42,0.08)] bg-white py-0 shadow-[0_18px_50px_rgba(21,28,38,0.1)]">
         <CardContent className="px-5 py-12 text-center">
           <p className="text-base font-semibold text-[#17212a]">
-            {detail.enrollmentStatus === 'PENDING' ? '곧 열릴 예정입니다.' : '아직 공개된 항목이 없습니다.'}
+            {detail.enrollmentStatus === 'PENDING'
+              ? '운영 승인 전입니다.'
+              : '수강은 시작됐고 콘텐츠는 아직 준비 중입니다.'}
           </p>
           <p className="mt-2 text-sm leading-6 text-[#66707b]">
-            새로운 콘텐츠가 열리면 이 화면에서 바로 확인할 수 있습니다.
+            {detail.enrollmentStatus === 'PENDING'
+              ? '승인이 끝나면 이 화면에서 수강 상태와 주차 콘텐츠를 바로 이어서 확인할 수 있습니다.'
+              : '새로운 콘텐츠가 열리면 이 화면에서 바로 확인할 수 있습니다.'}
           </p>
         </CardContent>
       </Card>
@@ -338,8 +342,8 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                     !week.privateFeedbackText ? (
                       <div className="rounded-[1.25rem] border border-dashed px-4 py-8 text-center text-sm text-[#66707b]">
                         {detail.enrollmentStatus === 'PENDING'
-                          ? '곧 열릴 예정입니다.'
-                          : '아직 공개된 항목이 없습니다.'}
+                          ? '운영 승인 전입니다.'
+                          : '수강은 시작됐고 콘텐츠는 아직 준비 중입니다.'}
                       </div>
                     ) : null}
                   </CardContent>

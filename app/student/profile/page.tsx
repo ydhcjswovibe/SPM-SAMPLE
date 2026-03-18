@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label'
 
 const supabase = createClient()
 const authRequiredMessage = '로그인이 필요합니다.'
+const STUDENT_PROFILE_REFRESH_INTERVAL_MS = 5000
 
 async function readRouteError(response: Response) {
   const payload = (await response.json().catch(() => null)) as { error?: string } | null
@@ -61,7 +62,7 @@ export default function StudentProfilePage() {
     mutate,
   } = useSWR('student-profile', fetchProfile)
   const { data: summaries } = useSWR('student-status-summary', fetchStudentStatus, {
-    refreshInterval: 15000,
+    refreshInterval: STUDENT_PROFILE_REFRESH_INTERVAL_MS,
   })
   const savedName = profile?.full_name ?? ''
   const hasPendingNameChange = fullName.trim() !== savedName
