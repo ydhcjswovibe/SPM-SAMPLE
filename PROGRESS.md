@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `학생 수업 탭 상단바 단순화 완료, 실브라우저 QA와 후속 확장 큐 정리`
+- focus: `학생 수업 탭 inline topbar/compact summary 완료, 실브라우저 QA와 후속 확장 큐 정리`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-03-18 | student inline topbar controls follow-up | start: not recorded | end: 2026-03-18 13:51 KST | status: done`
 - `2026-03-18 | student topbar selector + compact summary follow-up | start: not recorded | end: 2026-03-18 13:43 KST | status: done`
 - `2026-03-18 | student lesson home selector integration + follow-up queue | start: not recorded | end: 2026-03-18 11:24 KST | status: done`
 - `2026-03-17 | cute redesign main surfaces implementation | start: not recorded | end: 2026-03-17 22:25 KST | status: done`
@@ -85,6 +86,9 @@
 
 ## Done Recently
 
+- `/student`의 수업/월 선택을 `Student Lessons / SPM` 옆 inline control로 압축하고, 상황판을 더 짧은 가로 칩 나열 구조로 재정리 완료
+- 이번 inline topbar follow-up을 [docs/reports/2026-03-18-student-inline-topbar-controls-follow-up.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-inline-topbar-controls-follow-up.md)로 기록 완료
+- 이번 follow-up 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
 - `/student`의 수업 선택과 월 선택을 상단바로 올리고, 큰 검은 상태판 대신 간단한 상황판만 남기도록 follow-up 완료
 - 이번 상단바/상황판 follow-up을 [docs/reports/2026-03-18-student-topbar-selector-and-compact-summary-follow-up.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-topbar-selector-and-compact-summary-follow-up.md)로 기록 완료
 - 이번 follow-up 이후에도 `npm run lint`, `npm run build`, `npm run typecheck` 통과 완료
@@ -215,7 +219,7 @@
 ## Risks / Open Questions
 
 - cute redesign 1차 구현은 완료됐지만, admin main에서 귀여운 톤이 matrix 판독성을 해치지 않는지 실제 브라우저 확인이 아직 남아 있다.
-- 학생 수업 탭 상단바 follow-up은 source-backed와 build/typecheck 기준으로는 닫혔지만, 모바일 브라우저에서 상단 수업/월 select와 주차 스크롤 감각이 자연스러운지는 직접 확인이 아직 남아 있다.
+- 학생 수업 탭 inline topbar follow-up은 source-backed와 build/typecheck 기준으로는 닫혔지만, 모바일 브라우저에서 상단 수업/월 select와 주차 스크롤 감각이 자연스러운지는 직접 확인이 아직 남아 있다.
 - 공통 버튼/카드/입력 톤이 바뀌어 1차 범위 밖 화면도 시각적으로 일부 영향받을 수 있다.
 - 구현 시작 전 `docs/archive/**/*`를 active truth로 다시 인용하지 않도록 주의가 필요하다.
 - connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC는 아직 schema cache에 없어, 현재 route는 compatibility fallback을 함께 유지한다.

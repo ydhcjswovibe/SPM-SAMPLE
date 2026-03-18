@@ -271,12 +271,12 @@ export default function StudentDashboard() {
     <div className="space-y-4 px-4 pb-28 pt-4">
       <section className="sticky top-[5.2rem] z-20">
         <div className="rounded-[1.8rem] border border-[rgba(23,33,42,0.08)] bg-white/95 px-4 py-4 shadow-[0_18px_48px_rgba(21,28,38,0.1)] backdrop-blur">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 lg:flex-nowrap">
+            <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-[1.1rem] bg-[#eef8f4]">
                 <SpmMascot size="sm" className="h-7 w-7" />
               </div>
-              <div className="space-y-1">
+              <div className="min-w-0 space-y-1">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7a8390]">
                   Student Lessons
                 </p>
@@ -284,12 +284,11 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-[#7a8390]">수업 선택</p>
+            <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 lg:ml-auto lg:max-w-[26rem]">
+              <div className="min-w-0">
                 <Select value={selectedSummary.classId} onValueChange={handleClassChange}>
                   <SelectTrigger className="h-12 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
-                    <SelectValue placeholder="수업을 선택해 주세요" />
+                    <SelectValue placeholder="수업 선택" />
                   </SelectTrigger>
                   <SelectContent>
                     {monthSummaries.map((summary) => (
@@ -301,11 +300,10 @@ export default function StudentDashboard() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-[#7a8390]">월 선택</p>
+              <div className="min-w-0">
                 <Select value={selectedSummary.yearMonth} onValueChange={handleMonthChange}>
                   <SelectTrigger className="h-12 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]">
-                    <SelectValue placeholder="월을 선택해 주세요" />
+                    <SelectValue placeholder="월 선택" />
                   </SelectTrigger>
                   <SelectContent>
                     {visibleYearMonths.map((yearMonth) => (
@@ -321,8 +319,8 @@ export default function StudentDashboard() {
         </div>
       </section>
 
-      <section className="rounded-[1.9rem] border border-[rgba(23,33,42,0.08)] bg-white px-5 py-5 shadow-[0_18px_48px_rgba(21,28,38,0.1)]">
-        <div className="space-y-4">
+      <section className="rounded-[1.9rem] border border-[rgba(23,33,42,0.08)] bg-white px-4 py-4 shadow-[0_18px_48px_rgba(21,28,38,0.1)]">
+        <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge
               className={cn(
@@ -336,51 +334,50 @@ export default function StudentDashboard() {
             <Badge className="border-[rgba(23,33,42,0.1)] bg-white text-[#4f5864]">
               {formatYearMonthLabel(selectedSummary.yearMonth)}
             </Badge>
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="spm-display text-[2rem] leading-none text-[#17212a]">
+            <h2 className="truncate text-base font-semibold text-[#17212a]">
               {selectedSummary.className}
             </h2>
-            <p className="text-sm leading-6 text-[#66707b]">{getSummaryDescription(selectedSummary)}</p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-4">
-            <div className="rounded-[1.25rem] bg-[#f7f4ee] px-4 py-4">
-              <p className="text-[11px] font-semibold tracking-[0.14em] text-[#7a8390]">다음 주차</p>
-              <p className="mt-2 text-base font-semibold text-[#17212a]">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
+              <span className="text-[11px] font-semibold text-[#7a8390]">다음</span>
+              <span className="font-semibold">
                 {selectedSummary.nextWeekNumber ? `${selectedSummary.nextWeekNumber}주차` : '대기'}
-              </p>
-            </div>
-            <div className="rounded-[1.25rem] bg-[#f7f4ee] px-4 py-4">
-              <p className="text-[11px] font-semibold tracking-[0.14em] text-[#7a8390]">결제</p>
-              <p className="mt-2 text-base font-semibold text-[#17212a]">
-                {selectedSummary.paymentStatus ? '완료' : '미완료'}
-              </p>
-            </div>
-            <div className="rounded-[1.25rem] bg-[#f7f4ee] px-4 py-4">
-              <p className="text-[11px] font-semibold tracking-[0.14em] text-[#7a8390]">공개 주차</p>
-              <p className="mt-2 text-base font-semibold text-[#17212a]">
-                {selectedSummary.availableWeekCount}개
-              </p>
-            </div>
-            <div className="rounded-[1.25rem] bg-[#f7f4ee] px-4 py-4">
-              <p className="text-[11px] font-semibold tracking-[0.14em] text-[#7a8390]">피드백</p>
-              <p className="mt-2 text-base font-semibold text-[#17212a]">{selectedSummary.feedbackCount}건</p>
-            </div>
-          </div>
-
-          <div className="rounded-[1.35rem] border border-[rgba(23,33,42,0.06)] bg-[#fbfaf7] px-4 py-4">
-            <div className="mb-3 flex items-center justify-between text-xs font-semibold text-[#7a8390]">
-              <span>출석 진행</span>
-              <span>
-                {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
               </span>
             </div>
-            <Progress
-              value={selectedProgressPercent}
-              className="h-3.5 border border-[rgba(23,33,42,0.08)] bg-[#ebece6]"
-            />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
+              <span className="text-[11px] font-semibold text-[#7a8390]">결제</span>
+              <span className="font-semibold">
+                {selectedSummary.paymentStatus ? '완료' : '미완료'}
+              </span>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
+              <span className="text-[11px] font-semibold text-[#7a8390]">공개</span>
+              <span className="font-semibold">
+                {selectedSummary.availableWeekCount}개
+              </span>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#f7f4ee] px-3 py-2 text-sm text-[#17212a]">
+              <span className="text-[11px] font-semibold text-[#7a8390]">피드백</span>
+              <span className="font-semibold">{selectedSummary.feedbackCount}건</span>
+            </div>
+            <div className="flex min-w-[16rem] flex-1 items-center gap-3 rounded-full border border-[rgba(23,33,42,0.06)] bg-[#fbfaf7] px-3 py-2">
+              <div className="shrink-0 text-sm">
+                <span className="text-[11px] font-semibold text-[#7a8390]">출석</span>{' '}
+                <span className="font-semibold text-[#17212a]">
+                  {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
+                </span>
+              </div>
+              <Progress
+                value={selectedProgressPercent}
+                className="h-2.5 flex-1 border border-[rgba(23,33,42,0.08)] bg-[#ebece6]"
+              />
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[rgba(23,33,42,0.06)] bg-white px-3 py-2 text-sm text-[#66707b]">
+              <span className="text-[11px] font-semibold text-[#7a8390]">상태</span>
+              <span>{getSummaryDescription(selectedSummary)}</span>
+            </div>
           </div>
         </div>
       </section>
