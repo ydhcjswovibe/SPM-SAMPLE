@@ -46,9 +46,9 @@ export default async function StudentLayout({
   const userName = access.fullName ?? access.email?.split('@')[0] ?? '학생'
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-[linear-gradient(180deg,#d6edf8_0%,#ddefc5_34%,#b1d86e_100%)]">
       <StudentNav userName={userName} />
-      <main className="pb-20">
+      <main className="relative pb-24">
         {children}
       </main>
     </div>

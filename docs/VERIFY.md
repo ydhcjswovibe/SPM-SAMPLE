@@ -71,6 +71,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 학생 배정 표면 첫 진입에서는 해당 월 첫 수업이 기본 선택으로 열려야 하고, 목록 재로딩이나 월 변경 중에도 선택 수업이 활성 상태면 비거나 흔들리지 않아야 한다
 - 학생 배정 목록의 row action은 mobile에서도 경계 밖으로 밀리지 않고, 가능한 한 한 줄에 가깝게 읽혀야 한다
 - 학생 배정 목록의 row 왼쪽에는 이름만 남고, 결제 여부와 등록 상태는 오른쪽 action control에만 보여야 한다
+- 학생 배정 목록의 결제/상태 action은 row마다 시작점이 크게 어긋나지 않도록 정렬돼야 한다
 - owner delete 버튼은 상시 노출되지 않고 `삭제 모드`에서만 보여야 한다
 - denied outcomes stay distinguishable:
   - anonymous -> auth-required
@@ -103,6 +104,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - student 선택 영상의 전체화면 버튼은 fullscreen 진입을 시도하고, 종료 뒤에도 같은 주차/영상 맥락으로 자연스럽게 복귀해야 한다
 - student weekly image는 여러 건일 때 한 줄 가로 스크롤로 훑히고, snap 없이 엉키지 않아야 한다
 - student 이미지 카드는 tap/click으로 확대 다이얼로그가 열리고, 닫은 뒤 주차 맥락으로 자연스럽게 돌아와야 한다
+- 학생 메인 상황판과 내상태 요약 카드는 불필요한 세로 부피 없이 한 화면에서 핵심 상태를 빠르게 읽을 수 있어야 한다
 - CTA labels match the real action:
   - tab move
   - class or week selection

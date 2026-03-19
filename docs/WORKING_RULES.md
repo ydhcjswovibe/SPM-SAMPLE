@@ -3,7 +3,7 @@
 ## 목적
 
 이 문서는 저장소 전역 작업 규칙을 모은다.
-역할 정의는 `docs/roles/*`, 제품 truth는 `docs/SPEC.md`, 검증 기준은 `docs/VERIFY.md`, 진행 상태는 `PROGRESS.md`에서 본다.
+역할 구분은 `AGENTS.md`, 역할 세부 정의는 `docs/roles/*`, 제품 truth는 `docs/SPEC.md`, 검증 기준은 `docs/VERIFY.md`, 진행 상태는 `PROGRESS.md`에서 본다.
 
 ## 언어
 

@@ -4,9 +4,9 @@ type SpmMascotVariant = 'base' | 'welcome'
 type SpmMascotSize = 'sm' | 'md' | 'lg'
 
 const sizeClasses: Record<SpmMascotSize, string> = {
-  sm: 'h-20 w-20',
-  md: 'h-28 w-28',
-  lg: 'h-40 w-40',
+  sm: 'h-16 w-16',
+  md: 'h-24 w-24',
+  lg: 'h-32 w-32',
 }
 
 interface SpmMascotProps {
@@ -20,93 +20,60 @@ export function SpmMascot({
   variant = 'base',
   size = 'md',
 }: SpmMascotProps) {
+  const isWelcome = variant === 'welcome'
+
   return (
     <div className={cn('relative shrink-0', sizeClasses[size], className)}>
       <svg
-        viewBox="0 0 160 160"
+        viewBox="0 0 120 120"
         aria-hidden="true"
-        className="h-full w-full drop-shadow-[0_8px_0_var(--card-shadow)]"
+        className="h-full w-full drop-shadow-[0_16px_22px_rgba(91,117,58,0.16)]"
       >
-        <g>
-          <path
-            d="M80 12C61 12 44 31 44 57c0 13 4 22 9 30 7 12 13 23 15 35 1 8 5 14 12 18 12 8 28 8 40 0 7-4 11-10 12-18 2-12 8-23 15-35 5-8 9-17 9-30 0-26-17-45-36-45h-40Z"
-            fill="var(--primary)"
-            stroke="var(--primary-shadow)"
-            strokeWidth="5"
-          />
-          <path
-            d="M70 30c-11 4-21 16-21 31 0 8 3 15 7 22 5 8 10 16 12 24"
-            fill="none"
-            stroke="rgba(255,255,255,0.55)"
-            strokeLinecap="round"
-            strokeWidth="9"
-          />
-          <ellipse cx="80" cy="118" rx="31" ry="18" fill="var(--primary-soft)" />
-          <circle cx="63" cy="69" r="8" fill="#24313d" />
-          <circle cx="99" cy="69" r="8" fill="#24313d" />
-          <circle cx="61" cy="66.5" r="2.2" fill="#ffffff" />
-          <circle cx="97" cy="66.5" r="2.2" fill="#ffffff" />
-          {variant === 'welcome' ? (
-            <path
-              d="M66 93c7 8 21 8 28 0"
-              fill="none"
-              stroke="#24313d"
-              strokeLinecap="round"
-              strokeWidth="6"
-            />
-          ) : (
-            <path
-              d="M69 94c4 3 18 3 22 0"
-              fill="none"
-              stroke="#24313d"
-              strokeLinecap="round"
-              strokeWidth="5"
-            />
-          )}
-          <path
-            d="M50 93c-9 1-16 10-16 20"
-            fill="none"
-            stroke="#24313d"
-            strokeLinecap="round"
-            strokeWidth="6"
-          />
-          <path
-            d="M111 93c10 0 18 8 18 18"
-            fill="none"
-            stroke="#24313d"
-            strokeLinecap="round"
-            strokeWidth="6"
-          />
-          {variant === 'welcome' ? (
-            <path
-              d="M30 92c0-11 8-21 19-23"
-              fill="none"
-              stroke="#24313d"
-              strokeLinecap="round"
-              strokeWidth="6"
-            />
-          ) : null}
-          {variant === 'welcome' ? (
-            <circle cx="31" cy="89" r="8" fill="var(--accent)" stroke="#d4af2e" strokeWidth="3" />
-          ) : null}
-          <path
-            d="M64 141c0 7-6 13-13 13"
-            fill="none"
-            stroke="#24313d"
-            strokeLinecap="round"
-            strokeWidth="6"
-          />
-          <path
-            d="M97 141c0 7 6 13 13 13"
-            fill="none"
-            stroke="#24313d"
-            strokeLinecap="round"
-            strokeWidth="6"
-          />
-        </g>
+        <ellipse cx="60" cy="105" rx="21" ry="6" fill="rgba(71,84,54,0.14)" />
+
+        <path
+          d={isWelcome ? 'M19 58c6-8 15-11 23-9 3 1 6 3 8 5-5 2-9 5-13 10-4 4-6 8-8 13-7-4-12-11-10-19Z' : 'M21 61c6-7 14-10 22-8 3 1 6 3 8 5-4 2-8 5-12 9-4 4-6 8-7 12-8-3-13-10-11-18Z'}
+          fill="#b8bcc9"
+        />
+        <path
+          d={isWelcome ? 'M101 58c-6-8-15-11-23-9-3 1-6 3-8 5 5 2 9 5 13 10 4 4 6 8 8 13 7-4 12-11 10-19Z' : 'M99 61c-6-7-14-10-22-8-3 1-6 3-8 5 4 2 8 5 12 9 4 4 6 8 7 12 8-3 13-10 11-18Z'}
+          fill="#b8bcc9"
+        />
+
+        <circle cx="60" cy="58" r="33" fill="#d3d7e4" />
+        <ellipse cx="60" cy="68" rx="24" ry="26" fill="#d8dceb" />
+        <ellipse cx="50" cy="38" rx="8" ry="11" fill="rgba(255,255,255,0.72)" transform="rotate(-32 50 38)" />
+
+        <circle cx="49" cy="55" r="4.6" fill="#34363d" />
+        <circle cx="71" cy="55" r="4.6" fill="#34363d" />
+        <circle cx="47.7" cy="53.4" r="1.2" fill="#ffffff" />
+        <circle cx="69.7" cy="53.4" r="1.2" fill="#ffffff" />
+
+        <path d="M55 63 60 68 65 63Z" fill="#f4c64d" />
+
+        <path
+          d={isWelcome ? 'M52 74c2 4 14 4 16 0' : 'M54 74c2 2 10 2 12 0'}
+          fill="none"
+          stroke="#34363d"
+          strokeLinecap="round"
+          strokeWidth="3.3"
+        />
+
+        <ellipse cx="42" cy="68" rx="6" ry="4" fill="rgba(255,166,157,0.72)" />
+        <ellipse cx="78" cy="68" rx="6" ry="4" fill="rgba(255,166,157,0.72)" />
+
+        <path d="M47 90c-2 4-3 8-3 12" fill="none" stroke="#c38a60" strokeLinecap="round" strokeWidth="4" />
+        <path d="M73 90c2 4 3 8 3 12" fill="none" stroke="#c38a60" strokeLinecap="round" strokeWidth="4" />
+        <path d="M41 101h7" fill="none" stroke="#c38a60" strokeLinecap="round" strokeWidth="3.6" />
+        <path d="M72 101h7" fill="none" stroke="#c38a60" strokeLinecap="round" strokeWidth="3.6" />
+
+        {isWelcome ? (
+          <>
+            <circle cx="91" cy="27" r="6" fill="#ffd966" />
+            <path d="M91 18v18M82 27h18" fill="none" stroke="#ffffff" strokeLinecap="round" strokeWidth="2.8" />
+          </>
+        ) : null}
       </svg>
-      <span className="absolute left-2 top-3 h-3 w-3 rounded-full bg-[var(--accent)] shadow-[0_2px_0_#d8af2a]" />
-      <span className="absolute right-2 top-6 h-2.5 w-2.5 rounded-full bg-[var(--brand-blue)] shadow-[0_2px_0_var(--brand-blue-shadow)]" />
     </div>
   )
 }

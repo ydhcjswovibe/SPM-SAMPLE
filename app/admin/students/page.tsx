@@ -501,7 +501,7 @@ export default function StudentsPage() {
   return (
     <div className="flex flex-col">
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex min-h-14 flex-wrap items-center gap-2 px-4 py-2 md:h-14 md:flex-nowrap md:justify-between md:px-6 md:py-0">
+        <div className="flex min-h-[3.25rem] flex-wrap items-center gap-2 px-4 py-2 md:h-[3.25rem] md:flex-nowrap md:justify-between md:px-6 md:py-0">
           <h1 className="mr-auto font-semibold text-lg md:hidden">학생</h1>
           <div className="order-3 flex w-full items-center gap-2 md:order-none md:w-auto">
             <ClassSelector
@@ -551,15 +551,15 @@ export default function StudentsPage() {
         </div>
       </header>
 
-      <div className="flex-1 space-y-4 p-4 md:p-6">
+      <div className="flex-1 space-y-3 p-4 md:p-5">
         {actionError ? (
           <Card className="border-destructive/30 bg-destructive/5">
             <CardContent className="py-4 text-sm text-destructive">{actionError}</CardContent>
           </Card>
         ) : null}
 
-        <Card>
-          <CardHeader>
+        <Card className="gap-0 py-0">
+          <CardHeader className="px-4 pt-3.5 pb-2 md:px-5 md:pt-4">
             <CardTitle className="text-base">{classSelectionHint}</CardTitle>
             {resolvedSelectedClass && enrollmentSummary ? (
               <CardDescription>
@@ -572,20 +572,20 @@ export default function StudentsPage() {
               </p>
             ) : null}
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4 pt-0 md:px-5 md:pb-5">
             {pageErrorMessage ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
                 <AlertCircle className="mb-4 h-8 w-8 text-destructive" />
                 <p className="font-medium text-sm">학생 등록 정보를 불러오지 못했습니다.</p>
                 <p className="mt-1 text-sm text-muted-foreground">{pageErrorMessage}</p>
               </div>
             ) : isClassesLoading && !resolvedSelectedClass ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
                 <Loader2 className="mb-4 h-6 w-6 animate-spin text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">수업 목록을 불러오는 중입니다.</p>
               </div>
             ) : !resolvedSelectedClass ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
                 <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground" />
                 <p className="font-medium">선택된 수업이 없습니다.</p>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -595,22 +595,22 @@ export default function StudentsPage() {
                 </p>
               </div>
             ) : !hasValidYearMonth ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
                 <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground" />
                 <p className="text-muted-foreground">유효한 월 범위를 선택해 주세요.</p>
               </div>
             ) : isEnrollmentsLoading ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 <p className="mt-3 text-sm text-muted-foreground">이달 등록 현황을 불러오는 중입니다.</p>
               </div>
             ) : !enrollments || enrollments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-4 rounded-full bg-muted p-4">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <div className="mb-3 rounded-full bg-muted p-3.5">
                   <UserPlus className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="font-medium">아직 배정된 학생이 없습니다.</h3>
-                <p className="mt-1 mb-4 text-sm text-muted-foreground">
+                <p className="mt-1 mb-3 text-sm text-muted-foreground">
                   기존 학생 계정을 바로 현재 월 등록으로 배정할 수 있습니다.
                 </p>
                 <Button
@@ -627,68 +627,68 @@ export default function StudentsPage() {
                 {enrollments.map((enrollment) => (
                   <div
                     key={enrollment.id}
-                    className="flex items-center justify-between gap-2 py-2 first:pt-0 last:pb-0"
+                    className="grid grid-cols-[minmax(0,1fr)_5.35rem_5rem_auto] items-center gap-1.5 py-1.5 first:pt-0 last:pb-0"
                   >
-                    <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                    <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
                       <span className="min-w-0 truncate text-sm font-medium leading-none">
                         {enrollment.profiles.full_name || '이름 미등록'}
                       </span>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            aria-label={`${enrollment.profiles.full_name || '학생'} 결제 상태`}
-                            className={`h-8 shrink-0 px-2 text-xs ${paymentStatusMeta[enrollment.payment_status ? 'paid' : 'unpaid'].buttonClassName}`}
-                            disabled={isUpdatingPayment === enrollment.id || !accessState?.canManage}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          aria-label={`${enrollment.profiles.full_name || '학생'} 결제 상태`}
+                          className={`h-8 w-full justify-center px-2 text-xs ${paymentStatusMeta[enrollment.payment_status ? 'paid' : 'unpaid'].buttonClassName}`}
+                          disabled={isUpdatingPayment === enrollment.id || !accessState?.canManage}
+                        >
+                          {isUpdatingPayment === enrollment.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            paymentStatusMeta[enrollment.payment_status ? 'paid' : 'unpaid'].label
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {(['paid', 'unpaid'] as const).map((status) => (
+                          <DropdownMenuItem
+                            key={status}
+                            onClick={() => handlePaymentChange(enrollment.id, status)}
                           >
-                            {isUpdatingPayment === enrollment.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              paymentStatusMeta[enrollment.payment_status ? 'paid' : 'unpaid'].label
-                            )}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {(['paid', 'unpaid'] as const).map((status) => (
-                            <DropdownMenuItem
-                              key={status}
-                              onClick={() => handlePaymentChange(enrollment.id, status)}
-                            >
-                              {paymentStatusMeta[status].label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            aria-label={`${enrollment.profiles.full_name || '학생'} 등록 상태`}
-                            className="h-8 shrink-0 px-2 text-xs"
-                            disabled={isUpdatingStatus === enrollment.id}
+                            {paymentStatusMeta[status].label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          aria-label={`${enrollment.profiles.full_name || '학생'} 등록 상태`}
+                          className="h-8 w-full justify-center px-2 text-xs"
+                          disabled={isUpdatingStatus === enrollment.id}
+                        >
+                          {isUpdatingStatus === enrollment.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            enrollmentStatusMeta[enrollment.status].label
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {(Object.keys(enrollmentStatusMeta) as EnrollmentLifecycleStatus[]).map((status) => (
+                          <DropdownMenuItem
+                            key={status}
+                            onClick={() => handleStatusChange(enrollment.id, status)}
                           >
-                            {isUpdatingStatus === enrollment.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              enrollmentStatusMeta[enrollment.status].label
-                            )}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {(Object.keys(enrollmentStatusMeta) as EnrollmentLifecycleStatus[]).map((status) => (
-                            <DropdownMenuItem
-                              key={status}
-                              onClick={() => handleStatusChange(enrollment.id, status)}
-                            >
-                              {enrollmentStatusMeta[status].label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            {enrollmentStatusMeta[status].label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <div className="flex justify-end">
                       {isDeleteMode ? (
                         <Button
                           variant="ghost"
@@ -736,7 +736,7 @@ export default function StudentsPage() {
             />
           </div>
 
-          <div className="min-h-[200px] flex-1 overflow-y-auto -mx-6 px-6">
+          <div className="min-h-[10rem] flex-1 overflow-y-auto -mx-6 px-6">
             {addDialogErrorMessage ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <AlertCircle className="mb-3 h-6 w-6 text-destructive" />
@@ -758,7 +758,7 @@ export default function StudentsPage() {
                 {filteredAvailableStudents.map((student) => (
                   <div
                     key={student.id}
-                    className="flex items-center justify-between py-3"
+                    className="flex items-center justify-between gap-3 py-2"
                   >
                     <div className="flex flex-col gap-0.5">
                       <span className="font-medium">

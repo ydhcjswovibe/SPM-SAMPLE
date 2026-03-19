@@ -475,13 +475,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col">
-      <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-6">
-        <div className="spm-soft-panel flex min-h-16 flex-wrap items-center gap-3 px-4 py-3 md:min-h-[4.5rem] md:flex-nowrap md:justify-between">
-            <div className="flex items-center gap-3">
-              <SpmMascot size="sm" className="hidden md:block h-11 w-11" />
-              <div className="space-y-1">
+      <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-5">
+        <div className="spm-soft-panel flex min-h-14 flex-wrap items-center gap-2 px-4 py-2 md:min-h-[3.75rem] md:flex-nowrap md:justify-between">
+            <div className="flex items-center gap-2.5">
+              <SpmMascot size="sm" className="hidden h-10 w-10 md:block" />
+              <div className="space-y-0.5">
                 <p className="spm-kicker">운영 홈</p>
-                <h1 className="spm-display text-3xl text-foreground">운영</h1>
+                <h1 className="spm-display text-[1.85rem] leading-none text-foreground md:text-[2.05rem]">운영</h1>
               </div>
             </div>
           <div className="order-3 flex w-full items-center gap-2 md:order-none md:w-auto">
@@ -554,7 +554,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <div className="flex-1 space-y-5 px-4 pb-28 pt-4 md:px-6 md:pb-8 md:pt-6">
+      <div className="flex-1 space-y-4 px-4 pb-28 pt-3 md:px-6 md:pb-8 md:pt-4">
         {isAccessLoading ? (
           <Card>
             <CardContent className="flex items-center gap-3 py-4 text-sm text-muted-foreground">
@@ -619,46 +619,46 @@ export default function AdminDashboard() {
         ) : null}
 
         {stats && (
-          <div className="grid grid-cols-3 gap-2 md:gap-4">
-            <Card className="spm-mint-panel gap-0 py-0">
-              <CardHeader className="px-3 pt-2 pb-1 md:px-6 md:pt-4">
-                <CardTitle className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
-                  <Users className="h-3.5 w-3.5 shrink-0" />
-                  <span>학생 수</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-3 pb-2 pt-0 md:px-6 md:pb-4">
-                <div className="spm-display text-3xl text-foreground md:text-4xl">{stats.totalStudents}</div>
+          <div className="grid grid-cols-3 gap-2 md:gap-3">
+            <Card className="spm-mint-panel gap-0 py-0 shadow-[0_7px_0_var(--card-shadow)]">
+              <CardContent className="flex items-center justify-between gap-2 px-3 py-3 md:px-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
+                    <Users className="h-3.5 w-3.5 shrink-0" />
+                    <span>학생 수</span>
+                  </div>
+                </div>
+                <div className="spm-display text-[1.45rem] text-foreground md:text-[1.8rem]">{stats.totalStudents}</div>
               </CardContent>
             </Card>
-            <Card className="spm-yellow-panel gap-0 py-0">
-              <CardHeader className="px-3 pt-2 pb-1 md:px-6 md:pt-4">
-                <CardTitle className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
-                  <CreditCard className="h-3.5 w-3.5 shrink-0" />
-                  <span>결제 확인</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-3 pb-2 pt-0 md:px-6 md:pb-4">
-                <div className="spm-display text-3xl text-accent-foreground md:text-4xl">{stats.paidStudents}</div>
+            <Card className="spm-yellow-panel gap-0 py-0 shadow-[0_7px_0_var(--card-shadow)]">
+              <CardContent className="flex items-center justify-between gap-2 px-3 py-3 md:px-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
+                    <CreditCard className="h-3.5 w-3.5 shrink-0" />
+                    <span>결제 확인</span>
+                  </div>
+                </div>
+                <div className="spm-display text-[1.45rem] text-accent-foreground md:text-[1.8rem]">{stats.paidStudents}</div>
               </CardContent>
             </Card>
-            <Card className="spm-blue-panel gap-0 py-0">
-              <CardHeader className="px-3 pt-2 pb-1 md:px-6 md:pt-4">
-                <CardTitle className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
-                  <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
-                  <span>출석률</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-3 pb-2 pt-0 md:px-6 md:pb-4">
-                <div className="spm-display text-3xl text-secondary-foreground md:text-4xl">{stats.avgAttendance}%</div>
+            <Card className="spm-blue-panel gap-0 py-0 shadow-[0_7px_0_var(--card-shadow)]">
+              <CardContent className="flex items-center justify-between gap-2 px-3 py-3 md:px-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
+                    <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
+                    <span>출석률</span>
+                  </div>
+                </div>
+                <div className="spm-display text-[1.45rem] text-secondary-foreground md:text-[1.8rem]">{stats.avgAttendance}%</div>
               </CardContent>
             </Card>
           </div>
         )}
 
         <Card className="gap-0 overflow-hidden py-0">
-          <CardHeader className="px-4 pt-4 pb-2 md:px-6 md:pt-6 md:pb-3">
-            <CardTitle className="spm-display text-2xl text-foreground">운영 매트릭스</CardTitle>
+          <CardHeader className="px-4 pt-3.5 pb-2 md:px-5 md:pt-4 md:pb-2.5">
+            <CardTitle className="spm-display text-[1.65rem] text-foreground md:text-[1.85rem]">운영 매트릭스</CardTitle>
             {resolvedSelectedClass ? (
               <p className="text-sm text-muted-foreground">{classSelectionHint}</p>
             ) : (
@@ -667,9 +667,9 @@ export default function AdminDashboard() {
               </p>
             )}
           </CardHeader>
-          <CardContent className="px-2 pb-2 pt-0 md:px-6 md:pb-6">
+          <CardContent className="px-2 pb-2 pt-0 md:px-5 md:pb-5">
             {!resolvedSelectedClass ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
                 <p className="text-muted-foreground">
                   {classesError
                     ? '수업 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
@@ -680,7 +680,7 @@ export default function AdminDashboard() {
                         : '선택할 수 있는 수업이 없습니다.'}
                 </p>
                 {accessState?.canCreateClass ? (
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                     <Button
                       className="gap-2"
                       onClick={() => setIsCreateDialogOpen(true)}
@@ -705,22 +705,22 @@ export default function AdminDashboard() {
                 ) : null}
               </div>
             ) : !hasValidYearMonth ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
                 <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground" />
                 <p className="text-muted-foreground">유효한 월 범위를 선택해 주세요.</p>
               </div>
             ) : isMatrixLoading ? (
-              <div className="flex items-center justify-center py-12">
+              <div className="flex items-center justify-center py-10">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : matrixError ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
                 <AlertCircle className="mb-4 h-8 w-8 text-destructive" />
                 <p className="font-medium text-destructive">운영 데이터를 불러오지 못했습니다.</p>
                 <p className="mt-1 text-sm text-muted-foreground">{getErrorMessage(matrixError)}</p>
               </div>
             ) : !matrixData ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex flex-col items-center justify-center py-10 text-center">
                 <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground" />
                 <p className="font-medium">선택한 범위에 아직 운영 데이터가 없습니다.</p>
                 <p className="mt-1 text-sm text-muted-foreground">

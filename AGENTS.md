@@ -15,7 +15,13 @@
   - [docs/db/RLS.sql](/home/ydhcjswo/projects/SPM_SAMPLE/docs/db/RLS.sql)
   - [docs/db/RPC.sql](/home/ydhcjswo/projects/SPM_SAMPLE/docs/db/RPC.sql)
 - 전역 작업 규칙 / canonical lock / docs sync: [docs/WORKING_RULES.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/WORKING_RULES.md)
-- 역할 정의 / 현재 ownership: [docs/roles/README.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/roles/README.md)
+
+## 역할
+
+- `Owner`: [docs/roles/owner.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/roles/owner.md)
+- `Lead Builder`: [docs/roles/lead-builder.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/roles/lead-builder.md)
+- `Feature Builder`: [docs/roles/feature-builder.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/roles/feature-builder.md)
+- `Verifier`: [docs/roles/verifier.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/roles/verifier.md)
 
 ## 빠른 원칙
 

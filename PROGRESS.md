@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `학생 수강 상태 가시성 보정 완료, 실브라우저 QA와 runtime 검증 대기`
+- focus: `student/login 표면을 sample(Finch) 톤으로 재구성 완료, 실브라우저 QA와 runtime 검증 대기`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,8 @@
 
 ## Recent Work Windows
 
+- `2026-03-19 | sample-based student surface redesign | start: not recorded | end: 2026-03-19 17:01 KST | status: done`
+- `2026-03-18 | compact spacing + alignment pass | start: not recorded | end: 2026-03-18 17:56 KST | status: done`
 - `2026-03-18 | student active visibility follow-up | start: not recorded | end: 2026-03-18 16:45 KST | status: done`
 - `2026-03-18 | student request dialog + approved refresh follow-up | start: not recorded | end: 2026-03-18 16:34 KST | status: done`
 - `2026-03-18 | student enrollment request flow recovery | start: not recorded | end: 2026-03-18 16:21 KST | status: done`
@@ -84,7 +86,7 @@
 - 로컬 실행은 확보되어 있다.
 - Supabase 프로젝트/환경은 현재 연결값을 유지한다.
 - 제품/검증/기술 truth는 각각 `docs/SPEC.md`, `docs/VERIFY.md`, `docs/db/*`를 따른다.
-- 저장소 진입점은 `AGENTS.md`, 전역 작업 규칙은 `docs/WORKING_RULES.md`, 역할/ownership index는 `docs/roles/README.md`를 따른다.
+- 저장소 진입점과 역할 구분은 `AGENTS.md`, 전역 작업 규칙은 `docs/WORKING_RULES.md`, 역할 세부 정의는 `docs/roles/*`를 따른다.
 - legacy/archive docs/code snapshot은 `docs/legacy/**/*`, `docs/archive/**/*`만 참고한다.
 
 ## In Progress
@@ -93,6 +95,16 @@
 
 ## Done Recently
 
+- sample 레퍼런스 기반으로 학생 `/student`를 `숲 hero + 진행 카드 + 체크리스트 + 주차 상세` 구조로 재구성 완료
+- 학생 `/student/profile`을 프로필 카드형 상단 요약 + 설정 카드 구조로 재구성 완료
+- 학생 탭 셸과 로그인 화면도 같은 sample 톤으로 맞추고, 공통 [components/spm-mascot.tsx](/home/ydhcjswo/projects/SPM_SAMPLE/components/spm-mascot.tsx) 를 둥근 새 캐릭터 실루엣으로 정리 완료
+- 이번 sample 기반 학생 표면 리디자인 이후 `npm run typecheck`, `npm run build` 통과 완료
+- 학생 `/student` 상황판을 `상태칩 row`와 `출석 + 새 수업 요청 row`로 다시 나눠 wrap 혼잡과 불필요한 세로 여백을 줄이도록 정리 완료
+- 학생 `/student/profile` 4개 상태 카드와 계정/테마 카드 높이를 더 낮추고, 테마 버튼을 3열 grid로 맞춰 정렬 흔들림을 줄이도록 정리 완료
+- 운영 `/admin` 헤더와 요약 카드를 더 낮은 one-line metric 구조로 압축해 핵심 지표와 매트릭스 진입이 더 빨리 읽히도록 정리 완료
+- 운영 `/admin/students` 목록 row를 `이름 | 결제 | 상태 | 삭제` 고정열 느낌으로 다시 맞추고, 학생 배정 다이얼로그 list 여백도 줄여 action 정렬을 안정화 완료
+- 학생 상세 [components/student-class-detail-view.tsx](/home/ydhcjswo/projects/SPM_SAMPLE/components/student-class-detail-view.tsx) 의 주차 탭/카드 간격을 함께 줄여 상단과 본문 밀도를 비슷하게 맞춤 완료
+- 이번 compact spacing/alignment pass를 [docs/reports/2026-03-18-compact-spacing-alignment-pass.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-compact-spacing-alignment-pass.md)로 기록 완료
 - 학생 수업 상황판에 `상태` 칩을 다시 추가하고, `PENDING/ACTIVE` 빈 상태 문구를 분리해 `수강 중인데도 체감상 안 바뀐 것처럼 보이던` 문제를 완화 완료
 - 학생 summary/detail/nav/profile polling을 5초로 줄이고 detail key에 status를 반영해 오너 승인 후 학생 표면 반영이 더 빠르고 직접적으로 보이게 보정 완료
 - 이번 student active visibility follow-up을 [docs/reports/2026-03-18-student-active-visibility-follow-up.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-18-student-active-visibility-follow-up.md)로 기록 완료
@@ -140,7 +152,7 @@
 - 1차 리디자인 팔레트를 `민트 + 블루 + 크림`, 기본 캐릭터를 `물방울 젤리형` 정적 마스코트로 정리하고, 아이템/애니메이션/후속 화면 확장은 보류하기로 방향 고정 완료
 - `AGENTS.md`에 hard-stop 성격의 금지사항을 추가해 active truth, mutation 우회, write scope 침범, mock 과장, env drift를 명시적으로 금지 완료
 - 역할 체계를 `Owner / Lead Builder / Feature Builder / Verifier` 4역할로 정리하고 `Delivery Owner`를 제거 완료
-- `AGENTS.md`를 목차형 진입점으로 축소하고 전역 규칙/역할 index를 `docs/WORKING_RULES.md`, `docs/roles/README.md`로 분리 완료
+- `AGENTS.md`를 목차형 진입점으로 축소하고 전역 규칙은 `docs/WORKING_RULES.md`, 역할 세부 정의는 `docs/roles/*`로 분리 완료
 - local runtime 정리 완료
 - active docs와 legacy snapshot 분리 완료
 - 역할 문서 구조(`AGENTS` + `docs/roles/*`) 정리 완료
@@ -246,11 +258,15 @@
 
 ## Next Up
 
-1. 브라우저에서 `/auth/login`, `/student`, `/student/profile`, `/admin`, `/admin/students` 실화면을 확인해 학생 수업 신청 -> `PENDING` 반영 -> 운영 승인 전환, 헤더 control 노출, Enter submit, admin matrix touch target, 탭 safe area를 직접 검증
-2. 1차 톤이 맞으면 `/admin/content`, `/admin/settings`, wrong-role/access gate 표면에도 같은 간결한 copy 기준을 확장
-3. configured env에서 GIS Google login success path를 실제 runtime으로 확인
-4. connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC를 remote에 반영하고 fallback 제거 여부 재판단
-5. weekly media / route guards / enrollments를 한 번에 돌리는 smoke entry를 정리
+1. sample(Finch) 유사도를 더 높이는 2차 패스 진행:
+   - `/student` hero 배경 레이어, 숲 실루엣, 캐릭터 배치, 진행 카드 비율을 sample에 더 가깝게 보정
+   - `/student/profile` 상단 카드 장식, 색분리, 정보 카드 높낮이를 sample 톤에 더 맞게 조정
+   - 학생 하단 탭의 pill 비율, 아이콘 톤, safe area 여백을 sample과 다시 비교
+2. 브라우저에서 `/auth/login`, `/student`, `/student/profile`, `/admin`, `/admin/students` 실화면을 확인해 학생 수업 신청 -> `PENDING` 반영 -> 운영 승인 전환, 헤더 control 노출, Enter submit, admin matrix touch target, 탭 safe area를 직접 검증
+3. 1차 톤이 맞으면 `/admin/content`, `/admin/settings`, wrong-role/access gate 표면에도 같은 간결한 copy 기준을 확장
+4. configured env에서 GIS Google login success path를 실제 runtime으로 확인
+5. connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC를 remote에 반영하고 fallback 제거 여부 재판단
+6. weekly media / route guards / enrollments를 한 번에 돌리는 smoke entry를 정리
 
 ## Risks / Open Questions
 
