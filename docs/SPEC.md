@@ -91,11 +91,13 @@ student-facing 흐름도 중요하지만,
 #### Student
 
 - 하단 탭 구조:
+  - `홈`
   - `수업`
   - `내상태`
-- `수업` 탭의 첫 화면은 기존 최상단 헤더 바의 수업/월 선택 control과 선택된 월별 수업 상세를 함께 보여주며 student home 역할을 흡수한다
-- 현재 student home의 active visual baseline은 `캐릭터 hero + 진행 카드 + 오늘의 체크리스트 + 주차 상세` 흐름을 사용한다
+- `홈` 탭은 student dashboard 역할을 맡고, 현재 선택 또는 대표 수업의 `캐릭터 hero + 진행 카드 + 오늘의 체크리스트 + 빠른 action` 흐름을 사용한다
+- `수업` 탭은 기존 최상단 헤더 바의 수업/월 선택 control과 선택된 월별 수업 상세를 보여 주며, `클래스 -> 주차 -> 콘텐츠` 소비에 집중한다
 - 프로필/로그아웃은 하단 탭이 아니라 헤더 유틸리티 메뉴 또는 보조 화면으로 둔다
+- `홈` 탭은 요약과 빠른 action만 두고, 주차 상세나 긴 콘텐츠 목록을 함께 쌓아 스크롤을 과도하게 늘리지 않는다
 - `수업` 탭은 step UI보다 자연스러운 `클래스 -> 주차 -> 콘텐츠` 소비 흐름을 우선한다
 - 영상/이미지는 최상위 분리 탭이 아니라 주차 콘텐츠 안에서 함께 본다
 - `내상태`는 출석 / 결제 / 진행 상태 / 피드백처럼 status-heavy 정보를 우선한다
@@ -137,36 +139,54 @@ student-facing 흐름도 중요하지만,
 - role-aware page access
 - access가 제한되거나 불명확할 때의 safe fallback behavior
 
-### Account / Settings Secondary Routes
-- `/admin/settings`와 `/student/profile`은 secondary route다
+### Account / Settings Routes
+- `/admin/settings`는 secondary route다
+- `/student/profile`은 모바일 baseline에서 primary `내상태` 탭의 route destination이며, direct link entry도 허용한다
 - 현재 baseline은 로그인 계정 확인, 이름 수정, 테마 선택이다
 - 이메일은 읽기 전용으로만 보여 준다
 - 계정 정보를 불러오지 못하면 local demo 데이터를 대신 보여주지 않고 명시적 오류/재시도로 처리한다
-- `/student/profile`은 전체 상태 요약과 계정 관리에 집중하고, 수업 선택/신청 action은 `수업` 탭으로 모은다
+- `/student/profile`은 전체 상태 요약과 계정 관리에 집중하고, 학생 primary tab 바깥에서 수업 선택/신청 action을 다시 늘리지 않는다
+- 학생 수업 신청 quick action은 `홈` 탭에, 수업 선택과 콘텐츠 소비는 `수업` 탭에 둔다
 
 ### Student Surface
 - 학생용 기본 화면
 - 학생이 읽을 수 있는 기본 상태 가시성
 - 운영 계정으로 잘못 진입했을 때의 wrong-role 안내와 recovery
-- mobile tab baseline(`수업 / 내상태`) 위의 학생 read flow
+- mobile tab baseline(`홈 / 수업 / 내상태`) 위의 학생 read flow
+- 학생 primary tab route contract는 다음을 사용한다:
+  - `홈` -> `/student`
+  - `수업` -> `/student/lessons`
+  - `내상태` -> `/student/profile`
 - 학생 수업 목록은 `class + year_month` 단위로 구성한다
 - 학생은 `ACTIVE`와 `PENDING` 월을 본다
+- 학생 primary selection key는 `classId + yearMonth`를 사용하고, `홈`과 `수업` 탭이 같은 selection을 공유한다
+- 유효한 query selection이 있으면 그 값을 우선하고, 없으면 visible enrollment 안에서 대표 수업을 같은 규칙으로 고른다
 - 학생 헤더 selector는 해당 학생의 `ACTIVE`/`PENDING` 등록만 보여 주고, soft delete된 inactive 수업은 숨긴다
-- 학생 `수업` 탭은 기존 최상단 헤더 바에서 수업과 월을 바꾸고, 첫 화면에서 바로 선택된 수업의 간단한 상황판과 주차 콘텐츠를 본다
-- 학생은 수업이 없거나 추가 요청이 필요할 때 `수업` 탭 안의 `수업 신청` 다이얼로그에서 활성 수업과 월을 고르고 승인 요청을 보낼 수 있다
+- 학생 `홈` 탭은 현재 선택 또는 대표 수업 기준 요약, 진행도, 체크리스트, 빠른 action을 먼저 보여 주고, 긴 주차 상세는 이 탭에 함께 쌓지 않는다
+- 학생 `수업` 탭은 기존 최상단 헤더 바에서 수업과 월을 바꾸고, 선택된 수업의 주차 콘텐츠를 본다
+- 학생은 수업이 없거나 추가 요청이 필요할 때 `홈` 탭의 `수업 신청` quick action 다이얼로그에서 활성 수업과 월을 고르고 승인 요청을 보낼 수 있다
 - 학생 수업 신청은 새 계정 생성이 아니라 자기 `enrollments`를 `PENDING`으로 생성하거나, 취소된 같은 달 요청을 `PENDING`으로 다시 여는 흐름이다
-- 학생 `수업` 탭의 간단한 상황판은 핵심 상태만 한 줄 요약으로 보여 주고, 같은 의미를 범례/상태칩/빈 상태로 반복 설명하지 않는다
+- 학생 `홈` 탭의 `주차 열기`, `콘텐츠 보기`, `피드백 보기` 같은 CTA는 page-internal scroll 대신 `수업` 탭으로 이동하고 현재 selection을 유지한다
+- 학생 `홈` 탭에 둔 `수업 신청` quick action은 `수업` 탭과 `내상태`에서 중복 노출하지 않는다
+- 학생 `홈` 탭의 요약 카드와 quick action은 핵심 상태만 직접 보여 주고, 같은 의미를 범례/상태칩/보조 helper로 반복 설명하지 않는다
 - 학생 `수업` 탭은 `수강 중 / 등록 예정` 상태를 짧은 한 칩으로 직접 보여 주고, 승인 전/승인 후의 빈 상태 문구도 서로 다르게 읽혀야 한다
-- 학생 메인과 내상태의 핵심 요약 카드는 가능한 한 낮은 높이로 유지하고, 같은 row 안 control 폭이 들쭉날쭉 흔들리지 않게 정렬한다
+- 학생 empty ownership은 다음처럼 나눈다:
+  - `홈`: 수업 없음 / 신청 필요 / 승인 대기 / 대표 수업 요약
+  - `수업`: 선택 필요 / 주차 없음 / 콘텐츠 없음 / 상세 refetch
+  - `내상태`: 계정/상태 read와 저장 결과
+- 학생 `홈`과 `내상태`의 핵심 요약 카드는 가능한 한 낮은 높이로 유지하고, 같은 row 안 control 폭이 들쭉날쭉 흔들리지 않게 정렬한다
 - `PENDING` 월은 `등록 예정` 또는 이에 준하는 상태 라벨로 명확히 구분한다
 - `CANCELLED` 월은 학생 수업 목록에 노출하지 않는다
+- legacy deep link인 `/student/class/[classId]`는 `yearMonth`와 함께 `수업` route contract로 정규화해 redirect할 수 있어야 한다
 - admin core보다 우선순위는 낮지만 active scope 안에 있음
 
 ### Mobile Tab Prototype Baseline
 - `/admin`은 `운영 / 학생 / 수업` mobile tab baseline을 가진다
-- `/student`는 `수업 / 내상태` mobile tab baseline을 가진다
-- student home 성격의 요약과 선택된 수업의 간단한 상황판, 상세는 `수업` 탭 첫 화면 안으로 흡수한다
-- account/profile/logout은 primary tab이 아니라 header utility 또는 secondary route로 둔다
+- `/student`는 `홈 / 수업 / 내상태` mobile tab baseline을 가진다
+- `홈` 탭은 student dashboard, `수업` 탭은 콘텐츠 소비, `내상태`는 상태/계정 관리 역할로 나눈다
+- student home 성격의 요약과 체크리스트는 `홈` 탭에 두고, 선택된 수업의 주차 상세는 `수업` 탭으로 분리한다
+- `홈 -> 수업` 이동은 현재 selection을 유지하고, `수업` 탭에서 다시 같은 class/month를 바로 연다
+- account utility와 logout은 primary tab이 아니라 header utility로 두고, profile/status는 `내상태` tab destination으로 둔다
 - 이 구조는 현재 active scope에서 `keep`으로 잠긴 baseline이며, 다음 slice는 이 위에서 좁게 열린다
 
 ### Weekly Content Media Baseline

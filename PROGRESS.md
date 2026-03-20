@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `student/login 표면을 sample(Finch) 톤으로 재구성 완료, 실브라우저 QA와 runtime 검증 대기`
+- focus: `student/login 표면을 sample(Finch) 톤으로 재구성 완료, 학생 shell을 홈/수업/내상태 baseline으로 구현했고 실브라우저 QA와 runtime 검증 대기`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,8 @@
 
 ## Recent Work Windows
 
+- `2026-03-20 | student shell split implementation | start: not recorded | end: 2026-03-20 17:44 KST | status: done`
+- `2026-03-20 | student tab baseline docs reset | start: not recorded | end: not recorded | status: done`
 - `2026-03-19 | sample-based student surface redesign | start: not recorded | end: 2026-03-19 17:01 KST | status: done`
 - `2026-03-18 | compact spacing + alignment pass | start: not recorded | end: 2026-03-18 17:56 KST | status: done`
 - `2026-03-18 | student active visibility follow-up | start: not recorded | end: 2026-03-18 16:45 KST | status: done`
@@ -95,6 +97,10 @@
 
 ## Done Recently
 
+- 학생 `/student`를 홈 대시보드로 축소하고 `/student/lessons`를 새 수업 상세 route로 분리했으며, 하단 탭을 `홈 / 수업 / 내상태` 3탭으로 재구성 완료
+- 학생 탭 공통 selection helper를 `classId + yearMonth` 기준으로 정리하고, 홈 CTA handoff와 profile/menu/tab 링크 preserve를 새 route contract에 맞춰 정렬 완료
+- legacy `/student/class/[classId]` redirect를 `/student/lessons` contract로 정규화하고, 이번 shell split 이후에도 `npm run typecheck`, `npm run build` 통과 완료
+- 학생 mobile baseline을 `홈 / 수업 / 내상태`로 재정의하고, route contract(`/student`, `/student/lessons`, `/student/profile`), shared selection key(`classId + yearMonth`), home CTA handoff, 탭별 empty ownership, verify 기준을 문서로 잠금 완료
 - sample 레퍼런스 기반으로 학생 `/student`를 `숲 hero + 진행 카드 + 체크리스트 + 주차 상세` 구조로 재구성 완료
 - 학생 `/student/profile`을 프로필 카드형 상단 요약 + 설정 카드 구조로 재구성 완료
 - 학생 탭 셸과 로그인 화면도 같은 sample 톤으로 맞추고, 공통 [components/spm-mascot.tsx](/home/ydhcjswo/projects/SPM_SAMPLE/components/spm-mascot.tsx) 를 둥근 새 캐릭터 실루엣으로 정리 완료
@@ -258,11 +264,12 @@
 
 ## Next Up
 
-1. sample(Finch) 유사도를 더 높이는 2차 패스 진행:
+1. 브라우저에서 `/auth/login`, `/student`, `/student/lessons`, `/student/profile`, `/admin`, `/admin/students` 실화면을 확인해 학생 수업 신청 -> `PENDING` 반영 -> 운영 승인 전환, 홈 CTA -> 수업 탭 handoff, 헤더 control 노출, Enter submit, admin matrix touch target, 탭 safe area를 직접 검증
+2. sample(Finch) 유사도를 더 높이는 2차 패스 진행:
    - `/student` hero 배경 레이어, 숲 실루엣, 캐릭터 배치, 진행 카드 비율을 sample에 더 가깝게 보정
+   - `/student/lessons` 상단 요약 카드와 detail 첫 진입 밀도를 sample 톤에 더 맞게 조정
    - `/student/profile` 상단 카드 장식, 색분리, 정보 카드 높낮이를 sample 톤에 더 맞게 조정
    - 학생 하단 탭의 pill 비율, 아이콘 톤, safe area 여백을 sample과 다시 비교
-2. 브라우저에서 `/auth/login`, `/student`, `/student/profile`, `/admin`, `/admin/students` 실화면을 확인해 학생 수업 신청 -> `PENDING` 반영 -> 운영 승인 전환, 헤더 control 노출, Enter submit, admin matrix touch target, 탭 safe area를 직접 검증
 3. 1차 톤이 맞으면 `/admin/content`, `/admin/settings`, wrong-role/access gate 표면에도 같은 간결한 copy 기준을 확장
 4. configured env에서 GIS Google login success path를 실제 runtime으로 확인
 5. connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC를 remote에 반영하고 fallback 제거 여부 재판단

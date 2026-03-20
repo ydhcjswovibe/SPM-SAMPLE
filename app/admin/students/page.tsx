@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { Class, EnrollmentLifecycleStatus, PaymentStatus } from '@/lib/types'
 import { AdminMobileUtilityMenu } from '@/components/admin-mobile-utility-menu'
 import { AdminMobileSettingsLink } from '@/components/admin-mobile-settings-link'
+import { SpmMascot } from '@/components/spm-mascot'
 import { ClassSelector } from '@/components/class-selector'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -478,12 +479,6 @@ export default function StudentsPage() {
     ? '배정 가능한 학생 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
     : null
 
-  const classSelectionHint = resolvedSelectedClass
-    ? `${resolvedSelectedClass.name} / ${formatYearMonthLabel(selectedYearMonth)}`
-    : hasValidYearMonth
-      ? '등록을 관리할 수업을 먼저 선택해 주세요'
-      : '월 범위를 다시 확인해 주세요'
-
   const handleSelectClass = (classItem: Class) => {
     setSelectedClass(classItem)
     setIsDeleteMode(false)
@@ -500,55 +495,99 @@ export default function StudentsPage() {
 
   return (
     <div className="flex flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex min-h-[3.25rem] flex-wrap items-center gap-2 px-4 py-2 md:h-[3.25rem] md:flex-nowrap md:justify-between md:px-6 md:py-0">
-          <h1 className="mr-auto font-semibold text-lg md:hidden">학생</h1>
-          <div className="order-3 flex w-full items-center gap-2 md:order-none md:w-auto">
-            <ClassSelector
-              classes={classes || []}
-              selectedClass={resolvedSelectedClass}
-              onSelect={handleSelectClass}
-              placeholder={isClassesLoading ? '수업 불러오는 중' : '수업 선택'}
-              emptyLabel={
-                hasValidYearMonth
-                  ? '활성 수업이 없습니다.'
-                  : '먼저 유효한 월을 선택해 주세요.'
-              }
-            />
-            <Input
-              type="month"
-              value={selectedYearMonth}
-              onChange={(event) => setSelectedYearMonth(event.target.value)}
-              className="w-[132px] sm:w-[148px]"
-              aria-label="등록 월 선택"
-            />
+      <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-5">
+        <section className="relative overflow-hidden rounded-[2.35rem] border border-[#dfe7d0] bg-[linear-gradient(180deg,rgba(243,248,255,0.96)_0%,rgba(255,254,249,0.98)_44%,rgba(244,248,236,0.98)_100%)] px-4 pb-4 pt-4 shadow-[0_14px_26px_rgba(111,145,72,0.1)]">
+          <div className="absolute inset-x-0 bottom-0 h-14 bg-[rgba(170,205,113,0.26)]" />
+          <div className="absolute -left-6 bottom-3 h-16 w-24 rounded-full bg-[rgba(141,188,91,0.2)]" />
+          <div className="absolute left-9 top-4 h-8 w-8 rounded-full bg-white/68" />
+          <div className="absolute right-3 top-3 h-12 w-12 rounded-full bg-[rgba(255,244,197,0.44)]" />
+
+          <div className="relative z-10 flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.2rem] bg-white/86 shadow-[0_10px_16px_rgba(121,148,84,0.12)]">
+                  <SpmMascot size="sm" className="h-8 w-8" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[rgba(89,114,70,0.72)]">
+                    학생 관리
+                  </p>
+                  <h1 className="spm-display mt-1 text-[1.55rem] leading-none text-[#314127] md:text-[1.9rem]">
+                    등록과 결제 정리
+                  </h1>
+                  <p className="mt-1 text-sm text-[#536949]">
+                    학생 화면과 같은 톤으로, 현재 월 배정과 승인 상태를 빠르게 정리합니다.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-white/82 px-3 py-1 text-[11px] font-semibold text-[#5a7440] shadow-[0_6px_12px_rgba(111,145,72,0.08)]">
+                  {resolvedSelectedClass ? resolvedSelectedClass.name : '수업 선택 필요'}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-[#fff4c5] px-3 py-1 text-[11px] font-semibold text-[#8d6d26] shadow-[0_6px_12px_rgba(182,157,88,0.08)]">
+                  {hasValidYearMonth ? formatYearMonthLabel(selectedYearMonth) : '월 다시 확인'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <AdminMobileSettingsLink className="h-11 w-11 rounded-[1.15rem] border border-white/72 bg-white/82 shadow-[0_8px_14px_rgba(121,148,84,0.1)]" />
+              <AdminMobileUtilityMenu className="h-11 w-11 rounded-[1.15rem] border border-white/72 bg-white/82 shadow-[0_8px_14px_rgba(121,148,84,0.1)]" />
+            </div>
           </div>
-          <div className="ml-auto flex items-center gap-2 md:ml-0">
-            <AdminMobileSettingsLink />
-            <AdminMobileUtilityMenu />
-            <Button
-              size="sm"
-              onClick={() => setIsAddDialogOpen(true)}
-              disabled={!resolvedSelectedClass || !hasValidYearMonth || !accessState?.canManage}
-              className="gap-2"
-            >
-              <UserPlus className="h-4 w-4" />
-              <span className="hidden sm:inline">학생 배정</span>
-            </Button>
-            {accessState?.isOwner ? (
+
+          <div className="relative z-10 mt-4 rounded-[1.75rem] border border-[#ebf0e2] bg-white/94 p-3 shadow-[0_8px_16px_rgba(111,145,72,0.06)]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7d8f66]">관리 범위</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <ClassSelector
+                classes={classes || []}
+                selectedClass={resolvedSelectedClass}
+                onSelect={handleSelectClass}
+                placeholder={isClassesLoading ? '수업 불러오는 중' : '수업 선택'}
+                emptyLabel={
+                  hasValidYearMonth
+                    ? '활성 수업이 없습니다.'
+                    : '먼저 유효한 월을 선택해 주세요.'
+                }
+              />
+              <Input
+                type="month"
+                value={selectedYearMonth}
+                onChange={(event) => setSelectedYearMonth(event.target.value)}
+                className="h-10 w-[142px] rounded-[1.25rem] border-[#dce8cc] bg-white/94 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] sm:w-[156px]"
+                aria-label="등록 월 선택"
+              />
               <Button
                 size="sm"
-                variant="outline"
-                onClick={() => setIsDeleteMode((current) => !current)}
-                disabled={!resolvedSelectedClass || (enrollments?.length ?? 0) === 0}
-                className="gap-2"
+                onClick={() => setIsAddDialogOpen(true)}
+                disabled={!resolvedSelectedClass || !hasValidYearMonth || !accessState?.canManage}
+                className="h-10 gap-2 rounded-[1.25rem] border-[#75b84f] bg-[#8fcf62] px-3 text-white shadow-[0_10px_18px_rgba(111,174,71,0.18)] hover:bg-[#9ad670]"
               >
-                <Trash2 className="h-4 w-4" />
-                <span className="hidden sm:inline">{isDeleteMode ? '삭제 취소' : '삭제'}</span>
+                <UserPlus className="h-4 w-4" />
+                <span className="hidden sm:inline">학생 배정</span>
+                <span className="sm:hidden">배정</span>
               </Button>
-            ) : null}
+              {accessState?.isOwner ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsDeleteMode((current) => !current)}
+                  disabled={!resolvedSelectedClass || (enrollments?.length ?? 0) === 0}
+                  className={
+                    isDeleteMode
+                      ? 'h-10 gap-2 rounded-[1.25rem] border-destructive/40 bg-[#fff3f1] px-3 text-destructive shadow-[0_8px_14px_rgba(182,80,70,0.08)] hover:bg-[#ffebe8]'
+                      : 'h-10 gap-2 rounded-[1.25rem] border-[#dce8cc] bg-white/94 px-3 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]'
+                  }
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">{isDeleteMode ? '삭제 취소' : '삭제 모드'}</span>
+                  <span className="sm:hidden">{isDeleteMode ? '취소' : '삭제'}</span>
+                </Button>
+              ) : null}
+            </div>
           </div>
-        </div>
+        </section>
       </header>
 
       <div className="flex-1 space-y-3 p-4 md:p-5">
@@ -558,14 +597,16 @@ export default function StudentsPage() {
           </Card>
         ) : null}
 
-        <Card className="gap-0 py-0">
+        <Card className="gap-0 border border-[#e6ecda] bg-[#fffefb] py-0 shadow-[0_12px_22px_rgba(111,145,72,0.08)]">
           <CardHeader className="px-4 pt-3.5 pb-2 md:px-5 md:pt-4">
-            <CardTitle className="text-base">{classSelectionHint}</CardTitle>
+            <CardTitle className="spm-display text-[1.55rem] text-[#314127]">학생 배정</CardTitle>
             {resolvedSelectedClass && enrollmentSummary ? (
               <CardDescription>
                 학생 {enrollmentSummary.total}명 · 수강 중 {enrollmentSummary.active}명 · 보류 {enrollmentSummary.pending}명 · 결제 확인 {enrollmentSummary.paid}명
               </CardDescription>
-            ) : null}
+            ) : (
+              <CardDescription>현재 월 학생 등록과 승인 상태를 같은 자리에서 다룹니다.</CardDescription>
+            )}
             {resolvedSelectedClass && isDeleteMode ? (
               <p className="text-xs text-destructive">
                 삭제 모드입니다. 오른쪽 휴지통 버튼을 눌러 현재 월 등록을 삭제합니다.

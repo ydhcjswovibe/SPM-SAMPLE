@@ -32,6 +32,26 @@ export function getVisibleYearMonths(summaries: StudentClassSummary[]) {
   )
 }
 
+export function getStudentNextWeekLabel(summary: StudentClassSummary) {
+  if (summary.enrollmentStatus === 'PENDING' && summary.availableWeekCount === 0) {
+    return '승인 대기'
+  }
+
+  if (summary.nextWeekNumber) {
+    return `${summary.nextWeekNumber}주차 열기 전`
+  }
+
+  if (summary.enrollmentStatus === 'ACTIVE') {
+    return '새 콘텐츠 기다리는 중'
+  }
+
+  return '대기 중'
+}
+
+export function getStudentEnrollmentStatusLabel(summary: StudentClassSummary) {
+  return summary.enrollmentStatus === 'PENDING' ? '등록 예정' : '수강 중'
+}
+
 export function readSelectedSummary(
   summaries: StudentClassSummary[],
   classId: string | null,
@@ -41,4 +61,47 @@ export function readSelectedSummary(
     summaries.find((item) => item.classId === classId && item.yearMonth === yearMonth) ??
     getFeaturedSummary(summaries)
   )
+}
+
+export function resolveStudentSelection(
+  summaries: StudentClassSummary[],
+  classId: string | null,
+  yearMonth: string | null,
+) {
+  const featuredSummary = summaries.length > 0 ? getFeaturedSummary(summaries) : null
+  const visibleYearMonths = summaries.length > 0 ? getVisibleYearMonths(summaries) : []
+  const selectedYearMonth =
+    yearMonth && visibleYearMonths.includes(yearMonth) ? yearMonth : featuredSummary?.yearMonth ?? null
+  const monthSummaries = selectedYearMonth
+    ? summaries.filter((item) => item.yearMonth === selectedYearMonth)
+    : []
+  const selectedSummary =
+    monthSummaries.length > 0 ? readSelectedSummary(monthSummaries, classId, selectedYearMonth) : null
+
+  return {
+    featuredSummary,
+    visibleYearMonths,
+    selectedYearMonth,
+    monthSummaries,
+    selectedSummary,
+  }
+}
+
+export function buildStudentSelectionHref(
+  pathname: string,
+  classId?: string | null,
+  yearMonth?: string | null,
+) {
+  const params = new URLSearchParams()
+
+  if (classId) {
+    params.set('classId', classId)
+  }
+
+  if (yearMonth) {
+    params.set('yearMonth', yearMonth)
+  }
+
+  const query = params.toString()
+  return query ? `${pathname}?${query}` : pathname
 }

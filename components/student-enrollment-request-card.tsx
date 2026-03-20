@@ -219,21 +219,21 @@ export function StudentEnrollmentRequestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden rounded-[1.8rem] border border-[rgba(23,33,42,0.08)] bg-white p-0 sm:max-w-[34rem]">
+      <DialogContent className="overflow-hidden rounded-[1.8rem] border border-[#e2ead5] bg-white p-0 sm:max-w-[34rem]">
         <DialogHeader className="space-y-2 px-5 pt-5 pb-2 text-left">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#eef8f4] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1d4e46]">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#eef8de] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5c8835]">
             <Send className="h-3.5 w-3.5" />
             승인 요청
           </div>
-          <DialogTitle className="spm-display text-2xl text-[#17212a]">{title}</DialogTitle>
-          <DialogDescription className="text-sm leading-6 text-[#66707b]">
+          <DialogTitle className="spm-display text-2xl text-[#314127]">{title}</DialogTitle>
+          <DialogDescription className="text-sm leading-6 text-[#6b7d5e]">
             {description}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 px-5 pb-5 pt-2">
           {successMessage ? (
-            <div className="rounded-[1.2rem] border border-[rgba(41,163,118,0.22)] bg-[#effaf4] px-4 py-3 text-sm text-[#155c47]">
+            <div className="rounded-[1.2rem] border border-[#cfe7be] bg-[#f1fbe7] px-4 py-3 text-sm text-[#4f7630]">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                 <p className="font-medium">{successMessage}</p>
@@ -265,7 +265,7 @@ export function StudentEnrollmentRequestDialog({
                 <SelectTrigger
                   id="student-request-class"
                   aria-label="요청할 수업 선택"
-                  className="h-11 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] text-left text-[#17212a]"
+                  className="h-11 rounded-[1rem] border-[#dce8cc] bg-[#fbfdf6] text-left text-[#314127]"
                 >
                   <SelectValue placeholder={isLoading ? '수업 불러오는 중' : '수업을 골라 주세요'} />
                 </SelectTrigger>
@@ -282,7 +282,7 @@ export function StudentEnrollmentRequestDialog({
             <div className="space-y-2">
               <Label htmlFor="student-request-month">월 선택</Label>
               <div className="relative">
-                <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7a8390]" />
+                <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7a826f]" />
                 <Input
                   id="student-request-month"
                   type="month"
@@ -292,22 +292,22 @@ export function StudentEnrollmentRequestDialog({
                     setActionError(null)
                     setSuccessMessage(null)
                   }}
-                  className="h-11 rounded-[1rem] border-[rgba(23,33,42,0.08)] bg-[#fbfaf7] pl-10 text-[#17212a]"
+                  className="h-11 rounded-[1rem] border-[#dce8cc] bg-[#fbfdf6] pl-10 text-[#314127]"
                 />
               </div>
             </div>
           </div>
 
-          <div className="rounded-[1.1rem] border border-[rgba(23,33,42,0.06)] bg-[#fbfaf7] px-4 py-3 text-sm text-[#17212a]">
+          <div className="rounded-[1.1rem] border border-[#e7ece0] bg-[#fbfdf6] px-4 py-3 text-sm text-[#314127]">
             {isLoading ? (
-              <div className="flex items-center gap-2 text-[#66707b]">
+              <div className="flex items-center gap-2 text-[#6b7d5e]">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 요청 가능한 수업을 불러오는 중입니다.
               </div>
             ) : requestableClasses && requestableClasses.length > 0 ? (
               <p>{getStatusHint(selectedOption)}</p>
             ) : (
-              <p className="text-[#66707b]">지금 요청 가능한 활성 수업이 없습니다.</p>
+              <p className="text-[#6b7d5e]">지금 요청 가능한 활성 수업이 없습니다.</p>
             )}
           </div>
 

@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { LayoutGrid, Users, BookOpen, Settings, LogOut, Home } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
 const navItems = [
@@ -17,12 +16,14 @@ const navItems = [
 
 export function DesktopSidebar() {
   const pathname = usePathname()
-  const router = useRouter()
 
   const handleSignOut = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/auth/login')
+
+    if (typeof window !== 'undefined') {
+      window.location.assign('/auth/login')
+    }
   }
 
   return (

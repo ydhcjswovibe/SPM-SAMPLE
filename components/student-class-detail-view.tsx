@@ -22,17 +22,17 @@ const attendanceConfig = {
   present: {
     label: '출석 확인',
     icon: CheckCircle2,
-    className: 'bg-emerald-100 text-emerald-900',
+    className: 'bg-[#ecf8de] text-[#4b732d]',
   },
   absent: {
     label: '결석',
     icon: XCircle,
-    className: 'bg-rose-100 text-rose-900',
+    className: 'bg-[#ffe9e4] text-[#a85f56]',
   },
   pending: {
     label: '확인 전',
     icon: Clock3,
-    className: 'bg-muted text-muted-foreground',
+    className: 'bg-[#f7f5ee] text-[#7f877c]',
   },
 } as const
 
@@ -60,14 +60,14 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
 
   if (detail.weeks.length === 0) {
     return (
-      <Card className="overflow-hidden rounded-[1.9rem] border border-[#dbe6c2] bg-white/92 py-0 shadow-[0_14px_30px_rgba(90,118,58,0.08)]">
+      <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white/94 py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
         <CardContent className="px-4 py-10 text-center">
-          <p className="text-base font-semibold text-[#334223]">
+          <p className="text-base font-semibold text-[#314127]">
             {detail.enrollmentStatus === 'PENDING'
               ? '운영 승인 전입니다.'
               : '수강은 시작됐고 콘텐츠는 아직 준비 중입니다.'}
           </p>
-          <p className="mt-2 text-sm leading-6 text-[#66775b]">
+          <p className="mt-2 text-sm leading-6 text-[#6b7d5e]">
             {detail.enrollmentStatus === 'PENDING'
               ? '승인이 끝나면 이 화면에서 수강 상태와 주차 콘텐츠를 바로 이어서 확인할 수 있습니다.'
               : '새로운 콘텐츠가 열리면 이 화면에서 바로 확인할 수 있습니다.'}
@@ -101,7 +101,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
     <>
       <div className="space-y-3">
         <Tabs value={resolvedActiveWeek ?? String(detail.weeks[0]?.weekNumber ?? 1)} onValueChange={setActiveWeek}>
-          <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-[1.8rem] border border-[#d9e5c1] bg-[#eef7dc] px-2 py-2 shadow-[0_12px_26px_rgba(90,118,58,0.08)]">
+          <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-[1.8rem] border border-[#e2ead4] bg-[#f7fbef] px-2 py-2 shadow-[0_12px_26px_rgba(111,145,72,0.08)]">
             {detail.weeks.map((week) => {
               const isSelected = String(week.weekNumber) === resolvedActiveWeek
 
@@ -110,10 +110,10 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                   key={week.weekNumber}
                   value={String(week.weekNumber)}
                   className={cn(
-                    'h-auto min-w-[102px] flex-shrink-0 rounded-[1.2rem] px-3 py-2 text-left data-[state=active]:shadow-none',
+                    'h-auto min-w-[102px] flex-shrink-0 rounded-[1.2rem] border px-3 py-2 text-left data-[state=active]:shadow-none',
                     isSelected
-                      ? 'bg-[#fff2b7] text-[#88601d] shadow-[0_8px_18px_rgba(204,167,71,0.18)]'
-                      : 'bg-white text-[#66775b] hover:bg-[#f8f8f0]'
+                      ? 'border-[#f0d77b] bg-[#fff4c8] text-[#88601d] shadow-[0_8px_18px_rgba(204,167,71,0.14)]'
+                      : 'border-[#e8eedc] bg-white text-[#66775b] hover:bg-[#fafaf4]'
                   )}
                 >
                   <div className="flex flex-col items-start gap-0.5">
@@ -155,10 +155,10 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
 
             return (
               <TabsContent key={week.weekNumber} value={String(week.weekNumber)} className="mt-3 space-y-3">
-                <Card className="overflow-hidden rounded-[1.9rem] border border-[#dbe6c2] bg-white/94 py-0 shadow-[0_14px_30px_rgba(90,118,58,0.08)]">
+                <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white/96 py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
                   <CardHeader className="px-4 pb-2 pt-4">
                     <div className="flex items-center justify-between gap-3">
-                      <CardTitle className="text-base text-[#334223]">{week.weekNumber}주차 콘텐츠</CardTitle>
+                      <CardTitle className="text-base text-[#314127]">{week.weekNumber}주차 콘텐츠</CardTitle>
                       <Badge className={attendance.className}>
                         <AttendanceIcon className="mr-1 h-3.5 w-3.5" />
                         {attendance.label}
@@ -167,7 +167,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                   </CardHeader>
                   <CardContent className="space-y-3 px-4 pb-4">
                     {week.video.invalidItems.length > 0 || week.image.invalidItems.length > 0 ? (
-                      <div className="rounded-[1.35rem] border border-amber-300/40 bg-[#fff6db] px-4 py-3.5 text-sm text-amber-950">
+                      <div className="rounded-[1.35rem] border border-[#f0dd9f] bg-[#fff8df] px-4 py-3.5 text-sm text-[#7f631b]">
                         <p className="font-medium">일부 항목은 아직 점검 중입니다.</p>
                         <p className="mt-1">먼저 열리는 항목부터 확인해 주세요.</p>
                         {week.video.invalidItems.map((item) => (
@@ -186,12 +186,12 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                     {youtubeItems.length > 0 ? (
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 text-sm font-medium text-[#334223]">
-                            <PlayCircle className="h-4 w-4 text-[#f07f59]" />
+                          <div className="flex items-center gap-2 text-sm font-medium text-[#314127]">
+                            <PlayCircle className="h-4 w-4 text-[#eb8d60]" />
                             영상
                           </div>
                           {youtubeItems.length > 1 ? (
-                            <p className="text-xs text-[#66775b]">아래 카드에서 볼 영상을 골라요.</p>
+                            <p className="text-xs text-[#6b7d5e]">아래 카드에서 볼 영상을 골라요.</p>
                           ) : null}
                         </div>
 
@@ -237,13 +237,13 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                                   className={cn(
                                     'min-w-[11rem] rounded-[1.35rem] border px-3 py-3 text-left shadow-sm transition',
                                     isSelected
-                                      ? 'border-[#f3d56c] bg-[#fff6cf]'
+                                      ? 'border-[#f0d57a] bg-[#fff7d8]'
                                       : 'border-[#ebefde] bg-white hover:border-[#c9dca8]'
                                   )}
                                 >
                                   <div className="space-y-1">
                                     <div className="flex items-center justify-between gap-2">
-                                      <span className="text-sm font-medium text-[#334223]">영상 {index + 1}</span>
+                                      <span className="text-sm font-medium text-[#314127]">영상 {index + 1}</span>
                                       {isSelected ? (
                                         <Badge className="border-[#ffe39e] bg-[#fff4c8] text-[#a8781f]">현재</Badge>
                                       ) : null}
@@ -260,11 +260,11 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                     {imageItems.length > 0 ? (
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 text-sm font-medium text-[#334223]">
-                            <ImageIcon className="h-4 w-4 text-[#69a3df]" />
+                          <div className="flex items-center gap-2 text-sm font-medium text-[#314127]">
+                            <ImageIcon className="h-4 w-4 text-[#79a6e4]" />
                             이미지
                           </div>
-                          <p className="text-xs text-[#66775b]">좌우로 넘기고 눌러 크게 봅니다.</p>
+                          <p className="text-xs text-[#6b7d5e]">좌우로 넘기고 눌러 크게 봅니다.</p>
                         </div>
 
                         <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1">
@@ -300,23 +300,23 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                     ) : null}
 
                     {week.progressText ? (
-                      <div className="rounded-[1.35rem] bg-[#fff7d7] px-4 py-3.5">
-                        <p className="text-sm font-medium text-[#334223]">진행 메모</p>
-                        <p className="mt-1 text-sm leading-6 text-[#66775b]">{week.progressText}</p>
+                      <div className="rounded-[1.35rem] bg-[#fff8da] px-4 py-3.5">
+                        <p className="text-sm font-medium text-[#314127]">진행 메모</p>
+                        <p className="mt-1 text-sm leading-6 text-[#6b7d5e]">{week.progressText}</p>
                       </div>
                     ) : null}
 
                     {week.sharedFeedbackText ? (
-                      <div className="rounded-[1.35rem] bg-[#eef7dc] px-4 py-3.5">
-                        <p className="text-sm font-medium text-[#334223]">전체 피드백</p>
-                        <p className="mt-1 text-sm leading-6 text-[#66775b]">{week.sharedFeedbackText}</p>
+                      <div className="rounded-[1.35rem] bg-[#eef8de] px-4 py-3.5">
+                        <p className="text-sm font-medium text-[#314127]">전체 피드백</p>
+                        <p className="mt-1 text-sm leading-6 text-[#6b7d5e]">{week.sharedFeedbackText}</p>
                       </div>
                     ) : null}
 
                     {week.privateFeedbackText ? (
-                      <div className="rounded-[1.35rem] border border-[#d9e7ff] bg-[#edf4ff] px-4 py-3.5">
-                        <p className="text-sm font-medium text-[#334223]">개인 피드백</p>
-                        <p className="mt-1 text-sm leading-6 text-[#66775b]">{week.privateFeedbackText}</p>
+                      <div className="rounded-[1.35rem] border border-[#dce7fb] bg-[#eef5ff] px-4 py-3.5">
+                        <p className="text-sm font-medium text-[#314127]">개인 피드백</p>
+                        <p className="mt-1 text-sm leading-6 text-[#6b7d5e]">{week.privateFeedbackText}</p>
                       </div>
                     ) : null}
 
@@ -327,7 +327,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                     !week.progressText &&
                     !week.sharedFeedbackText &&
                     !week.privateFeedbackText ? (
-                      <div className="rounded-[1.35rem] border border-dashed border-[#d5dfbf] bg-[#fafbf4] px-4 py-8 text-center text-sm text-[#66775b]">
+                      <div className="rounded-[1.35rem] border border-dashed border-[#d8e2c7] bg-[#fbfcf6] px-4 py-8 text-center text-sm text-[#6b7d5e]">
                         점검 중인 항목만 있습니다.
                       </div>
                     ) : null}
@@ -340,7 +340,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                     !week.progressText &&
                     !week.sharedFeedbackText &&
                     !week.privateFeedbackText ? (
-                      <div className="rounded-[1.35rem] border border-dashed border-[#d5dfbf] bg-[#fafbf4] px-4 py-8 text-center text-sm text-[#66775b]">
+                      <div className="rounded-[1.35rem] border border-dashed border-[#d8e2c7] bg-[#fbfcf6] px-4 py-8 text-center text-sm text-[#6b7d5e]">
                         {detail.enrollmentStatus === 'PENDING'
                           ? '운영 승인 전입니다.'
                           : '수강은 시작됐고 콘텐츠는 아직 준비 중입니다.'}

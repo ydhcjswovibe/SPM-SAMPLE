@@ -74,10 +74,10 @@ export default function StudentProfilePage() {
   const unpaidCount = summaries?.filter((item) => !item.paymentStatus).length ?? 0
   const feedbackCount = summaries?.reduce((sum, item) => sum + item.feedbackCount, 0) ?? 0
   const summaryCards = [
-    { label: '수강 중', value: activeCount, tone: 'bg-[#fff4be] text-[#a67615]' },
-    { label: '등록 예정', value: pendingCount, tone: 'bg-[#edf7dc] text-[#5a9333]' },
-    { label: '결제 미완료', value: unpaidCount, tone: 'bg-[#ffe6e3] text-[#ba655b]' },
-    { label: '피드백', value: feedbackCount, tone: 'bg-[#eaf1ff] text-[#4f78c8]' },
+    { label: '수강 중', value: activeCount, tone: 'bg-[#fff4c5] text-[#9d7523]' },
+    { label: '등록 예정', value: pendingCount, tone: 'bg-[#eef8de] text-[#5f8d39]' },
+    { label: '결제 미완료', value: unpaidCount, tone: 'bg-[#ffe9e4] text-[#bc6d61]' },
+    { label: '피드백', value: feedbackCount, tone: 'bg-[#edf5ff] text-[#5c7bc8]' },
   ]
 
   useEffect(() => {
@@ -124,8 +124,8 @@ export default function StudentProfilePage() {
   if (isProfileLoading) {
     return (
       <div className="space-y-3 px-3 pb-28 pt-3">
-        <Card className="gap-0 rounded-[2rem] border border-[#e4d3a9] bg-white/90 py-0 shadow-[0_14px_28px_rgba(126,102,54,0.1)]">
-          <CardContent className="flex items-center gap-3 px-4 py-4 text-sm text-[#7f6c47]">
+        <Card className="gap-0 rounded-[2rem] border border-[#e5e7d0] bg-white/92 py-0 shadow-[0_14px_28px_rgba(111,145,72,0.08)]">
+          <CardContent className="flex items-center gap-3 px-4 py-4 text-sm text-[#6d7d5e]">
             <Loader2 className="h-4 w-4 animate-spin" />
             내상태 카드를 불러오는 중입니다.
           </CardContent>
@@ -156,39 +156,40 @@ export default function StudentProfilePage() {
 
   return (
     <div className="space-y-4 px-3 pb-28 pt-3">
-      <section className="relative overflow-hidden rounded-[2.4rem] border border-[#e6cf96] bg-[linear-gradient(180deg,#f8edc6_0%,#efdca4_62%,#e4c37e_100%)] px-4 pb-5 pt-4 shadow-[0_20px_42px_rgba(145,117,54,0.16)]">
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-[#d6b066]" />
-        <div className="absolute -left-4 top-10 h-12 w-12 rounded-full bg-white/28" />
-        <div className="absolute right-6 top-6 h-16 w-16 rounded-full bg-white/18" />
+      <section className="relative overflow-hidden rounded-[2.45rem] border border-[#e4e8d8] bg-[linear-gradient(180deg,rgba(243,248,255,0.96)_0%,rgba(255,254,248,0.98)_46%,rgba(244,248,235,0.98)_100%)] px-4 pb-5 pt-4 shadow-[0_16px_28px_rgba(111,145,72,0.1)]">
+        <div className="absolute inset-x-0 bottom-0 h-[4.5rem] bg-[rgba(185,216,132,0.3)]" />
+        <div className="absolute -left-4 bottom-4 h-14 w-20 rounded-full bg-[rgba(165,205,111,0.24)]" />
+        <div className="absolute left-10 top-8 h-10 w-10 rounded-full bg-white/64" />
+        <div className="absolute right-6 top-6 h-14 w-14 rounded-full bg-[rgba(255,242,193,0.48)]" />
 
         <div className="relative z-10 space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8c7240]">내상태 카드</p>
-              <h1 className="mt-1 text-[1.9rem] font-black tracking-[-0.04em] text-[#51401f]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6b7e57]">내상태 카드</p>
+              <h1 className="mt-1 text-[1.9rem] font-black tracking-[-0.04em] text-[#314127]">
                 차곡차곡 모은 기록
               </h1>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-white/70 shadow-[0_8px_14px_rgba(145,117,54,0.12)]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] border border-[#ebf0e2] bg-white/92 shadow-[0_6px_12px_rgba(111,145,72,0.06)]">
               <SpmMascot size="sm" className="h-9 w-9" />
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-white/60 bg-white/84 p-4 shadow-[0_14px_24px_rgba(145,117,54,0.1)]">
+          <div className="rounded-[2rem] border border-[#ebf0e2] bg-white/94 p-4 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
             <div className="flex items-center gap-3">
-              <Avatar className="h-16 w-16 border-4 border-[#f8efcf] shadow-[0_8px_14px_rgba(145,117,54,0.12)]">
+              <Avatar className="h-16 w-16 border-4 border-[#f7f4e7] shadow-[0_8px_14px_rgba(111,145,72,0.1)]">
                 <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="bg-[#eef6e3] text-[#6a9440]">
+                <AvatarFallback className="bg-[#eef8de] text-[#689247]">
                   <User className="h-7 w-7" />
                 </AvatarFallback>
               </Avatar>
 
               <div className="min-w-0 flex-1">
-                <p className="text-xl font-black tracking-[-0.03em] text-[#4d3d1f]">
+                <p className="text-xl font-black tracking-[-0.03em] text-[#314127]">
                   {profile.full_name || '이름 없음'}
                 </p>
-                <p className="mt-1 truncate text-sm text-[#7d6a45]">{profile.email}</p>
-                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#fff6d7] px-3 py-1.5 text-[11px] font-semibold text-[#9c7a2b]">
+                <p className="mt-1 truncate text-sm text-[#708060]">{profile.email}</p>
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#fff5ca] px-3 py-1.5 text-[11px] font-semibold text-[#9a7427]">
                   <Sparkles className="h-3.5 w-3.5" />
                   오늘도 한 칸씩 기록을 모아봐요
                 </div>
@@ -198,25 +199,25 @@ export default function StudentProfilePage() {
         </div>
       </section>
 
-      <section className="rounded-[2rem] border border-[#ead9af] bg-[#fbf4dd] p-3 shadow-[0_16px_28px_rgba(145,117,54,0.1)]">
+      <section className="rounded-[2rem] border border-[#e7eddb] bg-[#fffefb] p-3 shadow-[0_12px_22px_rgba(111,145,72,0.07)]">
         <div className="grid grid-cols-2 gap-2.5">
           {summaryCards.map((card) => (
             <div
               key={card.label}
-              className="rounded-[1.6rem] border border-white/65 bg-white/80 px-4 py-4 shadow-[0_10px_18px_rgba(145,117,54,0.08)]"
+              className="rounded-[1.6rem] border border-[#eef2e5] bg-white px-4 py-4 shadow-[0_8px_14px_rgba(111,145,72,0.05)]"
             >
               <div className={cn('inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold', card.tone)}>
                 {card.label}
               </div>
-              <p className="mt-3 text-[1.55rem] font-black tracking-[-0.03em] text-[#4d3d1f]">{card.value}</p>
+              <p className="mt-3 text-[1.55rem] font-black tracking-[-0.03em] text-[#314127]">{card.value}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <Card className="gap-0 rounded-[2rem] border border-[#d8e6bd] bg-white/92 py-0 shadow-[0_16px_28px_rgba(90,118,58,0.08)]">
+      <Card className="gap-0 rounded-[2rem] border border-[#e3e9d8] bg-white py-0 shadow-[0_12px_22px_rgba(111,145,72,0.06)]">
         <CardHeader className="px-5 pb-2 pt-4">
-          <CardTitle className="text-[1.2rem] font-black tracking-[-0.03em] text-[#334223]">계정 정보</CardTitle>
+          <CardTitle className="text-[1.2rem] font-black tracking-[-0.03em] text-[#314127]">계정 정보</CardTitle>
           <CardDescription className="text-[#6f7d60]">이름은 여기서 바로 바꿀 수 있어요.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 px-5 pb-5 pt-0">
@@ -227,7 +228,7 @@ export default function StudentProfilePage() {
           ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor="fullName" className="text-[#334223]">이름</Label>
+            <Label htmlFor="fullName" className="text-[#314127]">이름</Label>
             <Input
               id="fullName"
               value={fullName || profile.full_name || ''}
@@ -237,13 +238,13 @@ export default function StudentProfilePage() {
                 setSaveError(null)
               }}
               placeholder="이름을 입력해 주세요"
-              className="h-12 rounded-[1.35rem] border-[#dce8c4] bg-[#f7fbef] shadow-none"
+              className="h-12 rounded-[1.35rem] border-[#dce8cc] bg-[#fbfdf6] shadow-none"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[#334223]">이메일</Label>
-            <Input value={profile.email} disabled className="h-12 rounded-[1.35rem] border-[#e9e9e2] bg-[#f7f5ef] text-[#7f8678]" />
+            <Label className="text-[#314127]">이메일</Label>
+            <Input value={profile.email} disabled className="h-12 rounded-[1.35rem] border-[#ebe9e0] bg-[#f8f6ef] text-[#7f8678]" />
             <p className="text-xs text-[#6f7d60]">이메일 주소는 여기서 바꿀 수 없습니다.</p>
           </div>
 
@@ -251,7 +252,7 @@ export default function StudentProfilePage() {
             <Button
               onClick={handleSave}
               disabled={isSaving || !profile || !hasPendingNameChange}
-              className="h-11 gap-2 rounded-[1.35rem] border-[#75bf4e] bg-[#7ac454] px-4 font-bold text-white shadow-[0_10px_18px_rgba(113,182,73,0.24)] hover:bg-[#84cc5d]"
+              className="h-11 gap-2 rounded-[1.35rem] border-[#75b84f] bg-[#8fcf62] px-4 font-bold text-white shadow-[0_10px_18px_rgba(111,174,71,0.22)] hover:bg-[#9ad670]"
             >
               {isSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -266,10 +267,10 @@ export default function StudentProfilePage() {
         </CardContent>
       </Card>
 
-      <Card className="gap-0 rounded-[2rem] border border-[#dae6ee] bg-[#eef5ff] py-0 shadow-[0_16px_28px_rgba(96,126,173,0.08)]">
+      <Card className="gap-0 rounded-[2rem] border border-[#dfe8f4] bg-[#f8fbff] py-0 shadow-[0_12px_22px_rgba(116,148,195,0.06)]">
         <CardHeader className="px-5 pb-2 pt-4">
-          <CardTitle className="text-[1.2rem] font-black tracking-[-0.03em] text-[#30435d]">화면 모드</CardTitle>
-          <CardDescription className="text-[#687991]">샘플처럼 부드러운 화면 톤을 고를 수 있어요.</CardDescription>
+          <CardTitle className="text-[1.2rem] font-black tracking-[-0.03em] text-[#37506b]">화면 모드</CardTitle>
+          <CardDescription className="text-[#6f8196]">샘플처럼 부드러운 화면 톤을 고를 수 있어요.</CardDescription>
         </CardHeader>
         <CardContent className="px-5 pb-5 pt-0">
           <div className="grid grid-cols-3 gap-2">
@@ -278,8 +279,8 @@ export default function StudentProfilePage() {
               size="sm"
               onClick={() => setTheme('light')}
               className={cn(
-                'h-12 gap-2 rounded-[1.25rem] border-[#d7e1f7] bg-white font-semibold text-[#5f708b]',
-                theme === 'light' ? 'border-[#ffd98e] bg-[#fff3c7] text-[#9a7426]' : null,
+                'h-12 gap-2 rounded-[1.25rem] border-[#d7e4f8] bg-white font-semibold text-[#647792]',
+                theme === 'light' ? 'border-[#ffd98e] bg-[#fff4ca] text-[#9a7426]' : null,
               )}
             >
               <Sun className="h-4 w-4" />
@@ -290,8 +291,8 @@ export default function StudentProfilePage() {
               size="sm"
               onClick={() => setTheme('dark')}
               className={cn(
-                'h-12 gap-2 rounded-[1.25rem] border-[#d7e1f7] bg-white font-semibold text-[#5f708b]',
-                theme === 'dark' ? 'border-[#c0c8e8] bg-[#e8edff] text-[#5467b9]' : null,
+                'h-12 gap-2 rounded-[1.25rem] border-[#d7e4f8] bg-white font-semibold text-[#647792]',
+                theme === 'dark' ? 'border-[#c8d3ef] bg-[#edf2ff] text-[#5a6dc0]' : null,
               )}
             >
               <Moon className="h-4 w-4" />
@@ -302,8 +303,8 @@ export default function StudentProfilePage() {
               size="sm"
               onClick={() => setTheme('system')}
               className={cn(
-                'h-12 gap-2 rounded-[1.25rem] border-[#d7e1f7] bg-white font-semibold text-[#5f708b]',
-                theme === 'system' ? 'border-[#c5e5cf] bg-[#eef9e9] text-[#59873a]' : null,
+                'h-12 gap-2 rounded-[1.25rem] border-[#d7e4f8] bg-white font-semibold text-[#647792]',
+                theme === 'system' ? 'border-[#cfe7c9] bg-[#f0f9e8] text-[#5d8840]' : null,
               )}
             >
               <Monitor className="h-4 w-4" />

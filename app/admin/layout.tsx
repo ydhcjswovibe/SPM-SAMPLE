@@ -47,7 +47,7 @@ export default async function AdminLayout({
   return (
     <div className="min-h-dvh bg-background">
       <DesktopSidebar />
-      <main className="pb-20 md:pb-0 md:pl-64">
+      <main className="admin-student-surface pb-20 md:pb-0 md:pl-64">
         {children}
       </main>
       <MobileNav />

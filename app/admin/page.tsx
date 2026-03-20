@@ -4,10 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { formatYearMonthLabel, getCurrentYearMonth, isValidYearMonth } from '@/lib/admin/matrix'
+import { getCurrentYearMonth, isValidYearMonth } from '@/lib/admin/matrix'
 import { getRoleLabel, isAdminRole, isOwnerRole } from '@/lib/auth/roles'
 import { AdminMobileUtilityMenu } from '@/components/admin-mobile-utility-menu'
-import { AdminMobileSettingsLink } from '@/components/admin-mobile-settings-link'
 import { ClassSelector } from '@/components/class-selector'
 import { AdminMatrix } from '@/components/admin-matrix'
 import { SpmMascot } from '@/components/spm-mascot'
@@ -23,7 +22,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, CalendarCheck, CreditCard, Download, Loader2, LogIn, Plus, Trash2, Users } from 'lucide-react'
+import { AlertCircle, CalendarCheck, CreditCard, Download, Loader2, LogIn, Plus, Users } from 'lucide-react'
 import type { Class, AdminMatrixData, AttendanceStatus } from '@/lib/types'
 
 const supabase = createClient()
@@ -466,92 +465,79 @@ export default function AdminDashboard() {
     }
   }
 
-  const classSelectionHint = resolvedSelectedClass
-    ? `${resolvedSelectedClass.name} / ${formatYearMonthLabel(selectedYearMonth)}`
-    : hasValidYearMonth
-      ? '관리할 수업을 먼저 선택해 주세요'
-      : '월 범위를 다시 확인해 주세요'
   const selectorClasses = isDeleteMode ? allClasses || [] : classes || []
 
   return (
     <div className="flex flex-col">
       <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-5">
-        <div className="spm-soft-panel flex min-h-14 flex-wrap items-center gap-2 px-4 py-2 md:min-h-[3.75rem] md:flex-nowrap md:justify-between">
-            <div className="flex items-center gap-2.5">
-              <SpmMascot size="sm" className="hidden h-10 w-10 md:block" />
-              <div className="space-y-0.5">
-                <p className="spm-kicker">운영 홈</p>
-                <h1 className="spm-display text-[1.85rem] leading-none text-foreground md:text-[2.05rem]">운영</h1>
+        <section className="relative overflow-hidden rounded-[2.2rem] border border-[#dfe7d0] bg-[linear-gradient(180deg,rgba(243,248,255,0.96)_0%,rgba(255,254,249,0.98)_44%,rgba(244,248,236,0.98)_100%)] px-4 pb-4 pt-4 shadow-[0_14px_26px_rgba(106,138,64,0.1)]">
+          <div className="absolute inset-x-0 bottom-0 h-14 bg-[rgba(170,205,113,0.26)]" />
+          <div className="absolute -left-6 bottom-3 h-16 w-24 rounded-full bg-[rgba(141,188,91,0.2)]" />
+          <div className="absolute left-9 top-4 h-8 w-8 rounded-full bg-white/68" />
+          <div className="absolute right-3 top-3 h-12 w-12 rounded-full bg-[rgba(255,244,197,0.44)]" />
+
+          <div className="relative z-10 flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.15rem] bg-white/88 shadow-[0_10px_16px_rgba(116,146,78,0.12)]">
+                  <SpmMascot size="sm" className="h-8 w-8" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[rgba(89,114,70,0.72)]">
+                    오늘의 운영
+                  </p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="spm-display text-[1.1rem] text-[#314127] sm:text-[1.25rem]">
+                      출석부
+                    </span>
+                    {resolvedSelectedClass ? (
+                      <span className="inline-flex items-center rounded-full bg-[#fff7d6] px-2.5 py-1 text-[11px] font-semibold text-[#8c6d26] shadow-[0_6px_12px_rgba(182,157,88,0.08)]">
+                        {isDeleteMode ? `${resolvedSelectedClass.name} 삭제` : resolvedSelectedClass.name}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                <ClassSelector
+                  classes={selectorClasses}
+                  selectedClass={resolvedSelectedClass}
+                  onSelect={handleSelectClass}
+                  onCreateNew={accessState?.canCreateClass ? () => setIsCreateDialogOpen(true) : undefined}
+                  isDeleteMode={isDeleteMode}
+                  onToggleDeleteMode={accessState?.canCreateClass ? handleToggleDeleteMode : undefined}
+                  onDeleteRequest={accessState?.canCreateClass ? handleDeleteRequest : undefined}
+                  placeholder={
+                    isDeleteMode
+                      ? isAllClassesLoading
+                        ? '수업 불러오는 중'
+                        : '삭제할 수업 선택'
+                      : isClassesLoading
+                        ? '수업 불러오는 중'
+                        : '수업 선택'
+                  }
+                  emptyLabel={
+                    isDeleteMode
+                      ? '삭제할 수업이 없습니다.'
+                      : hasValidYearMonth
+                        ? '활성 수업이 없습니다.'
+                        : '먼저 유효한 월을 선택해 주세요.'
+                  }
+                />
+                <Input
+                  type="month"
+                  value={selectedYearMonth}
+                  onChange={(event) => setSelectedYearMonth(event.target.value)}
+                  className="h-10 w-[142px] min-w-[142px] flex-none rounded-[1.25rem] border-[#dbe8cc] bg-white/94 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] sm:w-[156px] sm:min-w-[156px]"
+                  aria-label="운영 월 선택"
+                />
               </div>
             </div>
-          <div className="order-3 flex w-full items-center gap-2 md:order-none md:w-auto">
-            <ClassSelector
-              classes={selectorClasses}
-              selectedClass={resolvedSelectedClass}
-              onSelect={handleSelectClass}
-              onCreateNew={accessState?.canCreateClass ? () => setIsCreateDialogOpen(true) : undefined}
-              isDeleteMode={isDeleteMode}
-              onToggleDeleteMode={accessState?.canCreateClass ? handleToggleDeleteMode : undefined}
-              onDeleteRequest={accessState?.canCreateClass ? handleDeleteRequest : undefined}
-              showDeleteActionInMenu={false}
-              placeholder={isDeleteMode ? (isAllClassesLoading ? '수업 불러오는 중' : '삭제할 수업 선택') : isClassesLoading ? '수업 불러오는 중' : '수업 선택'}
-              emptyLabel={
-                isDeleteMode
-                  ? '삭제할 수업이 없습니다.'
-                  : hasValidYearMonth
-                    ? '활성 수업이 없습니다.'
-                    : '먼저 유효한 월을 선택해 주세요.'
-              }
-            />
-            <Input
-              type="month"
-              value={selectedYearMonth}
-              onChange={(event) => setSelectedYearMonth(event.target.value)}
-              className="w-[132px] sm:w-[148px]"
-              aria-label="운영 월 선택"
-            />
-            {accessState?.canCreateClass ? (
-              <Button
-                type="button"
-                variant={isDeleteMode ? 'destructive' : 'outline'}
-                size="sm"
-                onClick={handleToggleDeleteMode}
-                disabled={isAllClassesLoading || (allClasses?.length ?? 0) === 0}
-                aria-pressed={isDeleteMode}
-                className="gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="hidden sm:inline">{isDeleteMode ? '삭제 취소' : '삭제 모드'}</span>
-                <span className="sm:hidden">{isDeleteMode ? '취소' : '삭제'}</span>
-              </Button>
-            ) : null}
-          </div>
-          <div className="ml-auto flex items-center gap-2 md:ml-0">
-            <AdminMobileSettingsLink />
+
             <AdminMobileUtilityMenu />
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleExportCSV}
-              disabled={
-                !accessState?.canManage ||
-                !resolvedSelectedClass ||
-                !hasValidYearMonth ||
-                !matrixData ||
-                matrixData.students.length === 0 ||
-                isExporting
-              }
-              className="gap-2"
-            >
-              {isExporting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4" />
-              )}
-              <span className="hidden sm:inline">CSV</span>
-            </Button>
           </div>
-        </div>
+        </section>
       </header>
 
       <div className="flex-1 space-y-4 px-4 pb-28 pt-3 md:px-6 md:pb-8 md:pt-4">
@@ -656,16 +642,39 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <Card className="gap-0 overflow-hidden py-0">
-          <CardHeader className="px-4 pt-3.5 pb-2 md:px-5 md:pt-4 md:pb-2.5">
-            <CardTitle className="spm-display text-[1.65rem] text-foreground md:text-[1.85rem]">운영 매트릭스</CardTitle>
-            {resolvedSelectedClass ? (
-              <p className="text-sm text-muted-foreground">{classSelectionHint}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                수업과 월을 먼저 선택해 주세요.
-              </p>
-            )}
+        <Card className="gap-0 overflow-hidden border border-[#e6ecda] bg-[#fffefb] py-0 shadow-[0_12px_22px_rgba(111,145,72,0.08)]">
+          <CardHeader className="px-4 pb-2 pt-3.5 md:px-5 md:pb-2.5 md:pt-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <CardTitle className="spm-display text-[1.65rem] text-foreground md:text-[1.85rem]">출석부</CardTitle>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {resolvedSelectedClass
+                    ? '현재 선택한 수업의 출석 상태를 한 화면에서 바로 정리합니다.'
+                    : '수업과 월을 먼저 고르면 이달 출석부가 바로 열립니다.'}
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleExportCSV}
+                disabled={
+                  !accessState?.canManage ||
+                  !resolvedSelectedClass ||
+                  !hasValidYearMonth ||
+                  !matrixData ||
+                  matrixData.students.length === 0 ||
+                  isExporting
+                }
+                className="h-10 gap-2 self-start rounded-[1.2rem] border border-[#dce8cc] bg-white/92 px-3 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]"
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                <span>CSV 다운로드</span>
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="px-2 pb-2 pt-0 md:px-5 md:pb-5">
             {!resolvedSelectedClass ? (
@@ -688,14 +697,6 @@ export default function AdminDashboard() {
                     >
                       <Plus className="h-4 w-4" />
                       새 수업 만들기
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="gap-2"
-                      onClick={() => setIsDeleteMode((current) => !current)}
-                      disabled={!accessState.canCreateClass || isAllClassesLoading || (allClasses?.length ?? 0) === 0}
-                    >
-                      삭제 모드
                     </Button>
                   </div>
                 ) : accessState?.canManage ? (

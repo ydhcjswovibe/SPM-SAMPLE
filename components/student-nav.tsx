@@ -8,10 +8,9 @@ import { BookOpen, Home, LogOut, Sparkles, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatYearMonthLabel } from '@/lib/weekly-media'
 import {
+  buildStudentSelectionHref,
   fetchStudentSummaries,
-  getFeaturedSummary,
-  getVisibleYearMonths,
-  readSelectedSummary,
+  resolveStudentSelection,
 } from '@/lib/student-lessons'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -36,46 +35,47 @@ export function StudentNav({ userName }: StudentNavProps) {
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isLessonHome = pathname === '/student'
+  const isHomePage = pathname === '/student'
+  const isLessonsPage = pathname === '/student/lessons'
   const isProfilePage = pathname === '/student/profile'
   const supabase = createClient()
 
-  const { data: summaries } = useSWR(
-    isLessonHome ? 'student-class-summaries' : null,
-    () => fetchStudentSummaries(supabase),
-    {
-      refreshInterval: STUDENT_NAV_REFRESH_INTERVAL_MS,
-    },
-  )
+  const { data: summaries } = useSWR('student-class-summaries', () => fetchStudentSummaries(supabase), {
+    refreshInterval: STUDENT_NAV_REFRESH_INTERVAL_MS,
+  })
 
-  const featuredSummary =
-    summaries && summaries.length > 0
-      ? getFeaturedSummary(summaries)
-      : null
-  const visibleYearMonths = summaries && summaries.length > 0 ? getVisibleYearMonths(summaries) : []
-  const selectedYearMonth =
-    visibleYearMonths.includes(searchParams.get('yearMonth') ?? '') && searchParams.get('yearMonth')
-      ? searchParams.get('yearMonth')
-      : featuredSummary?.yearMonth ?? null
-  const monthSummaries =
-    summaries && selectedYearMonth
-      ? summaries.filter((item) => item.yearMonth === selectedYearMonth)
-      : []
-  const selectedSummary =
-    monthSummaries.length > 0
-      ? readSelectedSummary(monthSummaries, searchParams.get('classId'), selectedYearMonth)
-      : null
+  const { selectedSummary, monthSummaries, visibleYearMonths } = summaries
+    ? resolveStudentSelection(summaries, searchParams.get('classId'), searchParams.get('yearMonth'))
+    : {
+        selectedSummary: null,
+        monthSummaries: [],
+        visibleYearMonths: [],
+      }
+
+  const homeHref = buildStudentSelectionHref('/student', selectedSummary?.classId, selectedSummary?.yearMonth)
+  const lessonsHref = buildStudentSelectionHref('/student/lessons', selectedSummary?.classId, selectedSummary?.yearMonth)
+  const profileHref = buildStudentSelectionHref('/student/profile', selectedSummary?.classId, selectedSummary?.yearMonth)
+
+  const eyebrowLabel = isProfilePage ? '내 보관함' : isLessonsPage ? '수업 이어보기' : '오늘의 대시보드'
+  const titleLabel = isProfilePage ? '차곡차곡 내상태' : isLessonsPage ? '수업 탭' : 'SPM 숲'
+  const homeSummaryLabel = selectedSummary
+    ? `${selectedSummary.className} · ${formatYearMonthLabel(selectedSummary.yearMonth)}`
+    : `${userName}님의 기록을 차곡차곡 모아봐요`
+  const nonLessonsLabel = isHomePage ? homeSummaryLabel : `${userName}님의 기록을 차곡차곡 모아봐요`
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+
+    if (typeof window !== 'undefined') {
+      window.location.assign('/auth/login')
+      return
+    }
+
     router.push('/auth/login')
   }
 
   function replaceSelection(classId: string, yearMonth: string) {
-    const nextParams = new URLSearchParams(searchParams.toString())
-    nextParams.set('classId', classId)
-    nextParams.set('yearMonth', yearMonth)
-    router.replace(`/student?${nextParams.toString()}`, { scroll: false })
+    router.replace(buildStudentSelectionHref('/student/lessons', classId, yearMonth), { scroll: false })
   }
 
   function handleClassChange(classId: string) {
@@ -98,8 +98,7 @@ export function StudentNav({ userName }: StudentNavProps) {
     }
 
     const nextSummary =
-      nextMonthSummaries.find((item) => item.classId === selectedSummary?.classId) ??
-      getFeaturedSummary(nextMonthSummaries)
+      nextMonthSummaries.find((item) => item.classId === selectedSummary?.classId) ?? nextMonthSummaries[0]
 
     replaceSelection(nextSummary.classId, nextSummary.yearMonth)
   }
@@ -109,47 +108,53 @@ export function StudentNav({ userName }: StudentNavProps) {
       <header className="sticky top-0 z-50 px-3 pt-3">
         <div
           className={cn(
-            'relative overflow-hidden rounded-[2rem] border px-3 py-3 shadow-[0_16px_34px_rgba(74,97,44,0.18)] backdrop-blur',
+            'relative overflow-hidden rounded-[2.2rem] border px-3 py-3 shadow-[0_14px_26px_rgba(106,138,64,0.1)] backdrop-blur',
             isProfilePage
-              ? 'border-[#e0c88f] bg-[#f6e5b8]/92'
-              : 'border-[#86bc5f] bg-[#b8dd7b]/92',
+              ? 'border-[#e6e8d6] bg-[linear-gradient(180deg,rgba(243,248,255,0.96)_0%,rgba(255,253,247,0.98)_46%,rgba(244,248,235,0.98)_100%)]'
+              : 'border-[#dde9cf] bg-[linear-gradient(180deg,rgba(241,248,255,0.96)_0%,rgba(255,254,248,0.98)_42%,rgba(243,249,234,0.98)_100%)]',
           )}
         >
           <div
             className={cn(
-              'absolute inset-x-0 bottom-0 h-12',
-              isProfilePage ? 'bg-[#f0dca8]' : 'bg-[#87bf58]',
+              'absolute inset-x-0 bottom-0 h-14',
+              isProfilePage ? 'bg-[rgba(203,222,163,0.34)]' : 'bg-[rgba(176,210,124,0.28)]',
             )}
           />
           <div
             className={cn(
-              'absolute -left-4 bottom-3 h-14 w-20 rounded-full',
-              isProfilePage ? 'bg-[#ead086]' : 'bg-[#72ab4a]',
+              'absolute -left-5 bottom-3 h-16 w-24 rounded-full',
+              isProfilePage ? 'bg-[rgba(188,209,141,0.28)]' : 'bg-[rgba(142,191,92,0.22)]',
             )}
           />
           <div
             className={cn(
-              'absolute right-2 top-2 h-10 w-10 rounded-full',
-              isProfilePage ? 'bg-white/45' : 'bg-white/28',
+              'absolute left-8 top-4 h-8 w-8 rounded-full',
+              isProfilePage ? 'bg-white/62' : 'bg-white/66',
+            )}
+          />
+          <div
+            className={cn(
+              'absolute right-3 top-3 h-12 w-12 rounded-full',
+              isProfilePage ? 'bg-[rgba(255,243,205,0.52)]' : 'bg-[rgba(255,246,216,0.42)]',
             )}
           />
 
           <div className="relative z-10 flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.1rem] bg-white/85 shadow-[0_8px_14px_rgba(70,96,46,0.16)]">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.15rem] bg-white/88 shadow-[0_10px_16px_rgba(116,146,78,0.12)]">
                   <SpmMascot size="sm" className="h-8 w-8" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#425438]/70">
-                    {isProfilePage ? '내 보관함' : '오늘의 수업'}
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[rgba(89,114,70,0.72)]">
+                    {eyebrowLabel}
                   </p>
                   <div className="mt-1 flex items-center gap-2">
-                    <span className="spm-display text-[1.05rem] text-[#324223] sm:text-[1.2rem]">
-                      {isProfilePage ? '차곡차곡 내상태' : 'SPM 숲'}
+                    <span className="spm-display text-[1.1rem] text-[#314127] sm:text-[1.25rem]">
+                      {titleLabel}
                     </span>
                     {!isProfilePage && selectedSummary ? (
-                      <span className="inline-flex items-center rounded-full bg-white/78 px-2.5 py-1 text-[11px] font-semibold text-[#5c6d43] shadow-[0_6px_12px_rgba(70,96,46,0.08)]">
+                      <span className="inline-flex max-w-[9.8rem] items-center truncate rounded-full bg-[#fff7d6] px-2.5 py-1 text-[11px] font-semibold text-[#8c6d26] shadow-[0_6px_12px_rgba(182,157,88,0.08)]">
                         {selectedSummary.className}
                       </span>
                     ) : null}
@@ -157,12 +162,12 @@ export function StudentNav({ userName }: StudentNavProps) {
                 </div>
               </div>
 
-              {isLessonHome && selectedSummary ? (
-                <div className="mt-3 flex items-center gap-2">
+              {isLessonsPage && selectedSummary ? (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Select value={selectedSummary.classId} onValueChange={handleClassChange}>
                     <SelectTrigger
                       aria-label="수업 선택"
-                      className="h-10 flex-1 rounded-[1.15rem] border-[#dbe7c2] bg-white/92 text-left text-[#314124] shadow-[0_8px_14px_rgba(70,96,46,0.1)]"
+                      className="h-10 min-w-0 flex-1 rounded-[1.25rem] border-[#dbe8cc] bg-white/94 text-left text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]"
                     >
                       <SelectValue placeholder="수업" />
                     </SelectTrigger>
@@ -178,7 +183,7 @@ export function StudentNav({ userName }: StudentNavProps) {
                   <Select value={selectedSummary.yearMonth} onValueChange={handleMonthChange}>
                     <SelectTrigger
                       aria-label="월 선택"
-                      className="h-10 w-[7.2rem] rounded-[1.15rem] border-[#dbe7c2] bg-white/92 text-left text-[#314124] shadow-[0_8px_14px_rgba(70,96,46,0.1)]"
+                      className="h-10 w-[7.5rem] rounded-[1.25rem] border-[#dbe8cc] bg-white/94 text-left text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]"
                     >
                       <SelectValue placeholder="월" />
                     </SelectTrigger>
@@ -192,9 +197,9 @@ export function StudentNav({ userName }: StudentNavProps) {
                   </Select>
                 </div>
               ) : (
-                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/76 px-3 py-1.5 text-[11px] font-semibold text-[#5c6d43] shadow-[0_8px_14px_rgba(70,96,46,0.08)]">
-                  <Sparkles className="h-3.5 w-3.5 text-[#f2ad37]" />
-                  {userName}님의 기록을 차곡차곡 모아봐요
+                <div className="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/78 px-3 py-1.5 text-[11px] font-semibold text-[#647554] shadow-[0_8px_14px_rgba(121,148,84,0.08)]">
+                  <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#efbc47]" />
+                  <span className="truncate">{nonLessonsLabel}</span>
                 </div>
               )}
             </div>
@@ -205,10 +210,10 @@ export function StudentNav({ userName }: StudentNavProps) {
                   variant="ghost"
                   size="icon"
                   aria-label="학생 메뉴"
-                  className="h-11 w-11 rounded-[1.1rem] border border-white/70 bg-white/80 shadow-[0_8px_14px_rgba(70,96,46,0.12)]"
+                  className="h-11 w-11 rounded-[1.15rem] border border-white/72 bg-white/82 shadow-[0_8px_14px_rgba(121,148,84,0.1)]"
                 >
                   <Avatar className="h-9 w-9 border border-white/70">
-                    <AvatarFallback className="bg-[#f6f1df] text-xs font-semibold text-[#7c6b3e]">
+                    <AvatarFallback className="bg-[#fff6db] text-xs font-semibold text-[#866a2d]">
                       {userName.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -221,16 +226,16 @@ export function StudentNav({ userName }: StudentNavProps) {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/student/profile" className="gap-2">
+                  <Link href={profileHref} className="gap-2">
                     <User className="h-4 w-4" />
                     내상태
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/" className="gap-2">
+                  <Link href={homeHref} className="gap-2">
                     <Home className="h-4 w-4" />
-                    처음으로
+                    학생 홈
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -244,40 +249,67 @@ export function StudentNav({ userName }: StudentNavProps) {
         </div>
       </header>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3">
-        <div className="mx-auto flex h-[4.9rem] max-w-[27rem] items-center gap-2 rounded-[2rem] border border-white/70 bg-white/92 px-2 py-2 shadow-[0_20px_44px_rgba(77,90,54,0.18)] backdrop-blur">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+        <div className="mx-auto flex h-[5.1rem] max-w-[27rem] items-center gap-2 rounded-[2.2rem] border border-white/75 bg-white/94 px-2.5 py-2.5 shadow-[0_22px_42px_rgba(107,129,70,0.16)] backdrop-blur">
           <Link
-            href="/student"
+            href={homeHref}
             className={cn(
-              'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[1.35rem] px-2 py-2 text-[11px] font-semibold leading-none transition-all',
-              pathname === '/student'
-                ? 'bg-[#eef7dc] text-[#426128] shadow-[0_8px_18px_rgba(123,160,71,0.18)]'
-                : 'text-[#7d8573] hover:bg-[#f8f5ea] hover:text-[#324223]',
+              'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[1.5rem] border px-2 py-2.5 text-[11px] font-semibold leading-none transition-all duration-200',
+              isHomePage
+                ? 'border-[#f0dfaa] bg-[linear-gradient(180deg,rgba(255,250,236,0.98)_0%,rgba(255,235,192,0.98)_100%)] text-[#6e5622] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_24px_rgba(197,168,95,0.24)]'
+                : 'border-transparent text-[#7a8470] hover:border-[#ece8d9] hover:bg-[#faf8ee] hover:text-[#324223]',
             )}
           >
             <div
               className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-full',
-                pathname === '/student' ? 'bg-[#ffefb1] text-[#f2a935]' : 'bg-[#f4f1e8] text-[#98a08d]',
+                'flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200',
+                isHomePage
+                  ? 'border-[#f2cf82] bg-[#ffe1ad] text-[#bb8033] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(201,156,74,0.24)]'
+                  : 'border-transparent bg-[#f6f3ea] text-[#98a08d]',
+              )}
+            >
+              <Home className="h-[18px] w-[18px]" />
+            </div>
+            <span className="whitespace-nowrap">홈</span>
+          </Link>
+
+          <Link
+            href={lessonsHref}
+            className={cn(
+              'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[1.5rem] border px-2 py-2.5 text-[11px] font-semibold leading-none transition-all duration-200',
+              isLessonsPage
+                ? 'border-[#d8e9b7] bg-[linear-gradient(180deg,rgba(246,252,227,0.98)_0%,rgba(229,244,193,0.98)_100%)] text-[#34501f] shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_12px_24px_rgba(143,182,98,0.24)]'
+                : 'border-transparent text-[#7a8470] hover:border-[#ece8d9] hover:bg-[#faf8ee] hover:text-[#324223]',
+            )}
+          >
+            <div
+              className={cn(
+                'flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200',
+                isLessonsPage
+                  ? 'border-[#f5d985] bg-[#fff1b4] text-[#d79d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_8px_18px_rgba(220,177,70,0.24)]'
+                  : 'border-transparent bg-[#f6f3ea] text-[#98a08d]',
               )}
             >
               <BookOpen className="h-[18px] w-[18px]" />
             </div>
             <span className="whitespace-nowrap">수업</span>
           </Link>
+
           <Link
-            href="/student/profile"
+            href={profileHref}
             className={cn(
-              'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[1.35rem] px-2 py-2 text-[11px] font-semibold leading-none transition-all',
-              pathname === '/student/profile'
-                ? 'bg-[#f9eed4] text-[#7a653a] shadow-[0_8px_18px_rgba(178,144,82,0.18)]'
-                : 'text-[#7d8573] hover:bg-[#f8f5ea] hover:text-[#324223]',
+              'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[1.5rem] border px-2 py-2.5 text-[11px] font-semibold leading-none transition-all duration-200',
+              isProfilePage
+                ? 'border-[#d7e7f6] bg-[linear-gradient(180deg,rgba(244,249,255,0.98)_0%,rgba(229,240,255,0.98)_100%)] text-[#35506d] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_12px_24px_rgba(133,162,205,0.2)]'
+                : 'border-transparent text-[#7a8470] hover:border-[#ece8d9] hover:bg-[#faf8ee] hover:text-[#324223]',
             )}
           >
             <div
               className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-full',
-                pathname === '/student/profile' ? 'bg-[#ffd89f] text-[#b5792d]' : 'bg-[#f4f1e8] text-[#98a08d]',
+                'flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-200',
+                isProfilePage
+                  ? 'border-[#cfe0f6] bg-[#eaf3ff] text-[#5d79ab] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(133,162,205,0.2)]'
+                  : 'border-transparent bg-[#f6f3ea] text-[#98a08d]',
               )}
             >
               <User className="h-[18px] w-[18px]" />

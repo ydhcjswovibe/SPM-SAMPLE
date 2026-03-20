@@ -15,9 +15,9 @@ export default async function StudentClassDetailPage({
 
   if (yearMonth) {
     redirect(
-      `/student?classId=${encodeURIComponent(classId)}&yearMonth=${encodeURIComponent(yearMonth)}`,
+      `/student/lessons?classId=${encodeURIComponent(classId)}&yearMonth=${encodeURIComponent(yearMonth)}`,
     )
   }
 
-  redirect('/student')
+  redirect('/student/lessons')
 }
