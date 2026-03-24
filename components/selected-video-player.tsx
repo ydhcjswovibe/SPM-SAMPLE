@@ -28,6 +28,8 @@ interface SelectedVideoPlayerProps {
   canNavigate?: boolean
   onPrevious?: () => void
   onNext?: () => void
+  showHeader?: boolean
+  fullscreenControlMode?: 'header' | 'overlay' | 'both'
   surfaceClassName?: string
   playerClassName?: string
   children: ReactNode
@@ -39,6 +41,8 @@ export function SelectedVideoPlayer({
   canNavigate = false,
   onPrevious,
   onNext,
+  showHeader = true,
+  fullscreenControlMode = 'header',
   surfaceClassName,
   playerClassName,
   children,
@@ -47,6 +51,10 @@ export function SelectedVideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const hasNavigation = canNavigate && onPrevious && onNext
+  const showHeaderFullscreenControl =
+    fullscreenControlMode === 'header' || fullscreenControlMode === 'both'
+  const showOverlayFullscreenControl =
+    fullscreenControlMode === 'overlay' || fullscreenControlMode === 'both'
 
   useEffect(() => {
     function handleFullscreenChange() {
@@ -111,53 +119,57 @@ export function SelectedVideoPlayer({
     }
   }
 
-  function renderControls(overlay: boolean) {
+  function renderFullscreenButton(overlay: boolean) {
     const buttonClassName = overlay
       ? 'border border-white/15 bg-black/55 text-white hover:bg-black/72 hover:text-white'
       : undefined
 
     return (
-      <div
-        className={cn(
-          'flex items-center gap-2',
-          overlay && 'pointer-events-auto rounded-full border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm',
-        )}
+      <Button
+        type="button"
+        variant={overlay ? 'ghost' : isFullscreen ? 'secondary' : 'outline'}
+        size="icon"
+        className={buttonClassName}
+        onClick={() => void toggleFullscreen()}
+        aria-label={isFullscreen ? `${label} 전체화면 종료` : `${label} 전체화면`}
       >
+        {isFullscreen ? <Shrink className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+      </Button>
+    )
+  }
+
+  function renderNavigationControls(overlay: boolean) {
+    if (!hasNavigation) {
+      return null
+    }
+
+    const buttonClassName = overlay
+      ? 'border border-white/15 bg-black/55 text-white hover:bg-black/72 hover:text-white'
+      : undefined
+
+    return (
+      <>
         <Button
           type="button"
           variant={overlay ? 'ghost' : isFullscreen ? 'secondary' : 'outline'}
           size="icon"
           className={buttonClassName}
-          onClick={() => void toggleFullscreen()}
-          aria-label={isFullscreen ? `${label} 전체화면 종료` : `${label} 전체화면`}
+          onClick={onPrevious}
+          aria-label="이전 영상"
         >
-          {isFullscreen ? <Shrink className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+          <ChevronLeft className="h-4 w-4" />
         </Button>
-        {hasNavigation ? (
-          <>
-            <Button
-              type="button"
-              variant={overlay ? 'ghost' : isFullscreen ? 'secondary' : 'outline'}
-              size="icon"
-              className={buttonClassName}
-              onClick={onPrevious}
-              aria-label="이전 영상"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              type="button"
-              variant={overlay ? 'ghost' : isFullscreen ? 'secondary' : 'outline'}
-              size="icon"
-              className={buttonClassName}
-              onClick={onNext}
-              aria-label="다음 영상"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </>
-        ) : null}
-      </div>
+        <Button
+          type="button"
+          variant={overlay ? 'ghost' : isFullscreen ? 'secondary' : 'outline'}
+          size="icon"
+          className={buttonClassName}
+          onClick={onNext}
+          aria-label="다음 영상"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </>
     )
   }
 
@@ -170,7 +182,7 @@ export function SelectedVideoPlayer({
         isFullscreen && 'flex h-full w-full flex-col rounded-none border-0 bg-black text-white',
       )}
     >
-      {!isFullscreen ? (
+      {!isFullscreen && showHeader ? (
         <div className="flex items-center justify-between gap-3 px-3 py-3">
           <div className="flex items-center gap-2">
             <Badge variant="outline">{label}</Badge>
@@ -180,11 +192,21 @@ export function SelectedVideoPlayer({
               </span>
             ) : null}
           </div>
-          {renderControls(false)}
+          <div className="flex items-center gap-2">
+            {showHeaderFullscreenControl ? renderFullscreenButton(false) : null}
+            {renderNavigationControls(false)}
+          </div>
         </div>
       ) : null}
 
       <div className={cn('relative aspect-video bg-muted', isFullscreen && 'min-h-0 flex-1 bg-black', playerClassName)}>
+        {!isFullscreen && showOverlayFullscreenControl ? (
+          <div className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-2">
+            <div className="pointer-events-auto rounded-full border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm">
+              {renderFullscreenButton(true)}
+            </div>
+          </div>
+        ) : null}
         {isFullscreen ? (
           <>
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-black/65 via-black/30 to-transparent" />
@@ -202,7 +224,10 @@ export function SelectedVideoPlayer({
                   </span>
                 ) : null}
               </div>
-              {renderControls(true)}
+              <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm">
+                {renderFullscreenButton(true)}
+                {renderNavigationControls(true)}
+              </div>
             </div>
           </>
         ) : null}

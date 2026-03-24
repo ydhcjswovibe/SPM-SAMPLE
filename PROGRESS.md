@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `student/login 표면을 sample(Finch) 톤으로 재구성 완료, 학생 shell을 홈/수업/내상태 baseline으로 구현했고 실브라우저 QA와 runtime 검증 대기`
+- focus: `학생 공통 상단 헤더를 배경판 포함 floating compact bar로 분리하고, 하단 탭을 icon-only로 더 낮춘 compact nav pass를 반영했고 build/targeted lint 확인 완료, 실브라우저 QA와 기존 typecheck 스크립트 이슈 확인 대기`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,8 @@
 
 ## Recent Work Windows
 
+- `2026-03-24 | student nav separation + icon-only bottom tab pass | start: 2026-03-24 19:54 KST | end: 2026-03-24 19:54 KST | status: done`
+- `2026-03-24 | student lessons compact media-first pass | start: 2026-03-24 18:43 KST | end: 2026-03-24 18:53 KST | status: done`
 - `2026-03-20 | student shell split implementation | start: not recorded | end: 2026-03-20 17:44 KST | status: done`
 - `2026-03-20 | student tab baseline docs reset | start: not recorded | end: not recorded | status: done`
 - `2026-03-19 | sample-based student surface redesign | start: not recorded | end: 2026-03-19 17:01 KST | status: done`
@@ -261,6 +263,15 @@
 - admin 주차 미디어 편집기도 단일 preview + 선택 strip / 가로 이미지 + 확대 구조로 정렬 완료
 - student media browser smoke를 영상 selector + 이미지 확대 포함 기준으로 보강하고 [docs/reports/2026-03-17-student-media-horizontal-scroll-and-zoom.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-student-media-horizontal-scroll-and-zoom.md)로 기록 완료
 - 학생/관리자 선택 영상에 fullscreen 버튼과 best-effort landscape lock/restore 동작 추가 완료
+- 학생 `수업` 탭 헤더를 `캐릭터 / 수업 selector / YY.MM / 메뉴` 1줄 compact bar로 다시 정렬 완료
+- 학생 `홈 / 수업 / 내상태` 공통 상단 헤더를 같은 compact bar 구조로 통일 완료
+- 학생 공통 상단 헤더 뒤에 별도 plate 레이어를 추가해 배경과의 구분감을 강화 완료
+- 학생 하단 탭 라벨을 제거하고 icon-only compact navigation으로 낮춰 본문 가시 영역을 추가 확보 완료
+- 학생 `수업` 탭 본문을 `출석 / 공개 / 피드백` 3요약 카드 + `콘텐츠` 영역만 남기는 저부피 구조로 압축 완료
+- 학생 주차 버튼은 기본 `1~4주차` + ready media가 있을 때만 `5주차` 노출 기준으로 정렬 완료
+- 학생 주차 본문에서 텍스트 피드백/진행 메모/중복 제목 카드를 제거하고, 영상은 좌우 이동 + 오버레이 fullscreen, 이미지는 기존 가로 스크롤/확대 구조 유지로 정렬 완료
+- 이번 compact lessons pass에 맞춰 [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md) sync 완료
+- 이번 패키지 이후 `npm run build` 통과 확인 완료
 
 ## Next Up
 
@@ -278,8 +289,9 @@
 ## Risks / Open Questions
 
 - 이번 패키지는 source-backed + static validation까지는 닫혔지만, 모바일 실브라우저에서 학생 수업 신청 흐름과 헤더 select 노출 폭, admin matrix touch target 체감은 아직 직접 확인하지 않았다.
+- 현재 `npm run typecheck`는 기존 dirty [next-env.d.ts](/home/ydhcjswo/projects/SPM-SAMPLE/next-env.d.ts)와 Next 생성 `.next/types/validator.ts -> ./routes.js` 해석 문제로 실패했고, 이번 UI 변경 자체와 분리해서 정리할 필요가 있다.
 - cute redesign 1차 구현은 완료됐지만, admin main에서 귀여운 톤이 matrix 판독성을 해치지 않는지 실제 브라우저 확인이 아직 남아 있다.
-- 학생 수업 탭 헤더 inline row follow-up은 source-backed와 build/typecheck 기준으로는 닫혔지만, 모바일 브라우저에서 헤더 안 수업/월 select와 주차 스크롤 감각이 자연스러운지는 직접 확인이 아직 남아 있다.
+- 학생 수업 탭 header inline row follow-up은 source-backed와 build 기준으로는 닫혔지만, 모바일 브라우저에서 헤더 안 수업/월 select와 주차 폭 균형이 자연스러운지는 직접 확인이 아직 남아 있다.
 - 공통 버튼/카드/입력 톤이 바뀌어 1차 범위 밖 화면도 시각적으로 일부 영향받을 수 있다.
 - 구현 시작 전 `docs/archive/**/*`를 active truth로 다시 인용하지 않도록 주의가 필요하다.
 - connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC는 아직 schema cache에 없어, 현재 route는 compatibility fallback을 함께 유지한다.

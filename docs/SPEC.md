@@ -94,6 +94,7 @@ student-facing 흐름도 중요하지만,
   - `홈`
   - `수업`
   - `내상태`
+- 현재 compact student shell에서는 하단 탭 라벨을 숨기고 icon-only로 낮게 유지할 수 있다
 - `홈` 탭은 student dashboard 역할을 맡고, 현재 선택 또는 대표 수업의 `캐릭터 hero + 진행 카드 + 오늘의 체크리스트 + 빠른 action` 흐름을 사용한다
 - `수업` 탭은 기존 최상단 헤더 바의 수업/월 선택 control과 선택된 월별 수업 상세를 보여 주며, `클래스 -> 주차 -> 콘텐츠` 소비에 집중한다
 - 프로필/로그아웃은 하단 탭이 아니라 헤더 유틸리티 메뉴 또는 보조 화면으로 둔다
@@ -162,14 +163,16 @@ student-facing 흐름도 중요하지만,
 - 학생 primary selection key는 `classId + yearMonth`를 사용하고, `홈`과 `수업` 탭이 같은 selection을 공유한다
 - 유효한 query selection이 있으면 그 값을 우선하고, 없으면 visible enrollment 안에서 대표 수업을 같은 규칙으로 고른다
 - 학생 헤더 selector는 해당 학생의 `ACTIVE`/`PENDING` 등록만 보여 주고, soft delete된 inactive 수업은 숨긴다
+- 학생 상단 헤더는 전 탭에서 mobile 기준 한 줄 compact bar를 사용하고, `캐릭터 / 수업 selector / YY.MM 월 selector / 메뉴` 순서를 유지한다
+- 학생 상단 헤더는 배경과 섞이지 않도록 별도 받침 plate와 떠 있는 본체 바의 2층 인상으로 분리할 수 있다
 - 학생 `홈` 탭은 현재 선택 또는 대표 수업 기준 요약, 진행도, 체크리스트, 빠른 action을 먼저 보여 주고, 긴 주차 상세는 이 탭에 함께 쌓지 않는다
-- 학생 `수업` 탭은 기존 최상단 헤더 바에서 수업과 월을 바꾸고, 선택된 수업의 주차 콘텐츠를 본다
+- 학생 `수업` 탭은 상단 1줄 헤더 아래에 `출석 / 공개 / 피드백` 요약 카드만 남기고, 바로 `콘텐츠` 영역으로 이어진다
 - 학생은 수업이 없거나 추가 요청이 필요할 때 `홈` 탭의 `수업 신청` quick action 다이얼로그에서 활성 수업과 월을 고르고 승인 요청을 보낼 수 있다
 - 학생 수업 신청은 새 계정 생성이 아니라 자기 `enrollments`를 `PENDING`으로 생성하거나, 취소된 같은 달 요청을 `PENDING`으로 다시 여는 흐름이다
 - 학생 `홈` 탭의 `주차 열기`, `콘텐츠 보기`, `피드백 보기` 같은 CTA는 page-internal scroll 대신 `수업` 탭으로 이동하고 현재 selection을 유지한다
 - 학생 `홈` 탭에 둔 `수업 신청` quick action은 `수업` 탭과 `내상태`에서 중복 노출하지 않는다
 - 학생 `홈` 탭의 요약 카드와 quick action은 핵심 상태만 직접 보여 주고, 같은 의미를 범례/상태칩/보조 helper로 반복 설명하지 않는다
-- 학생 `수업` 탭은 `수강 중 / 등록 예정` 상태를 짧은 한 칩으로 직접 보여 주고, 승인 전/승인 후의 빈 상태 문구도 서로 다르게 읽혀야 한다
+- 학생 `수업` 탭은 상단 상태 chip을 반복하지 않고, 승인 전/승인 후의 빈 상태 문구만 서로 다르게 읽히면 된다
 - 학생 empty ownership은 다음처럼 나눈다:
   - `홈`: 수업 없음 / 신청 필요 / 승인 대기 / 대표 수업 요약
   - `수업`: 선택 필요 / 주차 없음 / 콘텐츠 없음 / 상세 refetch
@@ -184,6 +187,7 @@ student-facing 흐름도 중요하지만,
 - `/admin`은 `운영 / 학생 / 수업` mobile tab baseline을 가진다
 - `/student`는 `홈 / 수업 / 내상태` mobile tab baseline을 가진다
 - `홈` 탭은 student dashboard, `수업` 탭은 콘텐츠 소비, `내상태`는 상태/계정 관리 역할로 나눈다
+- 학생 하단 탭은 현재 active compact pass에서 icon-only navigation으로 낮게 유지한다
 - student home 성격의 요약과 체크리스트는 `홈` 탭에 두고, 선택된 수업의 주차 상세는 `수업` 탭으로 분리한다
 - `홈 -> 수업` 이동은 현재 selection을 유지하고, `수업` 탭에서 다시 같은 class/month를 바로 연다
 - account utility와 logout은 primary tab이 아니라 header utility로 두고, profile/status는 `내상태` tab destination으로 둔다
@@ -199,6 +203,7 @@ student-facing 흐름도 중요하지만,
 - admin 주차 이미지 목록도 한 줄 가로 스크롤로 훑고, 필요 시 확대해 확인할 수 있어야 한다
 - student는 `수업` 탭 안에서 주차별 콘텐츠를 소비한다
 - student는 선택한 주차 화면 안에서 영상을 바로 재생할 수 있는 방향을 baseline으로 둔다
+- student `수업` 탭의 주차 버튼은 기본 `1~4주차`를 항상 보여 주고, `5주차`는 ready video/image가 있을 때만 추가로 노출한다
 - 영상 baseline은 `YouTube 연동`
 - admin 주차 영상 입력은 YouTube 주소/영상 ID 붙여넣기와 링크 드롭을 우선 지원하고, 유효한 입력은 canonical YouTube watch URL로 정리해 저장한다
 - 무료 운영 기준에서는 앱 안에서 영상 파일 자동 업로드를 수행하지 않고, 운영자가 YouTube에 먼저 올린 뒤 링크를 붙여 넣는다
@@ -209,6 +214,7 @@ student-facing 흐름도 중요하지만,
 - current active media contract는 `class_log` 아래 `VIDEO` / `IMAGE` row를 여러 건 둘 수 있고, 각 row는 `media_id` 기준으로 수정/삭제한다
 - current active weekly image contract는 `upload_method='MANUAL'`, `weekly-images/{class_id}/{year_month}/week-{week_number}/{timestamp}-{safe-filename}` path 규칙을 사용한다
 - 이미지 추가 metadata contract는 아직 별도 truth로 잠기지 않는다
+- student `수업` 탭 본문은 주차 제목/상태 badge/텍스트 helper를 반복하지 않고, `영상`과 `이미지`만 바로 소비하는 구조를 우선한다
 
 ### Mobile / In-App Browser Handling
 - mobile browser 흐름에 대한 실용적인 처리
@@ -305,13 +311,12 @@ student-facing 흐름도 중요하지만,
 - 공개 / 수정 / 삭제는 주차 콘텐츠 관리의 기본 행동이어야 한다
 - 학생은 `수업` 탭에서 클래스와 주차 맥락 안에서 주차별 영상/이미지를 볼 수 있어야 한다
 - 학생은 선택한 주차 화면 안에서 영상을 바로 재생할 수 있어야 한다
-- 학생 주차 영상은 현재 선택된 1개 플레이어를 기준으로 보고, 여러 영상은 가로 선택 strip이나 좌우 이동으로 바꿔 볼 수 있어야 한다
+- 학생 주차 영상은 현재 선택된 1개 플레이어를 기준으로 보고, 여러 영상은 같은 줄의 좌우 이동 control로 바꿔 볼 수 있어야 한다
 - 학생 선택 영상도 전체화면 버튼으로 가능하면 landscape fullscreen에 들어갈 수 있어야 하고, 종료 후 같은 주차 선택 상태로 자연스럽게 돌아와야 한다
 - 학생 주차 이미지는 한 줄 가로 스크롤로 훑을 수 있어야 한다
 - 학생 주차 이미지 카드는 tap/click으로 확대해 자세히 볼 수 있어야 한다
-- 학생은 주차별 피드백도 함께 볼 수 있어야 한다
-- 주차별 피드백의 노출 규칙은 아래 `피드백 가시성 기준`을 따른다
-- invalid media row가 있어도 유효한 media consume은 계속 가능해야 하고, 경고는 별도로 분리되어야 한다
+- 학생 `수업` 탭에서는 주차별 텍스트 피드백/진행 메모를 본문 카드로 반복 노출하지 않고, 피드백 수치는 상단 요약으로만 유지한다
+- invalid media row가 있어도 유효한 media consume은 계속 가능해야 하고, student lessons 본문은 ready media 우선으로 유지한다
 - media는 별도 최상위 탭보다 `클래스 -> 주차 -> 콘텐츠` 흐름 안에서 먼저 이해돼야 한다
 - local demo merged runtime QA에서는 admin weekly video save/delete, admin weekly image upload/replace/delete, student inline video/image read, image storage cleanup까지 다시 확인했다
 

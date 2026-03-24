@@ -1,53 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  CheckCircle2,
-  Clock3,
-  Image as ImageIcon,
-  PlayCircle,
-  XCircle,
-  ZoomIn,
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, Image as ImageIcon, PlayCircle, ZoomIn } from 'lucide-react'
 
 import type { StudentClassDetail } from '@/lib/weekly-media'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SelectedVideoPlayer } from '@/components/selected-video-player'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
-const attendanceConfig = {
-  present: {
-    label: '출석 확인',
-    icon: CheckCircle2,
-    className: 'bg-[#ecf8de] text-[#4b732d]',
-  },
-  absent: {
-    label: '결석',
-    icon: XCircle,
-    className: 'bg-[#ffe9e4] text-[#a85f56]',
-  },
-  pending: {
-    label: '확인 전',
-    icon: Clock3,
-    className: 'bg-[#f7f5ee] text-[#7f877c]',
-  },
-} as const
+function hasReadyMedia(week: StudentClassDetail['weeks'][number]) {
+  return week.video.items.length > 0 || week.image.items.length > 0
+}
 
-function getWeekStatusLabel(week: StudentClassDetail['weeks'][number]) {
-  const hasInvalid = week.video.invalidItems.length > 0 || week.image.invalidItems.length > 0
-  const hasReadableContent =
-    week.video.items.length > 0 ||
-    week.image.items.length > 0 ||
-    Boolean(week.sharedFeedbackText) ||
-    Boolean(week.privateFeedbackText) ||
-    Boolean(week.progressText)
-
-  if (hasInvalid) return '점검 필요'
-  if (hasReadableContent) return '공개 중'
-  return '준비 중'
+function getEmptyWeekMessage(enrollmentStatus: StudentClassDetail['enrollmentStatus']) {
+  return enrollmentStatus === 'PENDING' ? '운영 승인 전입니다.' : '이 주차 콘텐츠는 아직 준비 중입니다.'
 }
 
 export function StudentClassDetailView({ detail }: { detail: StudentClassDetail }) {
@@ -62,14 +31,10 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
     return (
       <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white/94 py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
         <CardContent className="px-4 py-10 text-center">
-          <p className="text-base font-semibold text-[#314127]">
-            {detail.enrollmentStatus === 'PENDING'
-              ? '운영 승인 전입니다.'
-              : '수강은 시작됐고 콘텐츠는 아직 준비 중입니다.'}
-          </p>
+          <p className="text-base font-semibold text-[#314127]">{getEmptyWeekMessage(detail.enrollmentStatus)}</p>
           <p className="mt-2 text-sm leading-6 text-[#6b7d5e]">
             {detail.enrollmentStatus === 'PENDING'
-              ? '승인이 끝나면 이 화면에서 수강 상태와 주차 콘텐츠를 바로 이어서 확인할 수 있습니다.'
+              ? '승인이 끝나면 이 화면에서 바로 콘텐츠를 이어서 볼 수 있습니다.'
               : '새로운 콘텐츠가 열리면 이 화면에서 바로 확인할 수 있습니다.'}
           </p>
         </CardContent>
@@ -77,16 +42,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
     )
   }
 
-  const defaultActiveWeek =
-    detail.weeks.find(
-      (week) =>
-        week.video.items.length > 0 ||
-        week.image.items.length > 0 ||
-        Boolean(week.sharedFeedbackText) ||
-        Boolean(week.privateFeedbackText) ||
-        Boolean(week.progressText),
-    )?.weekNumber ?? detail.weeks[0]?.weekNumber ?? null
-
+  const defaultActiveWeek = detail.weeks.find(hasReadyMedia)?.weekNumber ?? detail.weeks[0]?.weekNumber ?? null
   const resolvedActiveWeek =
     activeWeek && detail.weeks.some((week) => String(week.weekNumber) === activeWeek)
       ? activeWeek
@@ -97,11 +53,39 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
   const selectedWeek =
     detail.weeks.find((week) => String(week.weekNumber) === resolvedActiveWeek) ?? detail.weeks[0] ?? null
 
+  const youtubeItems = selectedWeek?.video.items ?? []
+  const imageItems = selectedWeek?.image.items ?? []
+  const weekKey = String(selectedWeek?.weekNumber ?? '')
+  const selectedVideo =
+    youtubeItems.find((item) => item.mediaId === selectedVideoByWeek[weekKey]) ?? youtubeItems[0] ?? null
+  const selectedVideoIndex = selectedVideo
+    ? youtubeItems.findIndex((item) => item.mediaId === selectedVideo.mediaId)
+    : -1
+  const videoCountLabel =
+    youtubeItems.length > 1 && selectedVideoIndex >= 0 ? `${selectedVideoIndex + 1} / ${youtubeItems.length}` : null
+  const hasVisibleContent = youtubeItems.length > 0 || imageItems.length > 0
+
+  function moveSelectedVideo(direction: -1 | 1) {
+    if (youtubeItems.length <= 1 || selectedVideoIndex === -1) {
+      return
+    }
+
+    const nextIndex = (selectedVideoIndex + direction + youtubeItems.length) % youtubeItems.length
+
+    setSelectedVideoByWeek((current) => ({
+      ...current,
+      [weekKey]: youtubeItems[nextIndex]?.mediaId ?? current[weekKey],
+    }))
+  }
+
   return (
     <>
       <div className="space-y-3">
         <Tabs value={resolvedActiveWeek ?? String(detail.weeks[0]?.weekNumber ?? 1)} onValueChange={setActiveWeek}>
-          <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-[1.8rem] border border-[#e2ead4] bg-[#f7fbef] px-2 py-2 shadow-[0_12px_26px_rgba(111,145,72,0.08)]">
+          <TabsList
+            style={{ gridTemplateColumns: `repeat(${detail.weeks.length}, minmax(0, 1fr))` }}
+            className="grid h-auto w-full gap-2 rounded-[1.7rem] border border-[#e2ead4] bg-[#f7fbef] p-2 shadow-[0_12px_26px_rgba(111,145,72,0.08)]"
+          >
             {detail.weeks.map((week) => {
               const isSelected = String(week.weekNumber) === resolvedActiveWeek
 
@@ -110,248 +94,133 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
                   key={week.weekNumber}
                   value={String(week.weekNumber)}
                   className={cn(
-                    'h-auto min-w-[102px] flex-shrink-0 rounded-[1.2rem] border px-3 py-2 text-left data-[state=active]:shadow-none',
+                    'h-11 rounded-[1.15rem] border px-0 text-sm font-semibold data-[state=active]:shadow-none',
                     isSelected
                       ? 'border-[#f0d77b] bg-[#fff4c8] text-[#88601d] shadow-[0_8px_18px_rgba(204,167,71,0.14)]'
-                      : 'border-[#e8eedc] bg-white text-[#66775b] hover:bg-[#fafaf4]'
+                      : 'border-[#e8eedc] bg-white text-[#66775b] hover:bg-[#fafaf4]',
                   )}
                 >
-                  <div className="flex flex-col items-start gap-0.5">
-                    <span className="text-sm font-semibold">{week.weekNumber}주차</span>
-                    <span className="text-[11px]">{getWeekStatusLabel(week)}</span>
-                  </div>
+                  {week.weekNumber}주차
                 </TabsTrigger>
               )
             })}
           </TabsList>
-
-          {detail.weeks.map((week) => {
-            const attendance = attendanceConfig[week.attendanceStatus]
-            const AttendanceIcon = attendance.icon
-            const youtubeItems = week.video.items
-            const imageItems = week.image.items
-            const weekKey = String(week.weekNumber)
-            const selectedVideo =
-              youtubeItems.find((item) => item.mediaId === selectedVideoByWeek[weekKey]) ??
-              youtubeItems[0] ??
-              null
-            const selectedVideoIndex = selectedVideo
-              ? youtubeItems.findIndex((item) => item.mediaId === selectedVideo.mediaId)
-              : -1
-
-            function moveSelectedVideo(direction: -1 | 1) {
-              if (youtubeItems.length <= 1 || selectedVideoIndex === -1) {
-                return
-              }
-
-              const nextIndex =
-                (selectedVideoIndex + direction + youtubeItems.length) % youtubeItems.length
-
-              setSelectedVideoByWeek((current) => ({
-                ...current,
-                [weekKey]: youtubeItems[nextIndex]?.mediaId ?? current[weekKey],
-              }))
-            }
-
-            return (
-              <TabsContent key={week.weekNumber} value={String(week.weekNumber)} className="mt-3 space-y-3">
-                <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white/96 py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
-                  <CardHeader className="px-4 pb-2 pt-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <CardTitle className="text-base text-[#314127]">{week.weekNumber}주차 콘텐츠</CardTitle>
-                      <Badge className={attendance.className}>
-                        <AttendanceIcon className="mr-1 h-3.5 w-3.5" />
-                        {attendance.label}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3 px-4 pb-4">
-                    {week.video.invalidItems.length > 0 || week.image.invalidItems.length > 0 ? (
-                      <div className="rounded-[1.35rem] border border-[#f0dd9f] bg-[#fff8df] px-4 py-3.5 text-sm text-[#7f631b]">
-                        <p className="font-medium">일부 항목은 아직 점검 중입니다.</p>
-                        <p className="mt-1">먼저 열리는 항목부터 확인해 주세요.</p>
-                        {week.video.invalidItems.map((item) => (
-                          <p key={item.mediaId} className="mt-1">
-                            영상 경고: {item.message}
-                          </p>
-                        ))}
-                        {week.image.invalidItems.map((item) => (
-                          <p key={item.mediaId} className="mt-1">
-                            이미지 경고: {item.message}
-                          </p>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    {youtubeItems.length > 0 ? (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 text-sm font-medium text-[#314127]">
-                            <PlayCircle className="h-4 w-4 text-[#eb8d60]" />
-                            영상
-                          </div>
-                          {youtubeItems.length > 1 ? (
-                            <p className="text-xs text-[#6b7d5e]">아래 카드에서 볼 영상을 골라요.</p>
-                          ) : null}
-                        </div>
-
-                        {selectedVideo ? (
-                          <SelectedVideoPlayer
-                            label="재생 중"
-                            countLabel={
-                              youtubeItems.length > 1
-                                ? `${selectedVideoIndex + 1} / ${youtubeItems.length}`
-                                : null
-                            }
-                            canNavigate={youtubeItems.length > 1}
-                            onPrevious={() => moveSelectedVideo(-1)}
-                            onNext={() => moveSelectedVideo(1)}
-                            surfaceClassName="bg-card"
-                          >
-                            <iframe
-                              src={`https://www.youtube.com/embed/${selectedVideo.youtubeId}`}
-                              title={`${week.weekNumber}주차 선택 영상`}
-                              className="h-full w-full"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                            />
-                          </SelectedVideoPlayer>
-                        ) : null}
-
-                        {youtubeItems.length > 1 ? (
-                          <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1">
-                            {youtubeItems.map((item, index) => {
-                              const isSelected = item.mediaId === selectedVideo?.mediaId
-
-                              return (
-                                <button
-                                  key={item.mediaId}
-                                  type="button"
-                                  aria-label={`${week.weekNumber}주차 영상 ${index + 1} 선택`}
-                                  onClick={() =>
-                                    setSelectedVideoByWeek((current) => ({
-                                      ...current,
-                                      [weekKey]: item.mediaId,
-                                    }))
-                                  }
-                                  className={cn(
-                                    'min-w-[11rem] rounded-[1.35rem] border px-3 py-3 text-left shadow-sm transition',
-                                    isSelected
-                                      ? 'border-[#f0d57a] bg-[#fff7d8]'
-                                      : 'border-[#ebefde] bg-white hover:border-[#c9dca8]'
-                                  )}
-                                >
-                                  <div className="space-y-1">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="text-sm font-medium text-[#314127]">영상 {index + 1}</span>
-                                      {isSelected ? (
-                                        <Badge className="border-[#ffe39e] bg-[#fff4c8] text-[#a8781f]">현재</Badge>
-                                      ) : null}
-                                    </div>
-                                  </div>
-                                </button>
-                              )
-                            })}
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : null}
-
-                    {imageItems.length > 0 ? (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 text-sm font-medium text-[#314127]">
-                            <ImageIcon className="h-4 w-4 text-[#79a6e4]" />
-                            이미지
-                          </div>
-                          <p className="text-xs text-[#6b7d5e]">좌우로 넘기고 눌러 크게 봅니다.</p>
-                        </div>
-
-                        <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1">
-                          {imageItems.map((item, index) => {
-                            const alt = `${week.weekNumber}주차 이미지 ${index + 1}`
-
-                            return (
-                              <button
-                                key={item.mediaId}
-                                type="button"
-                                onClick={() => setSelectedImage({ url: item.url, alt })}
-                                className="group min-w-[75%] overflow-hidden rounded-[1.35rem] border border-[#ebefde] bg-white text-left shadow-sm transition hover:border-[#c9dca8] sm:min-w-[22rem]"
-                              >
-                                <div className="relative">
-                                  <img
-                                    src={item.url}
-                                    alt={alt}
-                                    className="h-56 w-full object-cover transition duration-200 group-hover:scale-[1.02]"
-                                  />
-                                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/50 px-3 py-2 text-xs text-white">
-                                    <span>이미지 {index + 1}</span>
-                                    <span className="inline-flex items-center gap-1">
-                                      <ZoomIn className="h-3.5 w-3.5" />
-                                      확대
-                                    </span>
-                                  </div>
-                                </div>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {week.progressText ? (
-                      <div className="rounded-[1.35rem] bg-[#fff8da] px-4 py-3.5">
-                        <p className="text-sm font-medium text-[#314127]">진행 메모</p>
-                        <p className="mt-1 text-sm leading-6 text-[#6b7d5e]">{week.progressText}</p>
-                      </div>
-                    ) : null}
-
-                    {week.sharedFeedbackText ? (
-                      <div className="rounded-[1.35rem] bg-[#eef8de] px-4 py-3.5">
-                        <p className="text-sm font-medium text-[#314127]">전체 피드백</p>
-                        <p className="mt-1 text-sm leading-6 text-[#6b7d5e]">{week.sharedFeedbackText}</p>
-                      </div>
-                    ) : null}
-
-                    {week.privateFeedbackText ? (
-                      <div className="rounded-[1.35rem] border border-[#dce7fb] bg-[#eef5ff] px-4 py-3.5">
-                        <p className="text-sm font-medium text-[#314127]">개인 피드백</p>
-                        <p className="mt-1 text-sm leading-6 text-[#6b7d5e]">{week.privateFeedbackText}</p>
-                      </div>
-                    ) : null}
-
-                    {selectedWeek?.weekNumber === week.weekNumber &&
-                    (week.video.invalidItems.length > 0 || week.image.invalidItems.length > 0) &&
-                    youtubeItems.length === 0 &&
-                    imageItems.length === 0 &&
-                    !week.progressText &&
-                    !week.sharedFeedbackText &&
-                    !week.privateFeedbackText ? (
-                      <div className="rounded-[1.35rem] border border-dashed border-[#d8e2c7] bg-[#fbfcf6] px-4 py-8 text-center text-sm text-[#6b7d5e]">
-                        점검 중인 항목만 있습니다.
-                      </div>
-                    ) : null}
-
-                    {selectedWeek?.weekNumber === week.weekNumber &&
-                    week.video.invalidItems.length === 0 &&
-                    week.image.invalidItems.length === 0 &&
-                    youtubeItems.length === 0 &&
-                    imageItems.length === 0 &&
-                    !week.progressText &&
-                    !week.sharedFeedbackText &&
-                    !week.privateFeedbackText ? (
-                      <div className="rounded-[1.35rem] border border-dashed border-[#d8e2c7] bg-[#fbfcf6] px-4 py-8 text-center text-sm text-[#6b7d5e]">
-                        {detail.enrollmentStatus === 'PENDING'
-                          ? '운영 승인 전입니다.'
-                          : '수강은 시작됐고 콘텐츠는 아직 준비 중입니다.'}
-                      </div>
-                    ) : null}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )
-          })}
         </Tabs>
+
+        {selectedWeek ? (
+          <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white/96 py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
+            <CardContent className="space-y-4 px-3.5 pb-3.5 pt-3.5 sm:px-4 sm:pb-4 sm:pt-4">
+              {youtubeItems.length > 0 ? (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-[#314127]">
+                      <PlayCircle className="h-4 w-4 text-[#eb8d60]" />
+                      <span>영상</span>
+                    </div>
+
+                    {youtubeItems.length > 1 ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="min-w-[2.8rem] text-right text-[11px] font-semibold text-[#7b8b69]">
+                          {videoCountLabel}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => moveSelectedVideo(-1)}
+                          aria-label="이전 영상"
+                          className="h-8 w-8 rounded-full border-[#dbe5c9] bg-white text-[#486035]"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => moveSelectedVideo(1)}
+                          aria-label="다음 영상"
+                          className="h-8 w-8 rounded-full border-[#dbe5c9] bg-white text-[#486035]"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {selectedVideo ? (
+                    <SelectedVideoPlayer
+                      label="재생 중"
+                      countLabel={videoCountLabel}
+                      canNavigate={youtubeItems.length > 1}
+                      onPrevious={() => moveSelectedVideo(-1)}
+                      onNext={() => moveSelectedVideo(1)}
+                      showHeader={false}
+                      fullscreenControlMode="overlay"
+                      surfaceClassName="rounded-[1.45rem] border border-[#e4ead8] bg-[#f6faef]"
+                      playerClassName="bg-[#eef3e4]"
+                    >
+                      <iframe
+                        src={`https://www.youtube.com/embed/${selectedVideo.youtubeId}`}
+                        title={`${selectedWeek.weekNumber}주차 선택 영상`}
+                        className="h-full w-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </SelectedVideoPlayer>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {imageItems.length > 0 ? (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-[#314127]">
+                      <ImageIcon className="h-4 w-4 text-[#79a6e4]" />
+                      이미지
+                    </div>
+                    <p className="text-xs text-[#6b7d5e]">좌우로 넘기고 눌러 크게 봅니다.</p>
+                  </div>
+
+                  <div className="-mx-3.5 flex gap-2.5 overflow-x-auto px-3.5 pb-1 sm:-mx-4 sm:px-4">
+                    {imageItems.map((item, index) => {
+                      const alt = `${selectedWeek.weekNumber}주차 이미지 ${index + 1}`
+
+                      return (
+                        <button
+                          key={item.mediaId}
+                          type="button"
+                          onClick={() => setSelectedImage({ url: item.url, alt })}
+                          className="group min-w-[75%] overflow-hidden rounded-[1.35rem] border border-[#ebefde] bg-white text-left shadow-sm transition hover:border-[#c9dca8] sm:min-w-[22rem]"
+                        >
+                          <div className="relative">
+                            <img
+                              src={item.url}
+                              alt={alt}
+                              className="h-56 w-full object-cover transition duration-200 group-hover:scale-[1.02]"
+                            />
+                            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/50 px-3 py-2 text-xs text-white">
+                              <span>이미지 {index + 1}</span>
+                              <span className="inline-flex items-center gap-1">
+                                <ZoomIn className="h-3.5 w-3.5" />
+                                확대
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {!hasVisibleContent ? (
+                <div className="rounded-[1.35rem] border border-dashed border-[#d8e2c7] bg-[#fbfcf6] px-4 py-8 text-center text-sm text-[#6b7d5e]">
+                  {getEmptyWeekMessage(detail.enrollmentStatus)}
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
 
       <Dialog open={selectedImage !== null} onOpenChange={(open) => (!open ? setSelectedImage(null) : null)}>

@@ -143,6 +143,12 @@ export function formatYearMonthLabel(value: string) {
   return `${year}.${month}`
 }
 
+export function formatCompactYearMonthLabel(value: string) {
+  const [year, month] = value.split('-')
+  if (!year || !month) return value
+  return `${year.slice(-2)}.${month}`
+}
+
 export function extractYoutubeId(url: string): string | null {
   const trimmed = url.trim()
   if (!trimmed) return null
@@ -326,6 +332,28 @@ function buildWeeklyMediaWeek(
   }
 }
 
+function hasReadyStudentLessonMedia(week: WeeklyMediaWeek) {
+  return week.video.items.length > 0 || week.image.items.length > 0
+}
+
+function buildStudentLessonWeeks(logs: ClassLogRow[], userId: string) {
+  const logByWeek = new Map(
+    logs
+      .filter((log) => typeof log.week_number === 'number')
+      .map((log) => [log.week_number as number, log]),
+  )
+
+  const allWeeks = buildVisibleWeekNumbers(MAX_CLASS_WEEKS, DEFAULT_CLASS_WEEKS).map((weekNumber) =>
+    buildWeeklyMediaWeek(logByWeek.get(weekNumber) ?? null, weekNumber, userId),
+  )
+
+  const weekFive = allWeeks.find((week) => week.weekNumber === MAX_CLASS_WEEKS) ?? null
+
+  return weekFive && hasReadyStudentLessonMedia(weekFive)
+    ? allWeeks
+    : allWeeks.slice(0, DEFAULT_CLASS_WEEKS)
+}
+
 export async function readAdminWeeklyMediaState(
   supabase: SupabaseClient,
   classId: string,
@@ -470,14 +498,7 @@ export async function readStudentClassSummaries(
       const availableWeeks = logsForEnrollment
         .map((log) => buildWeeklyMediaWeek(log, log.week_number ?? 0, userId))
         .filter((week) => isValidWeekNumber(week.weekNumber))
-        .filter(
-          (week) =>
-            week.video.items.length > 0 ||
-            week.image.items.length > 0 ||
-            Boolean(week.progressText) ||
-            Boolean(week.sharedFeedbackText) ||
-            Boolean(week.privateFeedbackText),
-        )
+        .filter(hasReadyStudentLessonMedia)
         .sort((left, right) => left.weekNumber - right.weekNumber)
 
       const feedbackCount = logsForEnrollment.reduce((count, log) => {
@@ -548,12 +569,7 @@ export async function readStudentClassDetail(
   if (classLogError) throw classLogError
 
   const logs = (classLogRows ?? []) as ClassLogRow[]
-  const maxWeekNumber = logs.reduce((max, log) => Math.max(max, log.week_number ?? 0), 0)
-  const weeks = buildVisibleWeekNumbers(maxWeekNumber, logs.length > 0 ? 1 : 0)
-    .map((weekNumber) => {
-      const log = logs.find((item) => item.week_number === weekNumber) ?? null
-      return buildWeeklyMediaWeek(log, weekNumber, userId)
-    })
+  const weeks = buildStudentLessonWeeks(logs, userId)
 
   return {
     classId,

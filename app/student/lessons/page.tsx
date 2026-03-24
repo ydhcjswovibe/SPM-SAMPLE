@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
-import { AlertCircle, BookOpen, Loader2, Sparkles } from 'lucide-react'
+import { AlertCircle, BookOpen, Loader2 } from 'lucide-react'
 
 import { StudentClassDetailView } from '@/components/student-class-detail-view'
 import { SpmMascot } from '@/components/spm-mascot'
@@ -12,12 +12,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
 import {
   fetchStudentSummaries,
-  getStudentEnrollmentStatusLabel,
-  getStudentNextWeekLabel,
   resolveStudentSelection,
   studentAuthRequiredMessage,
 } from '@/lib/student-lessons'
-import { formatYearMonthLabel, readStudentClassDetail, type StudentClassDetail } from '@/lib/weekly-media'
+import { readStudentClassDetail, type StudentClassDetail } from '@/lib/weekly-media'
 
 const supabase = createClient()
 const STUDENT_REFRESH_INTERVAL_MS = 5000
@@ -168,100 +166,63 @@ export default function StudentLessonsPage() {
   }
 
   return (
-    <div className="space-y-4 px-3 pb-28 pt-3">
-      <section className="rounded-[2.2rem] border border-[#e4ead8] bg-[linear-gradient(180deg,rgba(248,252,241,0.98)_0%,rgba(255,254,248,0.98)_100%)] p-4 shadow-[0_14px_28px_rgba(111,145,72,0.08)]">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="inline-flex items-center rounded-full border border-[#e8eedc] bg-white/96 px-3 py-1 text-[11px] font-semibold text-[#5a7440]">
-              {formatYearMonthLabel(selectedSummary.yearMonth)}
-            </div>
-            <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7e8f69]">수업 탭</p>
-            <h1 className="mt-1 text-[1.8rem] font-black tracking-[-0.04em] text-[#314127]">
-              {selectedSummary.className}
-            </h1>
-            <p className="mt-1 text-sm font-medium text-[#49613a]">{getStudentNextWeekLabel(selectedSummary)}</p>
-          </div>
-
-          <div className="rounded-[1.45rem] border border-[#ebf0e2] bg-white/94 px-3 py-2 text-right shadow-[0_6px_12px_rgba(111,145,72,0.06)]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8f957b]">상태</p>
-            <p className="mt-1 text-sm font-bold text-[#486035]">
-              {getStudentEnrollmentStatusLabel(selectedSummary)}
-            </p>
-          </div>
+    <div className="space-y-3 px-3 pb-28 pt-3">
+      <section className="grid grid-cols-3 gap-2 text-center">
+        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white/96 px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">출석</p>
+          <p className="mt-0.5 text-base font-black text-[#314127]">
+            {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
+          </p>
         </div>
-
-        <div className="mt-4 grid grid-cols-3 gap-2.5 text-center">
-          <div className="rounded-[1.25rem] border border-[#edf1e4] bg-white px-2 py-3 shadow-[0_6px_12px_rgba(111,145,72,0.05)]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">출석</p>
-            <p className="mt-1 text-base font-black">
-              {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
-            </p>
-          </div>
-          <div className="rounded-[1.25rem] border border-[#edf1e4] bg-white px-2 py-3 shadow-[0_6px_12px_rgba(111,145,72,0.05)]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">공개</p>
-            <p className="mt-1 text-base font-black">{selectedSummary.availableWeekCount}개</p>
-          </div>
-          <div className="rounded-[1.25rem] border border-[#edf1e4] bg-white px-2 py-3 shadow-[0_6px_12px_rgba(111,145,72,0.05)]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">피드백</p>
-            <p className="mt-1 text-base font-black">{selectedSummary.feedbackCount}건</p>
-          </div>
+        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white/96 px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">공개</p>
+          <p className="mt-0.5 text-base font-black text-[#314127]">{selectedSummary.availableWeekCount}개</p>
         </div>
-
-        <div className="mt-4 flex items-start gap-2 rounded-[1.5rem] border border-[#e8eedc] bg-white px-4 py-3 text-sm text-[#647554]">
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#efbc47]" />
-          상단에서 수업과 월을 바꾸면 아래 주차 콘텐츠가 바로 해당 선택으로 이어집니다.
+        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white/96 px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">피드백</p>
+          <p className="mt-0.5 text-base font-black text-[#314127]">{selectedSummary.feedbackCount}건</p>
         </div>
       </section>
 
-      <section className="rounded-[2.1rem] border border-[#e6ecda] bg-[#fffefb] p-3 shadow-[0_12px_22px_rgba(111,145,72,0.08)]">
-        <div className="rounded-[1.8rem] border border-[#eef2e5] bg-white px-4 py-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7f9069]">주차 콘텐츠</p>
-              <h2 className="mt-1 text-[1.45rem] font-black tracking-[-0.03em] text-[#314127]">
-                {selectedSummary.className}
-              </h2>
-            </div>
-            <div className="rounded-full bg-[#eef8de] px-3 py-1.5 text-sm font-semibold text-[#5f7b38]">
-              {formatYearMonthLabel(selectedSummary.yearMonth)}
-            </div>
-          </div>
-
-          {isDetailLoading ? (
-            <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-white py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">
-              <CardContent className="flex items-center gap-3 px-4 py-5 text-sm text-[#6a7b5f]">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                선택한 수업의 주차 콘텐츠를 불러오는 중입니다.
-              </CardContent>
-            </Card>
-          ) : detailError ? (
-            <Card className="overflow-hidden rounded-[1.8rem] border border-[rgba(214,104,96,0.26)] bg-[#fff6f2] py-0 shadow-[0_18px_36px_rgba(184,86,70,0.08)]">
-              <CardContent className="flex flex-col items-start gap-3 p-4 text-sm text-[#b65046]">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-                  <div className="space-y-1">
-                    <p className="font-bold">선택한 수업 상세를 다시 불러오지 못했습니다.</p>
-                    <p className="text-[rgba(182,80,70,0.8)]">{getFriendlyStudentDetailMessage(detailError)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : selectedDetail ? (
-            <StudentClassDetailView
-              key={`${selectedDetail.classId}:${selectedDetail.yearMonth}:${selectedDetail.enrollmentStatus}`}
-              detail={selectedDetail}
-            />
-          ) : (
-            <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-white py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">
-              <CardContent className="px-4 py-10 text-center">
-                <p className="text-base font-semibold text-[#314127]">선택한 수업 정보를 찾지 못했습니다.</p>
-                <p className="mt-2 text-sm leading-6 text-[#6a7b5f]">
-                  다른 수업을 선택하거나, 등록 상태를 확인한 뒤 다시 시도해 주세요.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+      <section className="rounded-[2rem] border border-[#e6ecda] bg-[#fffefb] p-3 shadow-[0_12px_22px_rgba(111,145,72,0.08)]">
+        <div className="mb-3 px-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7f9069]">콘텐츠</p>
         </div>
+
+        {isDetailLoading ? (
+          <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-white py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">
+            <CardContent className="flex items-center gap-3 px-4 py-5 text-sm text-[#6a7b5f]">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              선택한 수업의 주차 콘텐츠를 불러오는 중입니다.
+            </CardContent>
+          </Card>
+        ) : detailError ? (
+          <Card className="overflow-hidden rounded-[1.8rem] border border-[rgba(214,104,96,0.26)] bg-[#fff6f2] py-0 shadow-[0_18px_36px_rgba(184,86,70,0.08)]">
+            <CardContent className="flex flex-col items-start gap-3 p-4 text-sm text-[#b65046]">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="font-bold">선택한 수업 상세를 다시 불러오지 못했습니다.</p>
+                  <p className="text-[rgba(182,80,70,0.8)]">{getFriendlyStudentDetailMessage(detailError)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : selectedDetail ? (
+          <StudentClassDetailView
+            key={`${selectedDetail.classId}:${selectedDetail.yearMonth}:${selectedDetail.enrollmentStatus}`}
+            detail={selectedDetail}
+          />
+        ) : (
+          <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-white py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">
+            <CardContent className="px-4 py-10 text-center">
+              <p className="text-base font-semibold text-[#314127]">선택한 수업 정보를 찾지 못했습니다.</p>
+              <p className="mt-2 text-sm leading-6 text-[#6a7b5f]">
+                다른 수업을 선택하거나, 등록 상태를 확인한 뒤 다시 시도해 주세요.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </section>
     </div>
   )

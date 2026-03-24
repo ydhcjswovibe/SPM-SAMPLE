@@ -100,13 +100,15 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - legacy `/student/class/[classId]?yearMonth=...` deep link는 새 `수업` route contract로 정규화되어야 한다
 - `홈`과 `수업`은 같은 `classId + yearMonth` selection key를 공유해야 하고, `홈 -> 수업` 이동 뒤에도 선택이 바뀌지 않아야 한다
 - 기존 최상단 헤더 바의 수업/월 선택 control에서 다른 월별 수업으로 바꾸면 `수업` 탭 안의 주차 콘텐츠가 함께 바뀌어야 한다
-- 학생 헤더의 수업/월 선택 control은 일반적인 mobile width에서 숨겨진 가로 스크롤에 의존하지 않고 바로 보여야 한다
+- 학생 상단 헤더는 전 탭에서 `캐릭터 / 수업 selector / YY.MM 월 selector / 메뉴`가 한 줄에서 바로 보여야 하고, 숨겨진 가로 스크롤에 의존하지 않아야 한다
+- 학생 상단 헤더는 뒤판 plate와 본체 bar가 구분되어 배경과 한 덩어리로 붙어 보이지 않아야 한다
 - `홈` 탭과 `수업` 탭은 역할이 겹치지 않아야 한다:
   - `홈`: 요약 / 진행 / 체크리스트 / quick action
   - `수업`: 선택 / 주차 / 콘텐츠
 - `홈` 탭의 `주차 열기`, `콘텐츠 보기`, `피드백 보기` CTA는 page-internal scroll이 아니라 `수업` 탭 이동으로 동작해야 한다
 - `수업 신청` quick action은 `홈` 탭에만 있고, `수업`/`내상태`에서 중복 노출하지 않아야 한다
 - `수업` 탭은 `홈`의 체크리스트/quick action을 반복하지 않아야 한다
+- `수업` 탭 상단 본문은 `출석 / 공개 / 피드백` 요약 카드만 남고, hero/helper/status card를 반복하지 않아야 한다
 - empty ownership은 다음처럼 나뉘어야 한다:
   - `홈`: 수업 없음 / 신청 필요 / 승인 대기 / 대표 수업 요약
   - `수업`: selection-needed / week-empty / content-empty / detail-refetch
@@ -114,11 +116,14 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - selected class -> week -> content order is still understandable
 - touched cards, tabs, and panels do not disagree on `loading` / `syncing` / `empty` / `selection-needed` / `all-clear` meaning
 - current selection label matches the actual selected class, month, and week, or clearly says that nothing is selected
-- student weekly media에서 영상은 현재 선택된 1개 플레이어와 이전/다음 또는 가로 선택 strip이 함께 유지돼야 한다
+- student weekly media 주차 버튼은 기본 `1~4주차`가 보이고, `5주차`는 ready video/image가 있을 때만 보인다
+- student weekly media에서 영상은 현재 선택된 1개 플레이어와 같은 줄의 이전/다음 이동 control로 유지돼야 한다
 - student 선택 영상의 전체화면 버튼은 fullscreen 진입을 시도하고, 종료 뒤에도 같은 주차/영상 맥락으로 자연스럽게 복귀해야 한다
 - student weekly image는 여러 건일 때 한 줄 가로 스크롤로 훑히고, snap 없이 엉키지 않아야 한다
 - student 이미지 카드는 tap/click으로 확대 다이얼로그가 열리고, 닫은 뒤 주차 맥락으로 자연스럽게 돌아와야 한다
+- student `수업` 탭 본문은 주차 제목, 상태 badge, 텍스트 피드백/진행 메모 카드를 반복하지 않고, ready media만 바로 보여 줘야 한다
 - 학생 홈 상황판과 내상태 요약 카드는 불필요한 세로 부피 없이 한 화면에서 핵심 상태를 빠르게 읽을 수 있어야 한다
+- 학생 하단 탭은 icon-only로 낮아져도 active tab이 색/배경만으로 즉시 구분되고, touch target과 safe area 여백이 유지돼야 한다
 - CTA labels match the real action:
   - tab move
   - request quick action
