@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import useSWR from 'swr'
-import { BookOpen, Home, LogOut, User } from 'lucide-react'
+import { BookOpen, Gift, Home, LogOut, User } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
 import { formatCompactYearMonthLabel } from '@/lib/weekly-media'
@@ -14,6 +15,7 @@ import {
 } from '@/lib/student-lessons'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { StudentEnrollmentRequestDialog } from '@/components/student-enrollment-request-card'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -35,6 +37,7 @@ export function StudentNav({ userName }: StudentNavProps) {
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false)
   const isHomePage = pathname === '/student'
   const isLessonsPage = pathname === '/student/lessons'
   const isProfilePage = pathname === '/student/profile'
@@ -55,6 +58,7 @@ export function StudentNav({ userName }: StudentNavProps) {
   const homeHref = buildStudentSelectionHref('/student', selectedSummary?.classId, selectedSummary?.yearMonth)
   const lessonsHref = buildStudentSelectionHref('/student/lessons', selectedSummary?.classId, selectedSummary?.yearMonth)
   const profileHref = buildStudentSelectionHref('/student/profile', selectedSummary?.classId, selectedSummary?.yearMonth)
+  const canRequestFromMenu = isLessonsPage && Boolean(summaries && summaries.length > 0)
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -188,6 +192,21 @@ export function StudentNav({ userName }: StudentNavProps) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  {canRequestFromMenu ? (
+                    <>
+                      <DropdownMenuItem
+                        onSelect={(event) => {
+                          event.preventDefault()
+                          setIsRequestDialogOpen(true)
+                        }}
+                        className="gap-2"
+                      >
+                        <Gift className="h-4 w-4" />
+                        새 수업 요청
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  ) : null}
                   <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-destructive">
                     <LogOut className="h-4 w-4" />
                     로그아웃
@@ -268,6 +287,13 @@ export function StudentNav({ userName }: StudentNavProps) {
           </Link>
         </div>
       </nav>
+
+      <StudentEnrollmentRequestDialog
+        open={isRequestDialogOpen}
+        onOpenChange={setIsRequestDialogOpen}
+        title="새 수업 요청"
+        description="원하는 수업과 월을 고르면 운영 쪽에서 확인 후 수업 탭에서 바로 이어볼 수 있게 준비합니다."
+      />
     </>
   )
 }

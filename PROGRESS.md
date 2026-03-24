@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `학생 공통 상단 헤더를 배경판 포함 floating compact bar로 분리하고, 하단 탭을 icon-only로 더 낮춘 compact nav pass를 반영했고 build/targeted lint 확인 완료, 실브라우저 QA와 기존 typecheck 스크립트 이슈 확인 대기`
+- focus: `학생 홈 스크롤 원인을 잡은 상태에서, 하단 요약 카드의 섹션 헤더는 제거하고 카드 안에 짧은 보조 문구를 다시 넣어 읽기성을 보정했다. 진척 카드와 얇은 3줄 요약 카드 압축은 유지하고, 출석/공개/피드백은 라벨+짧은 설명+상태칩+숫자가 한 줄 카드 안에서 바로 읽히게 정리했다. 새 수업 요청 진입점은 학생 수업 탭 empty CTA와 lessons 전용 상단 학생 메뉴에 그대로 유지했다. npm run typecheck, npm run build 통과 확인 완료. repo-wide lint blocker는 이번 턴에 재실행하지 않았고 기존 components/auth-login-form.tsx react-hooks/set-state-in-effect 이슈 상태를 유지한다.`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,15 @@
 
 ## Recent Work Windows
 
+- `2026-03-25 | student home summary helper-copy return pass | start: not recorded | end: 2026-03-25 01:18 KST | status: done`
+- `2026-03-25 | student layout bottom-padding scroll fix | start: not recorded | end: 2026-03-25 01:11 KST | status: done`
+- `2026-03-25 | student home compact progress card follow-up | start: not recorded | end: 2026-03-25 00:59 KST | status: done`
+- `2026-03-25 | student home slim 3-row summary compression | start: not recorded | end: 2026-03-25 00:52 KST | status: done`
+- `2026-03-25 | student home summary stack + lessons request relocation | start: not recorded | end: 2026-03-25 00:28 KST | status: done`
+- `2026-03-24 | student home centered metric alignment follow-up | start: not recorded | end: 2026-03-24 22:21 KST | status: done`
+- `2026-03-24 | student home card readability jelly pass | start: not recorded | end: 2026-03-24 22:11 KST | status: done`
+- `2026-03-24 | student home mixed bottom cards follow-up | start: 2026-03-24 21:59 KST | end: 2026-03-24 22:01 KST | status: done`
+- `2026-03-24 | student home compact hero + 2x2 quick action pass | start: 2026-03-24 21:43 KST | end: 2026-03-24 21:45 KST | status: done`
 - `2026-03-24 | student nav separation + icon-only bottom tab pass | start: 2026-03-24 19:54 KST | end: 2026-03-24 19:54 KST | status: done`
 - `2026-03-24 | student lessons compact media-first pass | start: 2026-03-24 18:43 KST | end: 2026-03-24 18:53 KST | status: done`
 - `2026-03-20 | student shell split implementation | start: not recorded | end: 2026-03-20 17:44 KST | status: done`
@@ -99,6 +108,36 @@
 
 ## Done Recently
 
+- 학생 `/student` 하단 요약 영역에서 `한눈에 보기 / 3줄` 섹션 헤더를 제거하고 카드 본문 안에 짧은 설명 문구를 다시 추가 완료
+- `출석 / 공개 / 피드백` 카드는 각각 `이번 달 확인한 주차 / 지금 바로 볼 수 있어요 / 도착한 답변` 보조 문구를 두고, 우측에 상태칩과 큰 숫자를 유지하도록 재정렬 완료
+- 이번 summary helper-copy return pass 이후 `npm run typecheck`, `npm run build` 통과 완료
+- 학생 공통 [app/student/layout.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/layout.tsx) 의 `main pb-24`를 제거해 각 학생 페이지의 `pb-28`과 중복되던 하단 여백을 정리 완료
+- 현재 홈에서 화면 높이가 충분한데도 생기던 불필요한 세로 스크롤 원인이 layout/page 이중 bottom padding임을 확인하고 수정 완료
+- 이번 student layout scroll fix 이후 `npm run typecheck`, `npm run build` 통과 완료
+- 학생 `/student` 상단 `진척` 카드를 큰 세로판 대신 더 낮은 2단 카드로 다시 압축하고, 퍼센트/배지/progress bar가 한 화면에서 더 빠르게 읽히도록 정리 완료
+- `진척` 카드의 `남은 / 확인` badge도 더 작은 pill 크기로 줄여 캐릭터 아래 hero 높이를 추가로 낮춤 완료
+- 이번 compact progress follow-up 이후 `npm run typecheck`, `npm run build` 통과 완료
+- 학생 `/student` `출석 / 공개 / 피드백` 요약 카드를 큰 박스형 대신 더 얇은 3줄 리스트 카드로 다시 압축 완료
+- 홈 요약 카드 헤더도 함께 줄여 불필요한 설명 문장을 덜고 `한눈에 보기 + 3줄`만 남기도록 정리 완료
+- 각 요약 카드는 작은 아이콘, 우측 상태칩, 우측 정렬 큰 숫자 구조로 재배치해 낮은 높이에서도 스캔이 빠르게 되도록 보정 완료
+- 이번 slim 3-row compression 이후 `npm run typecheck`, `npm run build` 통과 완료
+- 학생 `/student`에서 `새 수업 요청` 카드와 다이얼로그를 제거하고, `출석 / 공개 / 피드백`만 세로 3줄 요약 카드로 재구성 완료
+- 홈 요약 카드는 `icon 좌상단 / 상태칩 우상단 / 라벨 / 큰 수치` 계층으로 다시 정렬해 숫자가 먼저 읽히도록 보정 완료
+- 학생 `/student/lessons` empty state는 중앙 `새 수업 요청` CTA로 바꾸고, 같은 요청 다이얼로그를 바로 열도록 연결 완료
+- 학생 상단 메뉴에는 lessons 페이지에서만 보이는 `새 수업 요청` 항목을 추가해 수업이 있을 때도 menu 기반 요청 진입점 유지 완료
+- 이번 summary stack + request relocation 이후 `npm run typecheck`, `npm run build` 통과 완료
+- 학생 `/student` `진척` 카드의 `라벨 / 퍼센트 / 보조 설명 / 요약 badge`를 중앙 축 기준으로 재정렬해 왼쪽 쏠림을 줄이고 숫자가 더 곧게 읽히도록 보정 완료
+- 학생 `/student` 하단 `오늘 할 일` 2x2 카드도 `icon / 상태칩 / 라벨 / 수치`를 세로 중앙 정렬로 다시 맞추고, `새 수업 요청` action card 역시 중앙 기준선으로 정렬 완료
+- 이번 centered metric alignment follow-up 이후 `npm run typecheck`, `npm run build` 통과 완료
+- 학생 `/student`의 `진척` 카드를 큰 퍼센트 수치, 더 선명한 `남은 체크` badge, 두꺼운 progress bar가 먼저 읽히는 젤리 스티커 카드로 재구성 완료
+- 학생 `/student` 하단 `오늘 할 일` 2x2를 색 분리된 `출석 / 공개 / 피드백` 요약 카드와 더 눈에 띄는 `새 수업 요청` action card로 다시 정리하고, 라벨/수치/상태칩 계층을 더 또렷하게 조정 완료
+- 이번 card readability jelly pass 이후 `npm run typecheck`, `npm run build` 통과 완료, `npm run lint`는 [components/auth-login-form.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/auth-login-form.tsx) 기존 `react-hooks/set-state-in-effect` 오류 2건으로 동일 block 확인
+- 학생 `/student` hero 상단의 `상태 / 수강중` 카드와 `출석 / 공개 / 피드백` 상단 요약 strip을 제거하고, hero는 더 낮은 `캐릭터 + progress` 구조로만 정리 완료
+- 학생 `/student` 하단 `오늘 할 일` 2x2를 `출석 / 공개 / 피드백` 비클릭 요약 카드 3개 + `요청` 액션 카드 1개 혼합 구조로 다시 정렬 완료
+- 이번 mixed bottom cards follow-up 이후 `npm run typecheck`, `npm run build` 통과 완료, `npm run lint`는 [components/auth-login-form.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/auth-login-form.tsx) 기존 `react-hooks/set-state-in-effect` 오류 2건으로 동일 block 확인
+- 학생 `/student` hero에서 `학생 홈`, 수업명, `1주차 열기 전`, `2026.03` 같은 본문 텍스트를 제거하고 캐릭터 영역을 축소했으며, `출석 / 공개 / 피드백` 요약 카드를 캐릭터 위쪽 strip으로 재배치 완료
+- 학생 `/student` progress 카드는 같은 위치에 유지하되 카피를 더 짧게 줄였고, 하단 `오늘의 체크리스트`는 `오늘 할 일` 라벨 + 2x2 quick action 버튼 구조로 압축 완료
+- 이번 학생 홈 compact pass 이후 `npm run typecheck`, `npm run build` 통과 완료, `npm run lint`는 [components/auth-login-form.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/auth-login-form.tsx) 기존 `react-hooks/set-state-in-effect` 오류 2건으로 block 확인
 - 학생 `/student`를 홈 대시보드로 축소하고 `/student/lessons`를 새 수업 상세 route로 분리했으며, 하단 탭을 `홈 / 수업 / 내상태` 3탭으로 재구성 완료
 - 학생 탭 공통 selection helper를 `classId + yearMonth` 기준으로 정리하고, 홈 CTA handoff와 profile/menu/tab 링크 preserve를 새 route contract에 맞춰 정렬 완료
 - legacy `/student/class/[classId]` redirect를 `/student/lessons` contract로 정규화하고, 이번 shell split 이후에도 `npm run typecheck`, `npm run build` 통과 완료

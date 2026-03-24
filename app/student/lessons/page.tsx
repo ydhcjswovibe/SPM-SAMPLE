@@ -2,10 +2,12 @@
 
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import useSWR from 'swr'
-import { AlertCircle, BookOpen, Loader2 } from 'lucide-react'
+import { AlertCircle, BookOpen, Gift, Loader2 } from 'lucide-react'
 
 import { StudentClassDetailView } from '@/components/student-class-detail-view'
+import { StudentEnrollmentRequestDialog } from '@/components/student-enrollment-request-card'
 import { SpmMascot } from '@/components/spm-mascot'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -61,6 +63,7 @@ function getFriendlyStudentDetailMessage(error: unknown) {
 
 export default function StudentLessonsPage() {
   const searchParams = useSearchParams()
+  const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false)
   const {
     data: summaries,
     error,
@@ -130,8 +133,8 @@ export default function StudentLessonsPage() {
     return (
       <div className="space-y-4 px-3 pb-28 pt-3">
         <Card className="overflow-hidden rounded-[2.1rem] border border-[#e4ead8] bg-white py-0 shadow-[0_14px_28px_rgba(111,145,72,0.08)]">
-          <CardContent className="space-y-3 px-4 py-5">
-            <div className="flex items-center gap-3">
+          <CardContent className="space-y-4 px-4 py-6 text-center">
+            <div className="flex flex-col items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-[1.25rem] bg-[#f2f8e8] text-[#6b9444]">
                 <BookOpen className="h-5 w-5" />
               </div>
@@ -140,14 +143,25 @@ export default function StudentLessonsPage() {
                 <h1 className="text-[1.4rem] font-black tracking-[-0.03em] text-[#314127]">이어볼 수업이 없어요</h1>
               </div>
             </div>
-            <p className="text-sm leading-6 text-[#6a7b5f]">
-              수업 선택과 주차 콘텐츠는 수업이 배정된 뒤 여기서 이어집니다. 먼저 홈에서 수업 요청을 보내 주세요.
+            <p className="mx-auto max-w-sm text-sm leading-6 text-[#6a7b5f]">
+              보고 싶은 수업과 월을 먼저 요청해 두면 운영 확인 뒤 이 탭에서 바로 이어서 볼 수 있어요.
             </p>
-            <Button asChild className="h-11 rounded-[1.35rem] bg-[#8fcf62] font-bold text-white hover:bg-[#9ad670]">
-              <Link href="/student">홈으로 이동</Link>
+            <Button
+              onClick={() => setIsRequestDialogOpen(true)}
+              className="mx-auto h-12 min-w-[12rem] gap-2 rounded-[1.4rem] bg-[#8fcf62] px-5 font-bold text-white hover:bg-[#9ad670]"
+            >
+              <Gift className="h-4 w-4" />
+              새 수업 요청
             </Button>
           </CardContent>
         </Card>
+
+        <StudentEnrollmentRequestDialog
+          open={isRequestDialogOpen}
+          onOpenChange={setIsRequestDialogOpen}
+          title="새 수업 요청"
+          description="원하는 수업과 월을 먼저 고르면 운영 쪽에서 확인 후 이 탭에서 바로 이어볼 수 있게 준비합니다."
+        />
       </div>
     )
   }
