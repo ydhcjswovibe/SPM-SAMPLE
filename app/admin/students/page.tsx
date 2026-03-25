@@ -1,16 +1,31 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import { AlertCircle, Loader2, Plus, Search, Trash2, UserPlus } from 'lucide-react'
+import { AlertCircle, Loader2, MessageSquarePlus, Plus, Search, Trash2, UserPlus } from 'lucide-react'
 
+import { buildAdminContentHref } from '@/lib/admin/content-selection'
 import { formatYearMonthLabel, getCurrentYearMonth, isValidYearMonth } from '@/lib/admin/matrix'
+import {
+  adminAlertCardClass,
+  adminCompactButtonClass,
+  adminCompactDangerButtonClass,
+  adminDialogContentClass,
+  adminDropdownContentClass,
+  adminDropdownItemClass,
+  adminMetricCardClass,
+  adminPrimaryButtonClass,
+  adminSurfaceCardClass,
+  adminSurfaceInputClass,
+} from '@/lib/admin/surface'
 import { isAdminRole, normalizeUserRole } from '@/lib/auth/roles'
+import { getCurrentWeekOfMonth } from '@/lib/date-selection'
 import { createClient } from '@/lib/supabase/client'
 import type { Class, EnrollmentLifecycleStatus, PaymentStatus } from '@/lib/types'
-import { AdminMobileUtilityMenu } from '@/components/admin-mobile-utility-menu'
-import { AdminMobileSettingsLink } from '@/components/admin-mobile-settings-link'
-import { SpmMascot } from '@/components/spm-mascot'
+import { AdminMonthSelector } from '@/components/admin-month-selector'
+import { AdminShellHeader } from '@/components/admin-shell-header'
+import { AdminHeaderActionMenu } from '@/components/admin-header-action-menu'
 import { ClassSelector } from '@/components/class-selector'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,6 +41,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
@@ -492,114 +508,139 @@ export default function StudentsPage() {
         paid: enrollments?.filter((item) => item.payment_status).length ?? 0,
       }
     : null
+  const currentWeekNumber = getCurrentWeekOfMonth()
 
   return (
     <div className="flex flex-col">
-      <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-5">
-        <section className="relative overflow-hidden rounded-[2.35rem] border border-[#dfe7d0] bg-[linear-gradient(180deg,rgba(243,248,255,0.96)_0%,rgba(255,254,249,0.98)_44%,rgba(244,248,236,0.98)_100%)] px-4 pb-4 pt-4 shadow-[0_14px_26px_rgba(111,145,72,0.1)]">
-          <div className="absolute inset-x-0 bottom-0 h-14 bg-[rgba(170,205,113,0.26)]" />
-          <div className="absolute -left-6 bottom-3 h-16 w-24 rounded-full bg-[rgba(141,188,91,0.2)]" />
-          <div className="absolute left-9 top-4 h-8 w-8 rounded-full bg-white/68" />
-          <div className="absolute right-3 top-3 h-12 w-12 rounded-full bg-[rgba(255,244,197,0.44)]" />
-
-          <div className="relative z-10 flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.2rem] bg-white/86 shadow-[0_10px_16px_rgba(121,148,84,0.12)]">
-                  <SpmMascot size="sm" className="h-8 w-8" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[rgba(89,114,70,0.72)]">
-                    학생 관리
-                  </p>
-                  <h1 className="spm-display mt-1 text-[1.55rem] leading-none text-[#314127] md:text-[1.9rem]">
-                    등록과 결제 정리
-                  </h1>
-                  <p className="mt-1 text-sm text-[#536949]">
-                    학생 화면과 같은 톤으로, 현재 월 배정과 승인 상태를 빠르게 정리합니다.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center rounded-full bg-white/82 px-3 py-1 text-[11px] font-semibold text-[#5a7440] shadow-[0_6px_12px_rgba(111,145,72,0.08)]">
-                  {resolvedSelectedClass ? resolvedSelectedClass.name : '수업 선택 필요'}
-                </span>
-                <span className="inline-flex items-center rounded-full bg-[#fff4c5] px-3 py-1 text-[11px] font-semibold text-[#8d6d26] shadow-[0_6px_12px_rgba(182,157,88,0.08)]">
-                  {hasValidYearMonth ? formatYearMonthLabel(selectedYearMonth) : '월 다시 확인'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2">
-              <AdminMobileSettingsLink className="h-11 w-11 rounded-[1.15rem] border border-white/72 bg-white/82 shadow-[0_8px_14px_rgba(121,148,84,0.1)]" />
-              <AdminMobileUtilityMenu className="h-11 w-11 rounded-[1.15rem] border border-white/72 bg-white/82 shadow-[0_8px_14px_rgba(121,148,84,0.1)]" />
-            </div>
-          </div>
-
-          <div className="relative z-10 mt-4 rounded-[1.75rem] border border-[#ebf0e2] bg-white/94 p-3 shadow-[0_8px_16px_rgba(111,145,72,0.06)]">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7d8f66]">관리 범위</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <ClassSelector
-                classes={classes || []}
-                selectedClass={resolvedSelectedClass}
-                onSelect={handleSelectClass}
-                placeholder={isClassesLoading ? '수업 불러오는 중' : '수업 선택'}
-                emptyLabel={
-                  hasValidYearMonth
-                    ? '활성 수업이 없습니다.'
-                    : '먼저 유효한 월을 선택해 주세요.'
-                }
-              />
-              <Input
-                type="month"
-                value={selectedYearMonth}
-                onChange={(event) => setSelectedYearMonth(event.target.value)}
-                className="h-10 w-[142px] rounded-[1.25rem] border-[#dce8cc] bg-white/94 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] sm:w-[156px]"
-                aria-label="등록 월 선택"
-              />
-              <Button
-                size="sm"
-                onClick={() => setIsAddDialogOpen(true)}
-                disabled={!resolvedSelectedClass || !hasValidYearMonth || !accessState?.canManage}
-                className="h-10 gap-2 rounded-[1.25rem] border-[#75b84f] bg-[#8fcf62] px-3 text-white shadow-[0_10px_18px_rgba(111,174,71,0.18)] hover:bg-[#9ad670]"
+      <AdminShellHeader
+        mobileActionMenu={
+          accessState?.canManage ? (
+            <>
+              <DropdownMenuItem
+                onSelect={() => setIsAddDialogOpen(true)}
+                disabled={!resolvedSelectedClass || !hasValidYearMonth || !accessState.canManage}
+                className={adminDropdownItemClass}
               >
                 <UserPlus className="h-4 w-4" />
-                <span className="hidden sm:inline">학생 배정</span>
-                <span className="sm:hidden">배정</span>
-              </Button>
-              {accessState?.isOwner ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsDeleteMode((current) => !current)}
+                학생 배정
+              </DropdownMenuItem>
+              {accessState.isOwner ? <DropdownMenuSeparator /> : null}
+              {accessState.isOwner ? (
+                <DropdownMenuItem
+                  onSelect={() => setIsDeleteMode((current) => !current)}
                   disabled={!resolvedSelectedClass || (enrollments?.length ?? 0) === 0}
-                  className={
-                    isDeleteMode
-                      ? 'h-10 gap-2 rounded-[1.25rem] border-destructive/40 bg-[#fff3f1] px-3 text-destructive shadow-[0_8px_14px_rgba(182,80,70,0.08)] hover:bg-[#ffebe8]'
-                      : 'h-10 gap-2 rounded-[1.25rem] border-[#dce8cc] bg-white/94 px-3 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]'
-                  }
+                  variant={isDeleteMode ? 'default' : 'destructive'}
+                  className={adminDropdownItemClass}
                 >
                   <Trash2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">{isDeleteMode ? '삭제 취소' : '삭제 모드'}</span>
-                  <span className="sm:hidden">{isDeleteMode ? '취소' : '삭제'}</span>
-                </Button>
+                  {isDeleteMode ? '삭제 취소' : '삭제 모드'}
+                </DropdownMenuItem>
               ) : null}
-            </div>
-          </div>
-        </section>
-      </header>
+            </>
+          ) : null
+        }
+        desktopSecondaryActions={
+          accessState?.canManage ? (
+            <AdminHeaderActionMenu label="작업">
+              <DropdownMenuItem
+                onSelect={() => setIsAddDialogOpen(true)}
+                disabled={!resolvedSelectedClass || !hasValidYearMonth || !accessState.canManage}
+                className={adminDropdownItemClass}
+              >
+                <UserPlus className="h-4 w-4" />
+                학생 배정
+              </DropdownMenuItem>
+              {accessState.isOwner ? <DropdownMenuSeparator /> : null}
+              {accessState.isOwner ? (
+                <DropdownMenuItem
+                  onSelect={() => setIsDeleteMode((current) => !current)}
+                  disabled={!resolvedSelectedClass || (enrollments?.length ?? 0) === 0}
+                  variant={isDeleteMode ? 'default' : 'destructive'}
+                  className={adminDropdownItemClass}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {isDeleteMode ? '삭제 취소' : '삭제 모드'}
+                </DropdownMenuItem>
+              ) : null}
+            </AdminHeaderActionMenu>
+          ) : null
+        }
+        controls={
+          <>
+            <ClassSelector
+              classes={classes || []}
+              selectedClass={resolvedSelectedClass}
+              onSelect={handleSelectClass}
+              triggerClassName="min-w-0 flex-1 max-w-none sm:min-w-0 sm:max-w-none md:min-w-[10.75rem] md:max-w-[13rem] lg:min-w-[11rem] lg:max-w-[14rem]"
+              placeholder={isClassesLoading ? '수업 불러오는 중' : '수업 선택'}
+              emptyLabel={hasValidYearMonth ? '활성 수업이 없습니다.' : '먼저 유효한 월을 선택해 주세요.'}
+            />
+            <AdminMonthSelector
+              value={selectedYearMonth}
+              onValueChange={setSelectedYearMonth}
+              aria-label="등록 월 선택"
+            />
+          </>
+        }
+      />
 
-      <div className="flex-1 space-y-3 p-4 md:p-5">
+      <div className="flex-1 space-y-3 p-4 md:space-y-5 md:px-6 md:pb-5 md:pt-4 lg:px-7 lg:pt-5">
         {actionError ? (
-          <Card className="border-destructive/30 bg-destructive/5">
+          <Card className={adminAlertCardClass('danger')}>
             <CardContent className="py-4 text-sm text-destructive">{actionError}</CardContent>
           </Card>
         ) : null}
 
-        <Card className="gap-0 border border-[#e6ecda] bg-[#fffefb] py-0 shadow-[0_12px_22px_rgba(111,145,72,0.08)]">
-          <CardHeader className="px-4 pt-3.5 pb-2 md:px-5 md:pt-4">
-            <CardTitle className="spm-display text-[1.55rem] text-[#314127]">학생 배정</CardTitle>
+        {enrollmentSummary ? (
+          <div className="hidden md:grid md:grid-cols-2 md:gap-3 lg:grid-cols-4">
+            <Card className={adminMetricCardClass('mint')}>
+              <CardContent className="px-4 py-3.5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#73815f]">전체</div>
+                <div className="mt-2 flex items-end justify-between gap-3">
+                  <span className="text-sm text-[#556449]">등록 학생</span>
+                  <span className="spm-display text-[1.35rem] text-[#314127]">{enrollmentSummary.total}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className={adminMetricCardClass('mint')}>
+              <CardContent className="px-4 py-3.5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#73815f]">수강 중</div>
+                <div className="mt-2 flex items-end justify-between gap-3">
+                  <span className="text-sm text-[#556449]">활성 등록</span>
+                  <span className="spm-display text-[1.35rem] text-[#314127]">{enrollmentSummary.active}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className={adminMetricCardClass('warm')}>
+              <CardContent className="px-4 py-3.5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8b742e]">보류</div>
+                <div className="mt-2 flex items-end justify-between gap-3">
+                  <span className="text-sm text-[#75663d]">확인 필요</span>
+                  <span className="spm-display text-[1.35rem] text-[#8a6a25]">{enrollmentSummary.pending}</span>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className={adminMetricCardClass('green')}>
+              <CardContent className="px-4 py-3.5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#4d8c63]">결제 확인</div>
+                <div className="mt-2 flex items-end justify-between gap-3">
+                  <span className="text-sm text-[#537565]">승인 완료</span>
+                  <span className="spm-display text-[1.35rem] text-[#4d8c63]">{enrollmentSummary.paid}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
+
+        {resolvedSelectedClass && isDeleteMode ? (
+          <div className="hidden rounded-[1.15rem] border border-[#f0d4cf] bg-[#fff5f1] px-4 py-3 text-sm text-[#b65046] md:block">
+            삭제 모드입니다. 현재 월 등록을 행 단위로 정리할 수 있습니다.
+          </div>
+        ) : null}
+
+        <Card className={adminSurfaceCardClass}>
+          <CardHeader className="px-4 pb-2 pt-3.5 md:px-5 md:pt-4 lg:px-6 lg:pb-3 lg:pt-5">
+            <CardTitle className="spm-display text-[1.55rem] text-[#314127] lg:text-[1.35rem]">학생 배정</CardTitle>
             {resolvedSelectedClass && enrollmentSummary ? (
               <CardDescription>
                 학생 {enrollmentSummary.total}명 · 수강 중 {enrollmentSummary.active}명 · 보류 {enrollmentSummary.pending}명 · 결제 확인 {enrollmentSummary.paid}명
@@ -608,12 +649,12 @@ export default function StudentsPage() {
               <CardDescription>현재 월 학생 등록과 승인 상태를 같은 자리에서 다룹니다.</CardDescription>
             )}
             {resolvedSelectedClass && isDeleteMode ? (
-              <p className="text-xs text-destructive">
+              <p className="text-xs text-destructive md:hidden">
                 삭제 모드입니다. 오른쪽 휴지통 버튼을 눌러 현재 월 등록을 삭제합니다.
               </p>
             ) : null}
           </CardHeader>
-          <CardContent className="px-4 pb-4 pt-0 md:px-5 md:pb-5">
+          <CardContent className="px-4 pb-4 pt-0 md:px-5 md:pb-5 lg:px-6 lg:pb-6">
             {pageErrorMessage ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <AlertCircle className="mb-4 h-8 w-8 text-destructive" />
@@ -630,9 +671,7 @@ export default function StudentsPage() {
                 <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground" />
                 <p className="font-medium">선택된 수업이 없습니다.</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {!hasValidYearMonth
-                    ? '먼저 유효한 월을 선택해 주세요.'
-                    : '수업과 월을 먼저 선택해 주세요.'}
+                  {!hasValidYearMonth ? '먼저 유효한 월을 선택해 주세요.' : '수업과 월을 먼저 선택해 주세요.'}
                 </p>
               </div>
             ) : !hasValidYearMonth ? (
@@ -651,12 +690,13 @@ export default function StudentsPage() {
                   <UserPlus className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="font-medium">아직 배정된 학생이 없습니다.</h3>
-                <p className="mt-1 mb-3 text-sm text-muted-foreground">
+                <p className="mb-3 mt-1 text-sm text-muted-foreground">
                   기존 학생 계정을 바로 현재 월 등록으로 배정할 수 있습니다.
                 </p>
                 <Button
+                  variant="ghost"
                   onClick={() => setIsAddDialogOpen(true)}
-                  className="gap-2"
+                  className={adminPrimaryButtonClass}
                   disabled={!accessState?.canManage}
                 >
                   <UserPlus className="h-4 w-4" />
@@ -678,10 +718,10 @@ export default function StudentsPage() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           aria-label={`${enrollment.profiles.full_name || '학생'} 결제 상태`}
-                          className={`h-8 w-full justify-center px-2 text-xs ${paymentStatusMeta[enrollment.payment_status ? 'paid' : 'unpaid'].buttonClassName}`}
+                          className={`h-8 w-full justify-center rounded-[1rem] px-2 text-xs shadow-[0_6px_12px_rgba(121,148,84,0.08)] ${paymentStatusMeta[enrollment.payment_status ? 'paid' : 'unpaid'].buttonClassName}`}
                           disabled={isUpdatingPayment === enrollment.id || !accessState?.canManage}
                         >
                           {isUpdatingPayment === enrollment.id ? (
@@ -691,11 +731,12 @@ export default function StudentsPage() {
                           )}
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className={adminDropdownContentClass}>
                         {(['paid', 'unpaid'] as const).map((status) => (
                           <DropdownMenuItem
                             key={status}
                             onClick={() => handlePaymentChange(enrollment.id, status)}
+                            className={adminDropdownItemClass}
                           >
                             {paymentStatusMeta[status].label}
                           </DropdownMenuItem>
@@ -705,10 +746,10 @@ export default function StudentsPage() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           aria-label={`${enrollment.profiles.full_name || '학생'} 등록 상태`}
-                          className="h-8 w-full justify-center px-2 text-xs"
+                          className="h-8 w-full justify-center rounded-[1rem] border border-[#dce8cc] bg-white/96 px-2 text-xs text-[#314127] shadow-[0_6px_12px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]"
                           disabled={isUpdatingStatus === enrollment.id}
                         >
                           {isUpdatingStatus === enrollment.id ? (
@@ -718,11 +759,12 @@ export default function StudentsPage() {
                           )}
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className={adminDropdownContentClass}>
                         {(Object.keys(enrollmentStatusMeta) as EnrollmentLifecycleStatus[]).map((status) => (
                           <DropdownMenuItem
                             key={status}
                             onClick={() => handleStatusChange(enrollment.id, status)}
+                            className={adminDropdownItemClass}
                           >
                             {enrollmentStatusMeta[status].label}
                           </DropdownMenuItem>
@@ -730,34 +772,55 @@ export default function StudentsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <div className="flex justify-end">
-                      {isDeleteMode ? (
+                      <div className="flex items-center justify-end gap-1.5">
                         <Button
+                          asChild
                           variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
-                          onClick={() => handleRemoveStudent(enrollment.id)}
-                          disabled={isRemoving === enrollment.id || !accessState?.isOwner}
-                          aria-label={accessState?.isOwner ? '등록 삭제' : '등록 삭제는 오너 계정만 가능합니다'}
-                          title={accessState?.isOwner ? '등록 삭제' : '등록 삭제는 오너 계정만 가능합니다'}
+                          size="sm"
+                          className="h-8 rounded-full border border-[#dce8cc] bg-white/96 px-2.5 text-xs text-[#314127] shadow-[0_6px_12px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]"
                         >
-                          {isRemoving === enrollment.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
+                          <Link
+                            href={buildAdminContentHref({
+                              classId: resolvedSelectedClass.id,
+                              yearMonth: selectedYearMonth,
+                              week: currentWeekNumber,
+                              studentId: enrollment.student_id,
+                            })}
+                            aria-label={`${enrollment.profiles.full_name || '학생'} 피드백 입력 열기`}
+                          >
+                            <MessageSquarePlus className="mr-1.5 h-3.5 w-3.5" />
+                            피드백
+                          </Link>
                         </Button>
-                      ) : null}
+                        {isDeleteMode ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0 rounded-full border border-[#f0d4cf] bg-[#fff5f1] text-[#b65046] hover:bg-[#ffede7] hover:text-[#b65046]"
+                            onClick={() => handleRemoveStudent(enrollment.id)}
+                            disabled={isRemoving === enrollment.id || !accessState?.isOwner}
+                            aria-label={accessState?.isOwner ? '등록 삭제' : '등록 삭제는 오너 계정만 가능합니다'}
+                            title={accessState?.isOwner ? '등록 삭제' : '등록 삭제는 오너 계정만 가능합니다'}
+                          >
+                            {isRemoving === enrollment.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
+                  </div>
+                )}
           </CardContent>
         </Card>
       </div>
 
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="flex max-h-[80dvh] flex-col">
+        <DialogContent className={`${adminDialogContentClass} flex max-h-[80dvh] flex-col`}>
           <DialogHeader>
             <DialogTitle>학생 배정</DialogTitle>
             <DialogDescription>
@@ -773,7 +836,7 @@ export default function StudentsPage() {
               placeholder="이름 또는 이메일로 찾기"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="pl-9"
+              className={`${adminSurfaceInputClass} pl-9`}
             />
           </div>
 
@@ -811,10 +874,10 @@ export default function StudentsPage() {
                     </div>
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="ghost"
                       onClick={() => handleEnrollStudent(student.id)}
                       disabled={isEnrolling === student.id}
-                      className="gap-2"
+                      className={adminCompactButtonClass}
                     >
                       {isEnrolling === student.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -830,7 +893,7 @@ export default function StudentsPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <Button variant="ghost" onClick={() => setIsAddDialogOpen(false)} className={adminCompactButtonClass}>
               닫기
             </Button>
           </DialogFooter>

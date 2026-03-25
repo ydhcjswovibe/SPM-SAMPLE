@@ -124,7 +124,7 @@ export default function StudentProfilePage() {
   if (isProfileLoading) {
     return (
       <div className="space-y-3 px-3 pb-28 pt-3">
-        <Card className="gap-0 rounded-[2rem] border border-[#e5e7d0] bg-white/92 py-0 shadow-[0_14px_28px_rgba(111,145,72,0.08)]">
+        <Card className="gap-0 rounded-[2rem] border border-[#e5e7d0] bg-white py-0 shadow-[0_14px_28px_rgba(111,145,72,0.08)]">
           <CardContent className="flex items-center gap-3 px-4 py-4 text-sm text-[#6d7d5e]">
             <Loader2 className="h-4 w-4 animate-spin" />
             내상태 카드를 불러오는 중입니다.
@@ -170,12 +170,12 @@ export default function StudentProfilePage() {
                 차곡차곡 모은 기록
               </h1>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] border border-[#ebf0e2] bg-white/92 shadow-[0_6px_12px_rgba(111,145,72,0.06)]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] border border-[#ebf0e2] bg-white shadow-[0_6px_12px_rgba(111,145,72,0.06)]">
               <SpmMascot size="sm" className="h-9 w-9" />
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-[#ebf0e2] bg-white/94 p-4 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+          <div className="rounded-[2rem] border border-[#ebf0e2] bg-white p-4 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
             <div className="flex items-center gap-3">
               <Avatar className="h-16 w-16 border-4 border-[#f7f4e7] shadow-[0_8px_14px_rgba(111,145,72,0.1)]">
                 <AvatarImage src={profile.avatar_url || undefined} />

@@ -53,8 +53,8 @@ create table feedback_presets (
 );
 
 -- =========================================================
--- 5. Class Logs (Attendance & Feedback - JSONB)
--- 수업 기록, 출석 데이터, 피드백 데이터
+-- 5. Class Logs (Attendance & Weekly Notes - JSONB)
+-- 수업 기록, 출석 데이터, 주차 메모/피드백 데이터
 -- =========================================================
 create table class_logs (
   id uuid default gen_random_uuid() primary key,
@@ -63,6 +63,7 @@ create table class_logs (
   week_number int check (week_number between 1 and 5),
   progress text,
   reflection text,
+  admin_note text,
   attendance_data jsonb default '{}'::jsonb, -- { "student_id": true/false }
   member_feedback jsonb default '{}'::jsonb, -- { "student_id": "feedback_text" }
   unique(class_id, year_month, week_number)

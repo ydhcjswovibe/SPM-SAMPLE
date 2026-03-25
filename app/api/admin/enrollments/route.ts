@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { isAdminRole, isOwnerRole } from '@/lib/auth/roles'
 import { readServerAccessContext } from '@/lib/auth/server'
 import { isValidYearMonth } from '@/lib/admin/matrix'
+import { logApiError } from '@/lib/server/logger'
 import type { EnrollmentLifecycleStatus } from '@/lib/types'
 import { createClient } from '@/lib/supabase/server'
 
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: normalized })
   } catch (error) {
-    console.error('Enrollment read failed:', error)
+    logApiError('admin.enrollments', 'ENROLLMENT_READ_FAILED', error)
     return NextResponse.json({ error: 'ENROLLMENT_READ_FAILED' }, { status: 500 })
   }
 }
@@ -186,7 +187,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Enrollment create failed:', error)
+    logApiError('admin.enrollments', 'ENROLLMENT_CREATE_FAILED', error)
     return NextResponse.json({ error: 'ENROLLMENT_CREATE_FAILED' }, { status: 500 })
   }
 }
@@ -231,7 +232,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Enrollment status update failed:', error)
+    logApiError('admin.enrollments', 'ENROLLMENT_STATUS_UPDATE_FAILED', error)
     return NextResponse.json({ error: 'ENROLLMENT_STATUS_UPDATE_FAILED' }, { status: 500 })
   }
 }
@@ -273,7 +274,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Enrollment delete failed:', error)
+    logApiError('admin.enrollments', 'ENROLLMENT_DELETE_FAILED', error)
     return NextResponse.json({ error: 'ENROLLMENT_DELETE_FAILED' }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { isAdminRole } from '@/lib/auth/roles'
 import { readServerAccessContext } from '@/lib/auth/server'
+import { logApiError, logApiWarning } from '@/lib/server/logger'
 import { createClient } from '@/lib/supabase/server'
 import {
   buildWeeklyImageObjectPath,
@@ -124,7 +125,11 @@ export async function POST(request: Request) {
       if (previousObjectPath) {
         const { error: removeError } = await supabase.storage.from(MEDIA_BUCKET).remove([previousObjectPath])
         if (removeError) {
-          console.warn('Weekly image replace cleanup skipped:', removeError.message)
+          logApiWarning('admin.weekly-media.image', 'IMAGE_REPLACE_CLEANUP_SKIPPED', {
+            mediaId,
+            objectPath: previousObjectPath,
+            message: removeError.message,
+          })
         }
       }
 
@@ -149,7 +154,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Weekly image upload failed:', error)
+    logApiError('admin.weekly-media.image', 'IMAGE_UPLOAD_FAILED', error)
     return NextResponse.json({ error: 'IMAGE_UPLOAD_FAILED' }, { status: 500 })
   }
 }

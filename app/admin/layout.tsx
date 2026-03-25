@@ -45,10 +45,12 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh bg-[linear-gradient(180deg,#deeffa_0%,#fffdf5_42%,#edf6df_100%)] md:grid md:grid-cols-[15rem_minmax(0,1fr)] lg:grid-cols-[16.5rem_minmax(0,1fr)]">
       <DesktopSidebar />
-      <main className="admin-student-surface pb-20 md:pb-0 md:pl-64">
-        {children}
+      <main className="relative z-10 min-w-0 pb-24 md:min-h-dvh md:pb-8">
+        <div className="w-full md:mx-auto md:max-w-[60rem] lg:max-w-[72rem] xl:max-w-[76rem] 2xl:max-w-[80rem]">
+          {children}
+        </div>
       </main>
       <MobileNav />
     </div>

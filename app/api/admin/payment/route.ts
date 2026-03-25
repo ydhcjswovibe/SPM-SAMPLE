@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { isAdminRole } from '@/lib/auth/roles'
 import { readServerAccessContext } from '@/lib/auth/server'
+import { logApiError } from '@/lib/server/logger'
 import { createClient } from '@/lib/supabase/server'
 
 function mapRpcError(message: string) {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Payment update failed:', error)
+    logApiError('admin.payment', 'PAYMENT_UPDATE_FAILED', error)
     return NextResponse.json({ error: 'PAYMENT_UPDATE_FAILED' }, { status: 500 })
   }
 }

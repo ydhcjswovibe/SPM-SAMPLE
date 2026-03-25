@@ -10,6 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  adminDropdownContentClass,
+  adminDropdownItemClass,
+  adminToolbarControlClass,
+} from '@/lib/admin/surface'
 import { cn } from '@/lib/utils'
 import type { Class } from '@/lib/types'
 
@@ -17,6 +22,7 @@ interface ClassSelectorProps {
   classes: Class[]
   selectedClass: Class | null
   onSelect: (classItem: Class) => void
+  triggerClassName?: string
   onCreateNew?: () => void
   placeholder?: string
   emptyLabel?: string
@@ -30,6 +36,7 @@ export function ClassSelector({
   classes, 
   selectedClass, 
   onSelect,
+  triggerClassName,
   onCreateNew,
   placeholder = '수업 선택',
   emptyLabel = '아직 등록된 수업이 없습니다.',
@@ -45,10 +52,12 @@ export function ClassSelector({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           className={cn(
-            'min-w-[148px] justify-between gap-2 rounded-[1.25rem] border-[#dce8cc] bg-white/94 px-3 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6] sm:min-w-[176px]',
-            isDeleteMode && 'border-destructive/40 text-destructive hover:text-destructive',
+            adminToolbarControlClass,
+            'w-auto min-w-[9.75rem] max-w-[12.5rem] justify-between gap-2 rounded-[1.25rem] px-3 sm:min-w-[10.75rem] sm:max-w-[13.5rem] lg:min-w-[11rem] lg:max-w-[14.5rem] xl:max-w-[15.5rem]',
+            triggerClassName,
+            isDeleteMode && 'border-[#f0d4cf] bg-[#fff5f1] text-[#b65046] hover:bg-[#ffede7] hover:text-[#b65046]',
           )}
         >
           <span className="truncate">
@@ -59,7 +68,7 @@ export function ClassSelector({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="w-[220px] rounded-[1.25rem] border-[#dfe8d2] bg-white/96 p-1.5 shadow-[0_18px_32px_rgba(111,145,72,0.12)]"
+        className={cn('w-[220px]', adminDropdownContentClass)}
       >
         {classes.length === 0 ? (
           <div className="px-2 py-4 text-center text-sm text-muted-foreground">
@@ -78,7 +87,7 @@ export function ClassSelector({
                 setOpen(false)
               }}
               className={cn(
-                'gap-2 rounded-[0.95rem] px-2.5 py-2 text-[#314127]',
+                adminDropdownItemClass,
                 isDeleteMode && 'text-destructive focus:text-destructive',
               )}
             >
@@ -105,7 +114,7 @@ export function ClassSelector({
                   setOpen(false)
                   onCreateNew()
                 }}
-                className="gap-2 rounded-[0.95rem] px-2.5 py-2 text-[#314127]"
+                className={adminDropdownItemClass}
               >
                 <Plus className="h-4 w-4" />
                 새 수업 만들기
@@ -118,7 +127,7 @@ export function ClassSelector({
                   onToggleDeleteMode?.()
                 }}
                 className={cn(
-                  'gap-2 rounded-[0.95rem] px-2.5 py-2 text-[#314127]',
+                  adminDropdownItemClass,
                   isDeleteMode && 'text-destructive focus:text-destructive',
                 )}
               >

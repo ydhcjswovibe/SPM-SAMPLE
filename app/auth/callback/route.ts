@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+import { getSupabaseServerEnv } from '@/lib/env/server'
 import { getPostLoginRoute, normalizeUserRole } from '@/lib/auth/roles'
 
 type AuthCookie = {
@@ -47,10 +48,11 @@ export async function GET(request: NextRequest) {
   }
 
   let cookiesToSet: AuthCookie[] = []
+  const { url, anonKey } = getSupabaseServerEnv()
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {

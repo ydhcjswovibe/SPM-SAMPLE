@@ -7,6 +7,7 @@ import { AlertCircle, BookHeart, Loader2, MessageCircleMore, Sparkles } from 'lu
 
 import { createClient } from '@/lib/supabase/client'
 import {
+  buildStudentSelectionHref,
   fetchStudentSummaries,
   resolveStudentSelection,
   studentAuthRequiredMessage,
@@ -46,6 +47,11 @@ export default function StudentDashboardPage() {
   const { selectedSummary } = summaries
     ? resolveStudentSelection(summaries, searchParams.get('classId'), searchParams.get('yearMonth'))
     : { selectedSummary: null }
+  const lessonsHref = buildStudentSelectionHref(
+    '/student/lessons',
+    selectedSummary?.classId,
+    selectedSummary?.yearMonth,
+  )
 
   const selectedProgressPercent =
     selectedSummary && selectedSummary.attendanceTotal > 0
@@ -55,7 +61,7 @@ export default function StudentDashboardPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[65dvh] flex-col items-center justify-center gap-4 px-4 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-[1.7rem] bg-white/92 shadow-[0_16px_24px_rgba(111,145,72,0.12)]">
+        <div className="flex h-16 w-16 items-center justify-center rounded-[1.7rem] bg-white shadow-[0_16px_24px_rgba(111,145,72,0.12)]">
           <SpmMascot size="sm" className="h-10 w-10" />
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-[#5a7440]">
@@ -102,10 +108,10 @@ export default function StudentDashboardPage() {
           <div className="absolute left-8 top-7 h-8 w-8 rounded-full bg-white/68" />
           <div className="absolute right-5 top-5 h-12 w-12 rounded-full bg-[rgba(255,244,207,0.5)]" />
           <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="inline-flex items-center rounded-full border border-[#edf1e3] bg-white/92 px-3 py-1 text-[11px] font-semibold text-[#597246] shadow-[0_4px_10px_rgba(111,145,72,0.06)]">
+            <div className="inline-flex items-center rounded-full border border-[#edf1e3] bg-white/98 px-3 py-1 text-[11px] font-semibold text-[#597246] shadow-[0_4px_10px_rgba(111,145,72,0.06)]">
               첫 수업을 기다리고 있어요
             </div>
-            <div className="mt-5 flex h-28 w-28 items-center justify-center rounded-full bg-white/72 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+            <div className="mt-5 flex h-28 w-28 items-center justify-center rounded-full bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(250,253,243,0.98)_100%)] shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
               <SpmMascot variant="welcome" size="lg" className="h-24 w-24" />
             </div>
             <h2 className="mt-4 text-[1.9rem] font-black tracking-[-0.04em] text-[#314127]">
@@ -119,7 +125,7 @@ export default function StudentDashboardPage() {
 
         <section className="rounded-[2rem] border border-[#e3edd6] bg-[#fffdf6] p-4 shadow-[0_16px_28px_rgba(111,145,72,0.1)]">
           <Button
-            onClick={() => router.push('/student/lessons')}
+            onClick={() => router.push(lessonsHref)}
             className="h-12 w-full rounded-[1.45rem] border-[#75b84f] bg-[#8fcf62] text-base font-bold text-white shadow-[0_10px_18px_rgba(111,174,71,0.22)] hover:bg-[#9ad670]"
           >
             수업 탭에서 요청하기
@@ -137,7 +143,7 @@ export default function StudentDashboardPage() {
             <p className="font-semibold text-[#314127]">대표 수업을 찾지 못했습니다.</p>
             <p>잠시 후 다시 불러오거나, 수업 탭에서 직접 선택해 주세요.</p>
             <Button
-              onClick={() => router.push('/student/lessons')}
+              onClick={() => router.push(lessonsHref)}
               className="mt-1 h-11 rounded-[1.35rem] bg-[#8fcf62] font-bold text-white hover:bg-[#9ad670]"
             >
               수업 탭 열기
@@ -211,7 +217,7 @@ export default function StudentDashboardPage() {
         <div className="relative z-10 flex flex-col items-center pt-1">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-white/48 blur-md" />
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white/76">
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(249,252,241,0.98)_100%)]">
               <SpmMascot variant="welcome" size="lg" className="h-20 w-20" />
             </div>
           </div>
@@ -225,7 +231,7 @@ export default function StudentDashboardPage() {
           <div className="relative z-10 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center rounded-full border border-white/80 bg-white/76 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6f8752] shadow-[0_6px_12px_rgba(126,153,86,0.08)]">
+                <span className="inline-flex items-center rounded-full border border-white/80 bg-white/94 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6f8752] shadow-[0_6px_12px_rgba(126,153,86,0.08)]">
                   진척
                 </span>
                 <p className="text-[11px] font-semibold text-[#60724e]">
@@ -258,7 +264,7 @@ export default function StudentDashboardPage() {
 
           <Progress
             value={selectedProgressPercent}
-            className="relative z-10 mt-2.5 h-3 border border-[rgba(221,232,202,0.95)] bg-white/68 shadow-[inset_0_2px_4px_rgba(140,166,99,0.08)] [&>div]:bg-[linear-gradient(90deg,#ffe177_0%,#ffd55b_50%,#ffc43d_100%)] [&>div]:shadow-[0_6px_12px_rgba(255,209,98,0.26)]"
+            className="relative z-10 mt-2.5 h-3 border border-[rgba(221,232,202,0.95)] bg-white/90 shadow-[inset_0_2px_4px_rgba(140,166,99,0.08)] [&>div]:bg-[linear-gradient(90deg,#ffe177_0%,#ffd55b_50%,#ffc43d_100%)] [&>div]:shadow-[0_6px_12px_rgba(255,209,98,0.26)]"
           />
         </div>
       </section>
@@ -311,8 +317,8 @@ export default function StudentDashboardPage() {
                             className={cn(
                               'inline-flex rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em]',
                               item.done
-                                ? 'border-white/82 bg-white/82 text-[#5c8e36]'
-                                : 'border-white/82 bg-[#fff9ef]/92 text-[#907d58]',
+                                ? 'border-white/90 bg-white/96 text-[#5c8e36]'
+                                : 'border-white/90 bg-[#fff9ef] text-[#907d58]',
                             )}
                           >
                             {item.done ? '완료' : '대기'}

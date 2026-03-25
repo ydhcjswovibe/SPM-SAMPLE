@@ -1,9 +1,10 @@
 'use client'
 
-import { startTransition, useEffect, useEffectEvent, useRef, useState, type FormEvent } from 'react'
+import { startTransition, useEffect, useEffectEvent, useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 import Script from 'next/script'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getPublicGoogleClientId, isLocalRuntimeHostname } from '@/lib/env/client'
 import { SpmMascot } from '@/components/spm-mascot'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -50,40 +51,43 @@ declare global {
   }
 }
 
+function subscribeToClientState() {
+  return () => undefined
+}
+
+function readLocalRuntimeSnapshot() {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  return isLocalRuntimeHostname(window.location.hostname)
+}
+
 export function AuthLoginForm() {
   const router = useRouter()
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() ?? ''
+  const googleClientId = getPublicGoogleClientId()
   const googleButtonRef = useRef<HTMLDivElement | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-  const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(false)
+  const [isGoogleScriptLoaded, setIsGoogleScriptLoaded] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+
+    return Boolean(window.google?.accounts?.id)
+  })
   const [hasGoogleScriptError, setHasGoogleScriptError] = useState(false)
   const [quickLoginPreset, setQuickLoginPreset] = useState<string | null>(null)
-  const [isLocalRuntime, setIsLocalRuntime] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const isBusy = isLoading || isGoogleLoading || quickLoginPreset !== null
   const isGoogleConfigured = googleClientId.length > 0
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    setIsLocalRuntime(window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
-  }, [])
-
-  useEffect(() => {
-    if (!isGoogleConfigured) {
-      return
-    }
-
-    if (typeof window !== 'undefined' && window.google?.accounts?.id) {
-      setIsGoogleScriptLoaded(true)
-      setHasGoogleScriptError(false)
-    }
-  }, [isGoogleConfigured])
+  const isLocalRuntime = useSyncExternalStore(
+    subscribeToClientState,
+    readLocalRuntimeSnapshot,
+    () => false,
+  )
 
   const handlePasswordSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -250,11 +254,12 @@ export function AuthLoginForm() {
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"
           onLoad={() => {
-            setIsGoogleScriptLoaded(true)
+            setIsGoogleScriptLoaded(Boolean(window.google?.accounts?.id))
             setHasGoogleScriptError(false)
           }}
           onError={() => {
             setError('Google 로그인 준비에 실패했습니다.')
+            setIsGoogleScriptLoaded(false)
             setHasGoogleScriptError(true)
           }}
         />

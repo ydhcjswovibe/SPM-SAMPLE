@@ -65,7 +65,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - allowed admin or owner can add a monthly enrollment
 - allowed student can create or reopen a self-request enrollment as `PENDING`
 - duplicate enrollment shows an explicit failure instead of silent success
-- lifecycle status change uses the canonical RPC helper when available, or the route compatibility fallback when the connected project has not picked that helper up yet
+- lifecycle status change uses the canonical RPC helper directly
 - owner-only delete stays explicit in both route contract and UI copy
 - 학생 배정 표면은 현재 월을 기본으로 두고 활성 수업 전체를 보여 주되, 그 달 등록 기준 class가 먼저 와야 한다
 - 학생 배정 표면 첫 진입에서는 해당 월 첫 수업이 기본 선택으로 열려야 하고, 목록 재로딩이나 월 변경 중에도 선택 수업이 활성 상태면 비거나 흔들리지 않아야 한다
@@ -80,11 +80,28 @@ If the package is docs-only, commands are optional; say which source docs or rep
   - signed-in non-admin create/status update -> admin-required
   - missing target -> not-found
 
-### Remote enrollment RPC sync
-- connected Supabase helper drift는 먼저 `npm run verify:enrollment-rpc-presence`로 확인한다
-- `SUPABASE_ACCESS_TOKEN`이 확보되면 `npm run apply:enrollment-rpc`로 `docs/db/RPC.sql`의 `update_enrollment_status` helper를 remote에 반영한다
-- helper 반영 후에는 `npm run verify:enrollment-rpc-presence`, `npm run verify:enrollment-runtime`를 다시 실행한다
-- compatibility fallback 제거는 remote helper 존재와 runtime 재검증 이후에만 판단한다
+### Weekly notes mutations
+- allowed admin or owner can read and save weekly notes on `/admin/content`
+- weekly notes mutation uses the canonical RPC helper directly
+- `/admin/content`는 현재 날짜 기준 주차를 기본 선택으로 열고, `week` deep link가 있으면 그 값을 우선하되 유효 범위 안으로 clamp해야 한다
+- `/admin/students`의 `피드백` action은 notes editor를 복제하지 않고 `/admin/content` 해당 주차/학생 입력칸으로 연결돼야 한다
+- student surface에는 `진행 메모`, `공통 피드백`, `내 피드백`만 보이고, 운영 내부메모는 어떤 학생 DOM/API payload에도 노출되면 안 된다
+- denied outcomes stay distinguishable:
+  - anonymous -> auth-required
+  - signed-in non-admin -> admin-required
+  - invalid input -> invalid-notes-input
+
+### Remote canonical sync
+- connected Supabase drift는 먼저 `npm run verify:remote-canonical-presence`로 확인한다
+- enrollment status helper만 좁게 볼 때는 `npm run verify:enrollment-rpc-presence`를 유지해도 된다
+- `SUPABASE_ACCESS_TOKEN`이 확보되면 `npm run apply:remote-canonical-sync`로 아래 canonical drift를 remote에 반영한다:
+  - `update_enrollment_status`
+  - `update_enrollment_payment_status`
+  - `class_logs.admin_note`
+  - `upsert_weekly_class_log_notes`
+- enrollment status helper만 따로 반영할 때는 `npm run apply:enrollment-rpc`를 유지해도 된다
+- helper/column 반영 후에는 `npm run verify:remote-canonical-presence`, `npm run verify:enrollment-runtime`, `npm run verify:weekly-media-runtime`를 다시 실행한다
+- remote helper/column 반영 뒤에는 runtime 재검증이 다시 통과해야 한다
 
 ### Account / Settings self-update
 - authenticated user can read current account info on the account/settings route
@@ -96,6 +113,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 ### Student read flow / weekly content consume UI
 - `/student` 첫 진입에서는 `홈` 탭의 대시보드가 먼저 보여야 하고, 요약/체크리스트/quick action이 과도한 세로 스크롤 없이 읽혀야 한다
 - `/student/lessons`는 `수업` 탭 destination으로 열리고, 기본 선택된 월별 수업 상세가 바로 보여야 한다
+- query selection이 없으면 current month enrollment가 우선 선택되고, 없을 때만 기존 대표 수업 fallback으로 내려가야 한다
 - `/student/profile`는 `내상태` 탭 destination으로 열리고, 계정/상태 카드가 직접 보여야 한다
 - legacy `/student/class/[classId]?yearMonth=...` deep link는 새 `수업` route contract로 정규화되어야 한다
 - `홈`과 `수업`은 같은 `classId + yearMonth` selection key를 공유해야 하고, `홈 -> 수업` 이동 뒤에도 선택이 바뀌지 않아야 한다
@@ -117,11 +135,12 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - touched cards, tabs, and panels do not disagree on `loading` / `syncing` / `empty` / `selection-needed` / `all-clear` meaning
 - current selection label matches the actual selected class, month, and week, or clearly says that nothing is selected
 - student weekly media 주차 버튼은 기본 `1~4주차`가 보이고, `5주차`는 ready video/image가 있을 때만 보인다
+- student `수업` 탭의 기본 주차는 현재 날짜 기준 `월의 n주차`를 사용하고, 콘텐츠 유무와 무관하게 그 주차를 먼저 연 뒤 invalid 범위만 clamp해야 한다
 - student weekly media에서 영상은 현재 선택된 1개 플레이어와 같은 줄의 이전/다음 이동 control로 유지돼야 한다
 - student 선택 영상의 전체화면 버튼은 fullscreen 진입을 시도하고, 종료 뒤에도 같은 주차/영상 맥락으로 자연스럽게 복귀해야 한다
 - student weekly image는 여러 건일 때 한 줄 가로 스크롤로 훑히고, snap 없이 엉키지 않아야 한다
 - student 이미지 카드는 tap/click으로 확대 다이얼로그가 열리고, 닫은 뒤 주차 맥락으로 자연스럽게 돌아와야 한다
-- student `수업` 탭 본문은 주차 제목, 상태 badge, 텍스트 피드백/진행 메모 카드를 반복하지 않고, ready media만 바로 보여 줘야 한다
+- student `수업` 탭 본문은 주차 제목/상태 badge/helper를 반복하지 않고, ready media 뒤에 `진행 메모`, `공통 피드백`, `내 피드백`만 이어서 보여 줘야 한다
 - 학생 홈 상황판과 내상태 요약 카드는 불필요한 세로 부피 없이 한 화면에서 핵심 상태를 빠르게 읽을 수 있어야 한다
 - 학생 하단 탭은 icon-only로 낮아져도 active tab이 색/배경만으로 즉시 구분되고, touch target과 safe area 여백이 유지돼야 한다
 - CTA labels match the real action:
@@ -179,7 +198,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - local runtime login/session route는 `127.0.0.1` 또는 `localhost`에서만 써야 한다
 - local runtime login은 `@spm.local` 계정만 허용해야 한다
 - `/auth/login`은 localhost에서만 `오너 / 운영 / 학생` 원클릭 QA 로그인 표면을 보여 줄 수 있다
-- weekly media allowed-session smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:weekly-media-runtime`로 재현할 수 있어야 한다
+- weekly media + notes allowed-session smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:weekly-media-runtime`로 재현할 수 있어야 한다
 - student weekly media browser smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:student-browser-smoke`로 재현할 수 있어야 한다
 - auth / wrong-role / self-profile route smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:route-guards`로 재현할 수 있어야 한다
 - enrollment create/status/delete smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:enrollment-runtime`로 재현할 수 있어야 한다

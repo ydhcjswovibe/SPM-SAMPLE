@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { isAdminRole } from '@/lib/auth/roles'
 import { readServerAccessContext } from '@/lib/auth/server'
 import { getCurrentYearMonth, isValidYearMonth, readAdminMatrixData } from '@/lib/admin/matrix'
+import { logApiError } from '@/lib/server/logger'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
@@ -38,7 +39,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Matrix read failed:', error)
+    logApiError('admin.matrix', 'MATRIX_READ_FAILED', error, {
+      classId,
+      yearMonth,
+    })
     return NextResponse.json({ error: 'MATRIX_READ_FAILED' }, { status: 500 })
   }
 }

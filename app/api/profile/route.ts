@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
 import { readServerAccessContext } from '@/lib/auth/server'
+import { logApiError } from '@/lib/server/logger'
 import { createClient } from '@/lib/supabase/server'
 
 export async function PATCH(request: NextRequest) {
@@ -32,7 +33,9 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Profile update failed:', error)
+    logApiError('profile', 'PROFILE_UPDATE_FAILED', error, {
+      userId: access.userId,
+    })
     return NextResponse.json({ error: 'PROFILE_UPDATE_FAILED' }, { status: 500 })
   }
 }

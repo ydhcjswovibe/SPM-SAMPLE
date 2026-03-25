@@ -2,10 +2,14 @@ import 'server-only'
 
 import { createClient } from '@supabase/supabase-js'
 
+import { getSupabaseAdminEnv } from '@/lib/env/server'
+
 export function createAdminClient() {
+  const { url, serviceRoleKey } = getSupabaseAdminEnv()
+
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    url,
+    serviceRoleKey,
     {
       auth: {
         autoRefreshToken: false,

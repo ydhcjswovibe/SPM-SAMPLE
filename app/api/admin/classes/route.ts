@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { isAdminRole, isOwnerRole } from '@/lib/auth/roles'
 import { isValidYearMonth } from '@/lib/admin/matrix'
 import { readServerAccessContext } from '@/lib/auth/server'
+import { logApiError } from '@/lib/server/logger'
 import { createClient } from '@/lib/supabase/server'
 
 function mapCreateClassError(message: string) {
@@ -95,7 +96,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: data ?? [] })
   } catch (error) {
-    console.error('Class list read failed:', error)
+    logApiError('admin.classes', 'CLASS_LIST_READ_FAILED', error, {
+      yearMonth,
+    })
     return NextResponse.json({ error: 'CLASS_LIST_READ_FAILED' }, { status: 500 })
   }
 }
@@ -135,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Class create failed:', error)
+    logApiError('admin.classes', 'CLASS_CREATE_FAILED', error)
     return NextResponse.json({ error: 'CLASS_CREATE_FAILED' }, { status: 500 })
   }
 }
@@ -178,7 +181,9 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Class delete failed:', error)
+    logApiError('admin.classes', 'CLASS_DELETE_FAILED', error, {
+      classId: body.classId,
+    })
     return NextResponse.json({ error: 'CLASS_DELETE_FAILED' }, { status: 500 })
   }
 }

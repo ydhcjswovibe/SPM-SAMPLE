@@ -11,6 +11,7 @@ import { StudentEnrollmentRequestDialog } from '@/components/student-enrollment-
 import { SpmMascot } from '@/components/spm-mascot'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { getCurrentWeekOfMonth } from '@/lib/date-selection'
 import { createClient } from '@/lib/supabase/client'
 import {
   fetchStudentSummaries,
@@ -93,7 +94,7 @@ export default function StudentLessonsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[65dvh] flex-col items-center justify-center gap-4 px-4 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-[1.7rem] bg-white/92 shadow-[0_16px_24px_rgba(111,145,72,0.12)]">
+        <div className="flex h-16 w-16 items-center justify-center rounded-[1.7rem] bg-white shadow-[0_16px_24px_rgba(111,145,72,0.12)]">
           <SpmMascot size="sm" className="h-10 w-10" />
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-[#5a7440]">
@@ -182,17 +183,17 @@ export default function StudentLessonsPage() {
   return (
     <div className="space-y-3 px-3 pb-28 pt-3">
       <section className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white/96 px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
           <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">출석</p>
           <p className="mt-0.5 text-base font-black text-[#314127]">
             {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
           </p>
         </div>
-        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white/96 px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
           <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">공개</p>
           <p className="mt-0.5 text-base font-black text-[#314127]">{selectedSummary.availableWeekCount}개</p>
         </div>
-        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white/96 px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
           <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">피드백</p>
           <p className="mt-0.5 text-base font-black text-[#314127]">{selectedSummary.feedbackCount}건</p>
         </div>
@@ -226,6 +227,7 @@ export default function StudentLessonsPage() {
           <StudentClassDetailView
             key={`${selectedDetail.classId}:${selectedDetail.yearMonth}:${selectedDetail.enrollmentStatus}`}
             detail={selectedDetail}
+            initialWeekNumber={getCurrentWeekOfMonth()}
           />
         ) : (
           <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-white py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">

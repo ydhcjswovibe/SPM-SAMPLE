@@ -1,7 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Image as ImageIcon, PlayCircle, ZoomIn } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Image as ImageIcon,
+  MessageSquareText,
+  PlayCircle,
+  UserRound,
+  ZoomIn,
+} from 'lucide-react'
 
 import type { StudentClassDetail } from '@/lib/weekly-media'
 import { Button } from '@/components/ui/button'
@@ -11,15 +20,17 @@ import { SelectedVideoPlayer } from '@/components/selected-video-player'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 
-function hasReadyMedia(week: StudentClassDetail['weeks'][number]) {
-  return week.video.items.length > 0 || week.image.items.length > 0
-}
-
 function getEmptyWeekMessage(enrollmentStatus: StudentClassDetail['enrollmentStatus']) {
   return enrollmentStatus === 'PENDING' ? '운영 승인 전입니다.' : '이 주차 콘텐츠는 아직 준비 중입니다.'
 }
 
-export function StudentClassDetailView({ detail }: { detail: StudentClassDetail }) {
+export function StudentClassDetailView({
+  detail,
+  initialWeekNumber,
+}: {
+  detail: StudentClassDetail
+  initialWeekNumber?: number | null
+}) {
   const [activeWeek, setActiveWeek] = useState<string | null>(null)
   const [selectedVideoByWeek, setSelectedVideoByWeek] = useState<Record<string, string>>({})
   const [selectedImage, setSelectedImage] = useState<{
@@ -29,7 +40,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
 
   if (detail.weeks.length === 0) {
     return (
-      <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white/94 py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
+      <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
         <CardContent className="px-4 py-10 text-center">
           <p className="text-base font-semibold text-[#314127]">{getEmptyWeekMessage(detail.enrollmentStatus)}</p>
           <p className="mt-2 text-sm leading-6 text-[#6b7d5e]">
@@ -42,7 +53,11 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
     )
   }
 
-  const defaultActiveWeek = detail.weeks.find(hasReadyMedia)?.weekNumber ?? detail.weeks[0]?.weekNumber ?? null
+  const defaultActiveWeek =
+    typeof initialWeekNumber === 'number' &&
+    detail.weeks.some((week) => week.weekNumber === initialWeekNumber)
+      ? initialWeekNumber
+      : detail.weeks[0]?.weekNumber ?? null
   const resolvedActiveWeek =
     activeWeek && detail.weeks.some((week) => String(week.weekNumber) === activeWeek)
       ? activeWeek
@@ -64,6 +79,29 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
   const videoCountLabel =
     youtubeItems.length > 1 && selectedVideoIndex >= 0 ? `${selectedVideoIndex + 1} / ${youtubeItems.length}` : null
   const hasVisibleContent = youtubeItems.length > 0 || imageItems.length > 0
+  const noteSections = [
+    {
+      key: 'progress',
+      label: '진행 메모',
+      text: selectedWeek?.progressText ?? null,
+      icon: FileText,
+      tone: 'border-[#dce8cc] bg-[#f6faef] text-[#486035]',
+    },
+    {
+      key: 'shared',
+      label: '공통 피드백',
+      text: selectedWeek?.sharedFeedbackText ?? null,
+      icon: MessageSquareText,
+      tone: 'border-[#f6dfc8] bg-[#fff7ef] text-[#a25f35]',
+    },
+    {
+      key: 'private',
+      label: '내 피드백',
+      text: selectedWeek?.privateFeedbackText ?? null,
+      icon: UserRound,
+      tone: 'border-[#d7e6fb] bg-[#f4f8ff] text-[#5478b8]',
+    },
+  ].filter((section) => Boolean(section.text))
 
   function moveSelectedVideo(direction: -1 | 1) {
     if (youtubeItems.length <= 1 || selectedVideoIndex === -1) {
@@ -108,7 +146,7 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
         </Tabs>
 
         {selectedWeek ? (
-          <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white/96 py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
+          <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
             <CardContent className="space-y-4 px-3.5 pb-3.5 pt-3.5 sm:px-4 sm:pb-4 sm:pt-4">
               {youtubeItems.length > 0 ? (
                 <div className="space-y-2.5">
@@ -216,6 +254,35 @@ export function StudentClassDetailView({ detail }: { detail: StudentClassDetail 
               {!hasVisibleContent ? (
                 <div className="rounded-[1.35rem] border border-dashed border-[#d8e2c7] bg-[#fbfcf6] px-4 py-8 text-center text-sm text-[#6b7d5e]">
                   {getEmptyWeekMessage(detail.enrollmentStatus)}
+                </div>
+              ) : null}
+
+              {noteSections.length > 0 ? (
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#314127]">
+                    <MessageSquareText className="h-4 w-4 text-[#7a9f4c]" />
+                    <span>이번 주 기록</span>
+                  </div>
+                  <div className="space-y-2.5">
+                    {noteSections.map((section) => {
+                      const Icon = section.icon
+
+                      return (
+                        <div
+                          key={section.key}
+                          className={cn('rounded-[1.35rem] border px-3.5 py-3', section.tone)}
+                        >
+                          <div className="flex items-center gap-2 text-sm font-semibold">
+                            <Icon className="h-4 w-4" />
+                            <span>{section.label}</span>
+                          </div>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#314127]">
+                            {section.text}
+                          </p>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               ) : null}
             </CardContent>

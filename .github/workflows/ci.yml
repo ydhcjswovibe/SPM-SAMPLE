@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      run_runtime:
+        description: Run runtime release smoke pack
+        required: false
+        default: false
+        type: boolean
+      run_browser:
+        description: Run browser smoke pack
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  static-gates:
+    name: Static Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run static verification
+        run: npm run verify:static
+
+  runtime-smoke:
+    name: Runtime Smoke
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_runtime }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      LOCAL_RUNTIME_AUTH_PASSWORD: ${{ secrets.LOCAL_RUNTIME_AUTH_PASSWORD }}
+      SPM_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build
+
+      - name: Start app
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/spm-start.log 2>&1 &
+          echo $! > /tmp/spm-start.pid
+          for i in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/auth/login > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/spm-start.log
+          exit 1
+
+      - name: Seed runtime auth
+        run: npm run runtime:seed-auth
+
+      - name: Run release smoke pack
+        run: npm run verify:release
+
+      - name: Print server log on failure
+        if: failure()
+        run: cat /tmp/spm-start.log
+
+      - name: Stop app
+        if: always()
+        run: |
+          if [ -f /tmp/spm-start.pid ]; then
+            kill "$(cat /tmp/spm-start.pid)" || true
+          fi
+
+  browser-smoke:
+    name: Browser Smoke
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      LOCAL_RUNTIME_AUTH_PASSWORD: ${{ secrets.LOCAL_RUNTIME_AUTH_PASSWORD }}
+      SPM_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build app
+        run: npm run build
+
+      - name: Start app
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/spm-start.log 2>&1 &
+          echo $! > /tmp/spm-start.pid
+          for i in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/auth/login > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/spm-start.log
+          exit 1
+
+      - name: Seed runtime auth
+        run: npm run runtime:seed-auth
+
+      - name: Run browser smoke
+        run: npm run verify:browser
+
+      - name: Print server log on failure
+        if: failure()
+        run: cat /tmp/spm-start.log
+
+      - name: Stop app
+        if: always()
+        run: |
+          if [ -f /tmp/spm-start.pid ]; then
+            kill "$(cat /tmp/spm-start.pid)" || true
+          fi

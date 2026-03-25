@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { buildAdminMatrixCsv, getCurrentYearMonth, isValidYearMonth, readAdminMatrixData } from '@/lib/admin/matrix'
 import { isAdminRole } from '@/lib/auth/roles'
 import { readServerAccessContext } from '@/lib/auth/server'
+import { logApiError } from '@/lib/server/logger'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
@@ -47,7 +48,10 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Export failed:', error)
+    logApiError('admin.export', 'EXPORT_FAILED', error, {
+      classId,
+      yearMonth,
+    })
     return NextResponse.json({ error: 'EXPORT_FAILED' }, { status: 500 })
   }
 }

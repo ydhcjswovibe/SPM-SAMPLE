@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+import { getCurrentYearMonth } from '@/lib/date-selection'
 import { readStudentClassSummaries, type StudentClassSummary } from '@/lib/weekly-media'
 
 export const studentAuthRequiredMessage = '로그인이 필요합니다.'
@@ -70,8 +71,13 @@ export function resolveStudentSelection(
 ) {
   const featuredSummary = summaries.length > 0 ? getFeaturedSummary(summaries) : null
   const visibleYearMonths = summaries.length > 0 ? getVisibleYearMonths(summaries) : []
+  const currentYearMonth = getCurrentYearMonth()
+  const defaultYearMonth =
+    visibleYearMonths.includes(currentYearMonth)
+      ? currentYearMonth
+      : featuredSummary?.yearMonth ?? visibleYearMonths[0] ?? null
   const selectedYearMonth =
-    yearMonth && visibleYearMonths.includes(yearMonth) ? yearMonth : featuredSummary?.yearMonth ?? null
+    yearMonth && visibleYearMonths.includes(yearMonth) ? yearMonth : defaultYearMonth
   const monthSummaries = selectedYearMonth
     ? summaries.filter((item) => item.yearMonth === selectedYearMonth)
     : []

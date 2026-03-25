@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+export { getCurrentYearMonth } from '@/lib/date-selection'
 import type {
   AdminMatrixData,
   AttendanceStatus,
@@ -65,10 +66,6 @@ function getStatusRank(status: EnrollmentLifecycleStatus | null | undefined) {
 
 export function isValidYearMonth(value: string) {
   return /^\d{4}-\d{2}$/.test(value)
-}
-
-export function getCurrentYearMonth(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
 export function formatYearMonthLabel(value: string) {

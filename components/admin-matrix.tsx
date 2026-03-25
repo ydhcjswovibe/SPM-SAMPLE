@@ -12,6 +12,12 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { ChevronDown, Check, X, Clock, AlertCircle } from 'lucide-react'
+import {
+  adminDashedPanelClass,
+  adminDropdownContentClass,
+  adminDropdownItemClass,
+  adminInsetCardClass,
+} from '@/lib/admin/surface'
 import type { AdminMatrixData, AttendanceStatus } from '@/lib/types'
 
 interface AdminMatrixProps {
@@ -54,10 +60,10 @@ const attendanceIcons: Record<AttendanceStatus, ReactNode> = {
 }
 
 const attendanceColors: Record<AttendanceStatus, string> = {
-  pending: 'bg-muted text-muted-foreground',
-  present: 'bg-success text-success-foreground',
-  absent: 'bg-destructive text-destructive-foreground',
-  excused: 'bg-info text-info-foreground',
+  pending: 'border-[#eadfc6] bg-[#fbf5e7] text-[#8e7b54]',
+  present: 'border-[#4dbb72] bg-[#4dbb72] text-white',
+  absent: 'border-[#da7265] bg-[#da7265] text-white',
+  excused: 'border-[#83a8da] bg-[#83a8da] text-white',
 }
 
 function getAttendanceTriggerLabel(
@@ -88,14 +94,14 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           aria-label={getAttendanceTriggerLabel(attendance)}
           title={getAttendanceTriggerLabel(attendance)}
           className={cn(
             options?.compact
-              ? 'h-9 w-full touch-manipulation rounded-md border px-0 text-[11px] font-medium'
-              : 'h-9 justify-between gap-2 rounded-full border px-3 text-xs font-medium',
+              ? 'mx-auto h-9 w-9 touch-manipulation rounded-full border px-0 shadow-[0_6px_12px_rgba(121,148,84,0.08)]'
+              : 'h-9 justify-between gap-2 rounded-full border px-3 text-xs font-medium shadow-[0_6px_12px_rgba(121,148,84,0.08)]',
             attendanceColors[attendance.status],
             updatingAttendance === attendance.attendanceId && 'opacity-50',
             attendance.canUpdate === false && 'cursor-not-allowed opacity-50',
@@ -104,7 +110,7 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
           disabled={updatingAttendance === attendance.attendanceId || attendance.canUpdate === false}
         >
           {options?.compact ? (
-            <span>{attendanceLabels[attendance.status]}</span>
+            attendanceIcons[attendance.status]
           ) : (
             <>
               <span className="inline-flex items-center gap-1.5">
@@ -116,12 +122,12 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className={adminDropdownContentClass}>
         {attendanceOptions.map((status) => (
           <DropdownMenuItem
             key={status}
             onClick={() => handleAttendanceChange(attendance.attendanceId, status)}
-            className="gap-2"
+            className={adminDropdownItemClass}
           >
             <span className={cn('rounded-full p-1', attendanceColors[status])}>
               {attendanceIcons[status]}
@@ -135,8 +141,8 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
 
   if (data.students.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="rounded-full bg-muted p-4 mb-4">
+      <div className={cn(adminDashedPanelClass, 'flex flex-col items-center justify-center px-4 py-12 text-center')}>
+        <div className="mb-4 rounded-full bg-[#f1f6e8] p-4">
           <AlertCircle className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="font-medium text-foreground">등록된 학생이 없습니다.</h3>
@@ -146,10 +152,10 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
   }
 
   return (
-    <div className="space-y-2 md:space-y-4">
-      <div className="space-y-2 md:hidden">
+    <div className="space-y-2 lg:space-y-0">
+      <div className="space-y-2 lg:hidden">
         {data.students.map((student) => (
-          <Card key={student.enrollmentId} className="gap-0 overflow-hidden border-border/70 py-0">
+          <Card key={student.enrollmentId} className={adminInsetCardClass}>
             <CardContent className="space-y-1.5 px-2.5 py-2">
               <div className="flex items-center justify-between gap-1.5">
                 <div className="min-w-0">
@@ -187,18 +193,18 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
         ))}
       </div>
 
-      <div className="hidden overflow-x-auto -mx-4 px-4 md:mx-0 md:block md:px-0">
-        <table className="w-full min-w-[600px] border-collapse">
+      <div className="hidden overflow-x-auto lg:block">
+        <table className="w-full min-w-[720px] border-collapse">
           <thead>
-            <tr className="border-b">
-              <th className="sticky left-0 z-10 min-w-[140px] bg-background px-2 py-3 text-left text-sm font-medium text-muted-foreground">
+            <tr className="border-b border-[#e5ebdc]">
+              <th className="sticky left-0 z-10 min-w-[180px] bg-[#fffefb] px-3 py-3 text-left text-sm font-medium text-muted-foreground">
                 학생
               </th>
-              <th className="min-w-[90px] px-2 py-3 text-center text-sm font-medium text-muted-foreground">
+              <th className="min-w-[110px] px-3 py-3 text-center text-sm font-medium text-muted-foreground">
                 결제
               </th>
               {Array.from({ length: data.totalWeeks }, (_, i) => (
-                <th key={i} className="min-w-[60px] px-2 py-3 text-center text-sm font-medium text-muted-foreground">
+                <th key={i} className="min-w-[88px] px-3 py-3 text-center text-sm font-medium text-muted-foreground">
                   {i + 1}주
                 </th>
               ))}
@@ -206,11 +212,11 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
           </thead>
           <tbody>
             {data.students.map((student) => (
-              <tr key={student.enrollmentId} className="border-b last:border-0">
-                <td className="sticky left-0 z-10 bg-background px-2 py-3">
+              <tr key={student.enrollmentId} className="border-b border-[#edf1e7] last:border-0">
+                <td className="sticky left-0 z-10 bg-[#fffefb] px-3 py-3">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
-                      <span className="max-w-[120px] truncate text-sm font-medium">
+                      <span className="max-w-[160px] truncate text-sm font-medium">
                         {student.studentName || '이름 미등록'}
                       </span>
                       {student.enrollmentStatus ? (
@@ -219,12 +225,12 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
                         </Badge>
                       ) : null}
                     </div>
-                    <span className="max-w-[120px] truncate text-xs text-muted-foreground">
+                    <span className="max-w-[160px] truncate text-xs text-muted-foreground">
                       {student.studentEmail}
                     </span>
                   </div>
                 </td>
-                <td className="px-2 py-3 text-center">
+                <td className="px-3 py-3 text-center">
                   <Badge
                     variant="outline"
                     className={cn(
@@ -236,7 +242,7 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
                   </Badge>
                 </td>
                 {student.attendances.map((attendance) => (
-                  <td key={attendance.attendanceId} className="px-2 py-3 text-center">
+                  <td key={attendance.attendanceId} className="px-3 py-3 text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
@@ -244,7 +250,7 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
                           aria-label={getAttendanceTriggerLabel(attendance)}
                           title={getAttendanceTriggerLabel(attendance)}
                           className={cn(
-                            'inline-flex h-9 w-9 touch-manipulation items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+                            'inline-flex h-9 w-9 touch-manipulation items-center justify-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 shadow-[0_6px_12px_rgba(121,148,84,0.08)]',
                             attendanceColors[attendance.status],
                             updatingAttendance === attendance.attendanceId && 'opacity-50',
                             attendance.canUpdate === false && 'cursor-not-allowed opacity-50',
@@ -254,12 +260,12 @@ export function AdminMatrix({ data, onAttendanceChange }: AdminMatrixProps) {
                           {attendanceIcons[attendance.status]}
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent>
+                      <DropdownMenuContent className={adminDropdownContentClass}>
                         {attendanceOptions.map((status) => (
                           <DropdownMenuItem
                             key={status}
                             onClick={() => handleAttendanceChange(attendance.attendanceId, status)}
-                            className="gap-2"
+                            className={adminDropdownItemClass}
                           >
                             <span className={cn('rounded-full p-1', attendanceColors[status])}>
                               {attendanceIcons[status]}

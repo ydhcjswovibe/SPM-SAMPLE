@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 import { isAdminRole } from '@/lib/auth/roles'
 import { readServerAccessContext } from '@/lib/auth/server'
+import { logApiError, logApiWarning } from '@/lib/server/logger'
 import { createClient } from '@/lib/supabase/server'
 import {
   getPublicStorageObjectPath,
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Weekly media read failed:', error)
+    logApiError('admin.weekly-media', 'MEDIA_READ_FAILED', error)
     return NextResponse.json({ error: 'MEDIA_READ_FAILED' }, { status: 500 })
   }
 }
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Weekly media save failed:', error)
+    logApiError('admin.weekly-media', 'MEDIA_SAVE_FAILED', error)
     return NextResponse.json({ error: 'MEDIA_SAVE_FAILED' }, { status: 500 })
   }
 }
@@ -150,7 +151,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (error) {
-    console.error('Weekly media update failed:', error)
+    logApiError('admin.weekly-media', 'MEDIA_SAVE_FAILED', error)
     return NextResponse.json({ error: 'MEDIA_SAVE_FAILED' }, { status: 500 })
   }
 }
@@ -188,7 +189,11 @@ export async function DELETE(request: NextRequest) {
       if (objectPath) {
         const { error: storageError } = await supabase.storage.from(MEDIA_BUCKET).remove([objectPath])
         if (storageError) {
-          console.warn('Weekly image storage cleanup skipped:', storageError.message)
+          logApiWarning('admin.weekly-media', 'MEDIA_STORAGE_CLEANUP_SKIPPED', {
+            mediaId: body.mediaId,
+            objectPath,
+            message: storageError.message,
+          })
         }
       }
     }
@@ -202,7 +207,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Weekly media delete failed:', error)
+    logApiError('admin.weekly-media', 'MEDIA_DELETE_FAILED', error)
     return NextResponse.json({ error: 'MEDIA_DELETE_FAILED' }, { status: 500 })
   }
 }

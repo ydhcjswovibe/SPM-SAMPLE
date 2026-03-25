@@ -74,6 +74,11 @@ student-facing 흐름도 중요하지만,
   - `운영`
   - `학생`
   - `수업`
+- 운영 core header는 mobile/tablet에서는 student shell과 같은 브랜드 언어의 floating topbar를 사용하되, 현재 섹션 / 선택 수업 / 월 / 유틸리티를 한눈에 읽을 수 있어야 한다
+- 운영 desktop topbar는 `작은 operator toolbar`를 유지하고, 항상 보이는 primary control은 `수업 선택 + 월 선택`으로 제한한다
+- 운영 desktop에서는 student형 floating hero header를 재사용하지 않고, sidebar와 분리된 본문 툴바 기준으로 `selector/control + utility`만 남긴다
+- 운영 mobile 하단 탭은 compact shell에서 icon-first로 낮출 수 있지만, active state와 접근성 label만으로 현재 위치를 바로 식별할 수 있어야 한다
+- 운영 mobile 하단 탭은 inactive 상태에서도 투명해 보이지 않도록 기본 pill 배경과 경계를 유지해야 한다
 - 계정/설정/로그아웃은 하단 탭이 아니라 헤더 유틸리티 메뉴 또는 보조 화면으로 둔다
 - `운영` 탭 상단 요약이 별도 home 역할을 흡수한다
 - `운영` 탭은 다음 흐름을 담는다:
@@ -104,7 +109,9 @@ student-facing 흐름도 중요하지만,
 - `내상태`는 출석 / 결제 / 진행 상태 / 피드백처럼 status-heavy 정보를 우선한다
 - `내상태`는 profile card처럼 보이는 상단 요약과 설정 카드로 구성할 수 있지만, 수정 가능한 truth는 여전히 계정 이름과 테마 선택에 한정한다
 - 학생 표면에는 출석률 / 진행률 / 참여 흐름을 부드럽게 재해석한 `light gamification` 레이어를 둘 수 있지만, 본래 상태 정보의 판독성을 가리면 안 된다
+- 학생 hero의 공기감은 허용하지만, 실제 카드 / 버튼 / 요약 surface는 배경에 묻히지 않도록 near-opaque 기준을 유지한다
 - 학생용 시각 톤은 `소프트 파스텔 + 절제된 귀여움`을 기본으로 하고, 주 사용 대상이 `20대~40대`인 점을 고려해 유아용처럼 과장된 캐릭터/색감은 피한다
+- 학생 현재 표면은 visual baseline으로 고정하고, 운영 표면은 shared primitive를 다시 흔들지 말고 학생 baseline의 surface/icon language를 운영 전용 layer로 따라간다
 
 ### 탭 셸 기준
 
@@ -112,6 +119,18 @@ student-facing 흐름도 중요하지만,
 - 화면 본문은 탭 위 영역 안에서만 보이거나 스크롤된다
 - 전체 페이지 스크롤보다 shell 내부 스크롤을 우선한다
 - desktop은 mobile shell을 그대로 강제하지 않고 별도 레이아웃을 허용한다
+- 운영 desktop core는 고정 left sidebar와 본문 workspace를 분리하고, 좌측 rail은 navigation-only로 유지한다
+- 운영 shell breakpoint는 `md+`부터 desktop으로 간주하고, 이 구간에서는 bottom tab 대신 left sidebar navigation을 사용한다
+- 운영 desktop의 `설정 / 처음으로 / 로그아웃` utility는 sidebar가 아니라 본문 toolbar 오른쪽 작은 버튼 묶음으로 둔다
+- 운영 desktop control/button은 본문 폭을 채우기 위해 늘어나지 않고, compact fixed width와 truncate를 우선한다
+- 운영 desktop shell은 bottom tab 대신 `left sidebar column + small toolbar + inner content workspace`를 기준으로 하고, 본문은 sidebar column 바깥의 workspace 안에서 시작해야 한다
+- 운영 desktop core 페이지는 mobile 단일열을 그대로 늘리지 않되, 좌측 summary rail을 추가하지 않고 `single main workspace + 본문 상단 compact strip` 기준으로 정리한다
+- 운영 shell은 `md~lg`에서 먼저 desktop IA로 전환하되, dense table처럼 가로 폭을 많이 쓰는 데이터 표면은 필요 시 `lg+`에서만 확장할 수 있다
+- 운영 mobile 상단바는 `캐릭터 / 수업 selector / YY년 M월 selector / 단일 메뉴` 순서를 유지한다
+- 운영 mobile 월 selector는 세로 목록 dropdown이 아니라 `연도 헤더 + 12개월 grid` month popover를 사용한다
+- 운영 mobile 단일 메뉴 안에는 현재 탭 action을 먼저 두고, 구분선 아래에 `설정 / 처음으로 / 로그아웃` utility를 함께 둔다
+- 운영 mobile matrix/card 안의 주차 상태 변경은 텍스트 칩보다 원형 icon trigger를 우선한다
+- 운영 mobile의 `수업 selector / 월 selector / 메뉴 / 하단탭`은 pressed/open 상태에서도 투명해지지 않는 불투명 surface를 유지한다
 
 ## 현재 범위
 
@@ -161,12 +180,13 @@ student-facing 흐름도 중요하지만,
 - 학생 수업 목록은 `class + year_month` 단위로 구성한다
 - 학생은 `ACTIVE`와 `PENDING` 월을 본다
 - 학생 primary selection key는 `classId + yearMonth`를 사용하고, `홈`과 `수업` 탭이 같은 selection을 공유한다
-- 유효한 query selection이 있으면 그 값을 우선하고, 없으면 visible enrollment 안에서 대표 수업을 같은 규칙으로 고른다
+- 유효한 query selection이 있으면 그 값을 우선하고, 없으면 visible enrollment 안에서 `현재 월 우선 -> 대표 수업 fallback` 규칙으로 고른다
 - 학생 헤더 selector는 해당 학생의 `ACTIVE`/`PENDING` 등록만 보여 주고, soft delete된 inactive 수업은 숨긴다
 - 학생 상단 헤더는 전 탭에서 mobile 기준 한 줄 compact bar를 사용하고, `캐릭터 / 수업 selector / YY.MM 월 selector / 메뉴` 순서를 유지한다
 - 학생 상단 헤더는 배경과 섞이지 않도록 별도 받침 plate와 떠 있는 본체 바의 2층 인상으로 분리할 수 있다
 - 학생 `홈` 탭은 현재 선택 또는 대표 수업 기준 요약, 진행도, 체크리스트, 빠른 action을 먼저 보여 주고, 긴 주차 상세는 이 탭에 함께 쌓지 않는다
 - 학생 `수업` 탭은 상단 1줄 헤더 아래에 `출석 / 공개 / 피드백` 요약 카드만 남기고, 바로 `콘텐츠` 영역으로 이어진다
+- 학생 `수업` 탭의 기본 주차는 현재 날짜 기준 `월의 n주차`를 사용하고, 유효 범위를 벗어나면 현재 보이는 주차 안에서 clamp한다
 - 학생은 수업이 없거나 추가 요청이 필요할 때 `홈` 탭의 `수업 신청` quick action 다이얼로그에서 활성 수업과 월을 고르고 승인 요청을 보낼 수 있다
 - 학생 수업 신청은 새 계정 생성이 아니라 자기 `enrollments`를 `PENDING`으로 생성하거나, 취소된 같은 달 요청을 `PENDING`으로 다시 여는 흐름이다
 - 학생 `홈` 탭의 `주차 열기`, `콘텐츠 보기`, `피드백 보기` 같은 CTA는 page-internal scroll 대신 `수업` 탭으로 이동하고 현재 selection을 유지한다
@@ -198,9 +218,12 @@ student-facing 흐름도 중요하지만,
 - 영상과 이미지는 최상위 navigation을 따로 갖지 않는다
 - admin은 `수업` 탭 안에서 주차별 콘텐츠를 관리한다
 - admin `수업` 탭의 헤더 control은 현재 월을 기본으로 유지하되, 관리할 수업을 먼저 고르고 필요할 때만 월을 바꾸는 흐름을 baseline으로 둔다
+- admin `수업` 탭의 기본 주차도 현재 날짜 기준 `월의 n주차`를 사용하고, `학생 관리` deep link는 `class + month + week + student` 맥락을 그대로 복원한다
 - admin 주차 영상 편집은 여러 영상을 세로로 모두 펼치기보다, 현재 선택된 영상 1개 preview와 가로 선택 strip을 중심으로 다룬다
 - admin 선택 영상은 전체화면 진입 버튼을 통해 가능하면 landscape fullscreen으로 볼 수 있어야 하고, 종료 후 같은 편집 맥락으로 자연스럽게 돌아와야 한다
 - admin 주차 이미지 목록도 한 줄 가로 스크롤로 훑고, 필요 시 확대해 확인할 수 있어야 한다
+- admin은 `/admin/content`를 원본 편집 surface로 두고, 같은 주차 안에서 `진행 메모`, `공통 피드백`, `학생별 피드백`, `운영 내부메모`를 함께 다룬다
+- `/admin/students`는 notes editor를 복제하지 않고 `/admin/content` 해당 주차/학생 입력칸으로 이동하는 바로가기만 둔다
 - student는 `수업` 탭 안에서 주차별 콘텐츠를 소비한다
 - student는 선택한 주차 화면 안에서 영상을 바로 재생할 수 있는 방향을 baseline으로 둔다
 - student `수업` 탭의 주차 버튼은 기본 `1~4주차`를 항상 보여 주고, `5주차`는 ready video/image가 있을 때만 추가로 노출한다
@@ -214,7 +237,7 @@ student-facing 흐름도 중요하지만,
 - current active media contract는 `class_log` 아래 `VIDEO` / `IMAGE` row를 여러 건 둘 수 있고, 각 row는 `media_id` 기준으로 수정/삭제한다
 - current active weekly image contract는 `upload_method='MANUAL'`, `weekly-images/{class_id}/{year_month}/week-{week_number}/{timestamp}-{safe-filename}` path 규칙을 사용한다
 - 이미지 추가 metadata contract는 아직 별도 truth로 잠기지 않는다
-- student `수업` 탭 본문은 주차 제목/상태 badge/텍스트 helper를 반복하지 않고, `영상`과 `이미지`만 바로 소비하는 구조를 우선한다
+- student `수업` 탭 본문은 주차 제목/상태 badge/helper를 반복하지 않고, `영상`과 `이미지`를 먼저 소비한 뒤 해당 주차의 `진행 메모`, `공통 피드백`, `내 피드백`만 조용히 이어서 읽는 구조를 우선한다
 
 ### Mobile / In-App Browser Handling
 - mobile browser 흐름에 대한 실용적인 처리
@@ -303,7 +326,7 @@ student-facing 흐름도 중요하지만,
 ### Weekly Content Media
 - 운영자는 `수업` 탭에서 클래스와 주차 맥락 안에 주차별 영상/이미지 콘텐츠를 다룰 수 있어야 한다
 - 영상은 YouTube 기준으로 연결할 수 있어야 한다
-- 현재 구현 baseline은 admin weekly YouTube URL 다건 저장/수정/삭제 + admin weekly image 다건 업로드/교체/삭제 + student inline video/image 다건 확인까지다
+- 현재 구현 baseline은 admin weekly YouTube URL 다건 저장/수정/삭제 + admin weekly image 다건 업로드/교체/삭제 + admin weekly notes save + student inline video/image/notes 확인까지다
 - admin은 여러 저장 영상을 가로 선택 strip에서 고르고, 현재 선택된 영상 1개를 기준으로 preview/edit/delete 할 수 있어야 한다
 - admin 이미지 목록은 가로 스크롤로 훑고, click/tap 확대와 교체/삭제 action을 함께 사용할 수 있어야 한다
 - 이미지는 업로드 기준으로 다룰 수 있어야 한다
@@ -315,7 +338,7 @@ student-facing 흐름도 중요하지만,
 - 학생 선택 영상도 전체화면 버튼으로 가능하면 landscape fullscreen에 들어갈 수 있어야 하고, 종료 후 같은 주차 선택 상태로 자연스럽게 돌아와야 한다
 - 학생 주차 이미지는 한 줄 가로 스크롤로 훑을 수 있어야 한다
 - 학생 주차 이미지 카드는 tap/click으로 확대해 자세히 볼 수 있어야 한다
-- 학생 `수업` 탭에서는 주차별 텍스트 피드백/진행 메모를 본문 카드로 반복 노출하지 않고, 피드백 수치는 상단 요약으로만 유지한다
+- 학생 `수업` 탭에서는 선택한 주차 안에서 `진행 메모`, `공통 피드백`, `내 피드백`을 읽을 수 있어야 하고, 학생에게 보이지 않는 운영 내부메모는 노출하지 않는다
 - invalid media row가 있어도 유효한 media consume은 계속 가능해야 하고, student lessons 본문은 ready media 우선으로 유지한다
 - media는 별도 최상위 탭보다 `클래스 -> 주차 -> 콘텐츠` 흐름 안에서 먼저 이해돼야 한다
 - local demo merged runtime QA에서는 admin weekly video save/delete, admin weekly image upload/replace/delete, student inline video/image read, image storage cleanup까지 다시 확인했다
@@ -342,7 +365,7 @@ student-facing 흐름도 중요하지만,
 
 ## 피드백 가시성 기준
 
-- `강사 자체피드백`
+- `운영 내부메모`
   - 수업 운영자 또는 강사 내부 기록이다
   - student surface에는 노출하지 않는다
 - `전체피드백`
@@ -358,8 +381,8 @@ student-facing 흐름도 중요하지만,
 제품 동작은 아래를 전제로 한다.
 - schema behavior follows `docs/db/SCHEMA.sql`
 - RLS / permission behavior follows `docs/db/RLS.sql`
-- attendance / payment mutation behavior follows `docs/db/RPC.sql`
-- payment / attendance mutation의 canonical truth는 `docs/db/RPC.sql`이며, route wrapper는 허용하지만 direct table update는 canonical이 아니다.
+- attendance / payment / weekly notes mutation behavior follows `docs/db/RPC.sql`
+- payment / attendance / weekly notes mutation의 canonical truth는 `docs/db/RPC.sql`이며, route wrapper는 허용하지만 direct table update는 canonical이 아니다.
 - weekly media cardinality truth는 `class_log -> media 1:N`이며, `VIDEO` / `IMAGE` 모두 주차별 `0..N` row를 허용한다.
 
 여기서 기술 truth를 새로 정의하거나 바꾸지 않는다.

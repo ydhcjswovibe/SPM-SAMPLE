@@ -4,12 +4,25 @@ import { useState, useEffect, useCallback } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { getCurrentYearMonth, isValidYearMonth } from '@/lib/admin/matrix'
+import { formatYearMonthLabel, getCurrentYearMonth, isValidYearMonth } from '@/lib/admin/matrix'
+import {
+  adminAlertCardClass,
+  adminCompactButtonClass,
+  adminCompactDangerButtonClass,
+  adminDialogContentClass,
+  adminDropdownItemClass,
+  adminInsetCardClass,
+  adminMetricCardClass,
+  adminPrimaryButtonClass,
+  adminSurfaceCardClass,
+  adminSurfaceInputClass,
+} from '@/lib/admin/surface'
 import { getRoleLabel, isAdminRole, isOwnerRole } from '@/lib/auth/roles'
-import { AdminMobileUtilityMenu } from '@/components/admin-mobile-utility-menu'
+import { AdminMonthSelector } from '@/components/admin-month-selector'
+import { AdminShellHeader } from '@/components/admin-shell-header'
 import { ClassSelector } from '@/components/class-selector'
+import { AdminHeaderActionMenu } from '@/components/admin-header-action-menu'
 import { AdminMatrix } from '@/components/admin-matrix'
-import { SpmMascot } from '@/components/spm-mascot'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -20,9 +33,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, CalendarCheck, CreditCard, Download, Loader2, LogIn, Plus, Users } from 'lucide-react'
+import { AlertCircle, CalendarCheck, CreditCard, Download, Loader2, LogIn, Plus, Trash2, Users } from 'lucide-react'
 import type { Class, AdminMatrixData, AttendanceStatus } from '@/lib/types'
 
 const supabase = createClient()
@@ -469,87 +483,101 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col">
-      <header className="sticky top-0 z-40 px-4 pt-4 md:px-6 md:pt-5">
-        <section className="relative overflow-hidden rounded-[2.2rem] border border-[#dfe7d0] bg-[linear-gradient(180deg,rgba(243,248,255,0.96)_0%,rgba(255,254,249,0.98)_44%,rgba(244,248,236,0.98)_100%)] px-4 pb-4 pt-4 shadow-[0_14px_26px_rgba(106,138,64,0.1)]">
-          <div className="absolute inset-x-0 bottom-0 h-14 bg-[rgba(170,205,113,0.26)]" />
-          <div className="absolute -left-6 bottom-3 h-16 w-24 rounded-full bg-[rgba(141,188,91,0.2)]" />
-          <div className="absolute left-9 top-4 h-8 w-8 rounded-full bg-white/68" />
-          <div className="absolute right-3 top-3 h-12 w-12 rounded-full bg-[rgba(255,244,197,0.44)]" />
+      <AdminShellHeader
+        controlsClassName="md:flex-nowrap"
+        mobileActionMenu={
+          accessState?.canCreateClass ? (
+            <>
+              <DropdownMenuItem
+                onSelect={() => setIsCreateDialogOpen(true)}
+                className={adminDropdownItemClass}
+              >
+                <Plus className="h-4 w-4" />
+                새 수업 만들기
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={handleToggleDeleteMode}
+                disabled={isAllClassesLoading || (allClasses?.length ?? 0) === 0}
+                variant={isDeleteMode ? 'default' : 'destructive'}
+                className={adminDropdownItemClass}
+              >
+                <Trash2 className="h-4 w-4" />
+                {isDeleteMode ? '삭제 취소' : '삭제 모드'}
+              </DropdownMenuItem>
+            </>
+          ) : null
+        }
+        desktopSecondaryActions={
+          accessState?.canCreateClass ? (
+            <AdminHeaderActionMenu label="작업">
+              <DropdownMenuItem
+                onSelect={() => setIsCreateDialogOpen(true)}
+                className={adminDropdownItemClass}
+              >
+                <Plus className="h-4 w-4" />
+                새 수업 만들기
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={handleToggleDeleteMode}
+                disabled={isAllClassesLoading || (allClasses?.length ?? 0) === 0}
+                variant={isDeleteMode ? 'default' : 'destructive'}
+                className={adminDropdownItemClass}
+              >
+                <Trash2 className="h-4 w-4" />
+                {isDeleteMode ? '삭제 취소' : '삭제 모드'}
+              </DropdownMenuItem>
+            </AdminHeaderActionMenu>
+          ) : null
+        }
+        controls={
+          <>
+            <ClassSelector
+              classes={selectorClasses}
+              selectedClass={resolvedSelectedClass}
+              onSelect={handleSelectClass}
+              triggerClassName="min-w-0 flex-1 max-w-none sm:min-w-0 sm:max-w-none md:min-w-[10.75rem] md:max-w-[13rem] lg:min-w-[11rem] lg:max-w-[14rem]"
+              onCreateNew={accessState?.canCreateClass ? () => setIsCreateDialogOpen(true) : undefined}
+              isDeleteMode={isDeleteMode}
+              onDeleteRequest={accessState?.canCreateClass ? handleDeleteRequest : undefined}
+              showDeleteActionInMenu={false}
+              placeholder={
+                isDeleteMode
+                  ? isAllClassesLoading
+                    ? '수업 불러오는 중'
+                    : '삭제할 수업 선택'
+                  : isClassesLoading
+                    ? '수업 불러오는 중'
+                    : '수업 선택'
+              }
+              emptyLabel={
+                isDeleteMode
+                  ? '삭제할 수업이 없습니다.'
+                  : hasValidYearMonth
+                    ? '활성 수업이 없습니다.'
+                    : '먼저 유효한 월을 선택해 주세요.'
+              }
+            />
+            <AdminMonthSelector
+              value={selectedYearMonth}
+              onValueChange={setSelectedYearMonth}
+              aria-label="운영 월 선택"
+            />
+          </>
+        }
+      />
 
-          <div className="relative z-10 flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.15rem] bg-white/88 shadow-[0_10px_16px_rgba(116,146,78,0.12)]">
-                  <SpmMascot size="sm" className="h-8 w-8" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[rgba(89,114,70,0.72)]">
-                    오늘의 운영
-                  </p>
-                  <div className="mt-1 flex items-center gap-2">
-                    <span className="spm-display text-[1.1rem] text-[#314127] sm:text-[1.25rem]">
-                      출석부
-                    </span>
-                    {resolvedSelectedClass ? (
-                      <span className="inline-flex items-center rounded-full bg-[#fff7d6] px-2.5 py-1 text-[11px] font-semibold text-[#8c6d26] shadow-[0_6px_12px_rgba(182,157,88,0.08)]">
-                        {isDeleteMode ? `${resolvedSelectedClass.name} 삭제` : resolvedSelectedClass.name}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2 sm:flex-nowrap">
-                <ClassSelector
-                  classes={selectorClasses}
-                  selectedClass={resolvedSelectedClass}
-                  onSelect={handleSelectClass}
-                  onCreateNew={accessState?.canCreateClass ? () => setIsCreateDialogOpen(true) : undefined}
-                  isDeleteMode={isDeleteMode}
-                  onToggleDeleteMode={accessState?.canCreateClass ? handleToggleDeleteMode : undefined}
-                  onDeleteRequest={accessState?.canCreateClass ? handleDeleteRequest : undefined}
-                  placeholder={
-                    isDeleteMode
-                      ? isAllClassesLoading
-                        ? '수업 불러오는 중'
-                        : '삭제할 수업 선택'
-                      : isClassesLoading
-                        ? '수업 불러오는 중'
-                        : '수업 선택'
-                  }
-                  emptyLabel={
-                    isDeleteMode
-                      ? '삭제할 수업이 없습니다.'
-                      : hasValidYearMonth
-                        ? '활성 수업이 없습니다.'
-                        : '먼저 유효한 월을 선택해 주세요.'
-                  }
-                />
-                <Input
-                  type="month"
-                  value={selectedYearMonth}
-                  onChange={(event) => setSelectedYearMonth(event.target.value)}
-                  className="h-10 w-[142px] min-w-[142px] flex-none rounded-[1.25rem] border-[#dbe8cc] bg-white/94 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] sm:w-[156px] sm:min-w-[156px]"
-                  aria-label="운영 월 선택"
-                />
-              </div>
-            </div>
-
-            <AdminMobileUtilityMenu />
-          </div>
-        </section>
-      </header>
-
-      <div className="flex-1 space-y-4 px-4 pb-28 pt-3 md:px-6 md:pb-8 md:pt-4">
+      <div className="flex-1 space-y-4 px-4 pb-28 pt-3 md:space-y-5 md:px-6 md:pb-8 md:pt-4 lg:px-7 lg:pt-5">
         {isAccessLoading ? (
-          <Card>
+          <Card className={adminInsetCardClass}>
             <CardContent className="flex items-center gap-3 py-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               관리자 권한을 확인하고 있습니다.
             </CardContent>
           </Card>
         ) : !accessState?.isAuthenticated ? (
-          <Card className="border-amber-300/50 bg-amber-50/50">
+          <Card className={adminAlertCardClass('warning')}>
             <CardContent className="flex flex-col gap-3 py-4">
               <div className="flex items-start gap-3">
                 <AlertCircle className="mt-0.5 h-5 w-5 text-amber-700" />
@@ -561,7 +589,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div>
-                <Button asChild size="sm" className="gap-2">
+                <Button asChild variant="ghost" size="sm" className={adminPrimaryButtonClass}>
                   <Link href="/auth/login">
                     <LogIn className="h-4 w-4" />
                     로그인하러 가기
@@ -571,7 +599,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         ) : !accessState.canManage ? (
-          <Card className="border-destructive/30 bg-destructive/5">
+          <Card className={adminAlertCardClass('danger')}>
             <CardContent className="flex flex-col gap-2 py-4">
               <p className="font-medium text-destructive">현재 계정에는 관리자 권한이 없습니다.</p>
               <p className="text-sm text-muted-foreground">
@@ -585,7 +613,7 @@ export default function AdminDashboard() {
         ) : null}
 
         {exportError ? (
-          <Card className="border-destructive/30 bg-destructive/5">
+          <Card className={adminAlertCardClass('danger')}>
             <CardContent className="py-4 text-sm text-destructive">
               {exportError}
             </CardContent>
@@ -593,60 +621,92 @@ export default function AdminDashboard() {
         ) : null}
 
         {classActionError ? (
-          <Card className="border-destructive/30 bg-destructive/5">
+          <Card className={adminAlertCardClass('danger')}>
             <CardContent className="py-4 text-sm text-destructive">{classActionError}</CardContent>
           </Card>
         ) : null}
 
         {createSuccess ? (
-          <Card className="border-emerald-300/40 bg-emerald-50/50">
+          <Card className={adminAlertCardClass('success')}>
             <CardContent className="py-4 text-sm text-emerald-950">{createSuccess}</CardContent>
           </Card>
         ) : null}
 
-        {stats && (
-          <div className="grid grid-cols-3 gap-2 md:gap-3">
-            <Card className="spm-mint-panel gap-0 py-0 shadow-[0_7px_0_var(--card-shadow)]">
-              <CardContent className="flex items-center justify-between gap-2 px-3 py-3 md:px-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
-                    <Users className="h-3.5 w-3.5 shrink-0" />
-                    <span>학생 수</span>
+        {stats ? (
+          <>
+            <div className="grid grid-cols-3 gap-2 md:hidden">
+              <Card className={adminMetricCardClass('mint')}>
+                <CardContent className="flex items-center justify-between gap-2 px-3 py-3 md:px-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
+                      <Users className="h-3.5 w-3.5 shrink-0" />
+                      <span>학생 수</span>
+                    </div>
                   </div>
-                </div>
-                <div className="spm-display text-[1.45rem] text-foreground md:text-[1.8rem]">{stats.totalStudents}</div>
-              </CardContent>
-            </Card>
-            <Card className="spm-yellow-panel gap-0 py-0 shadow-[0_7px_0_var(--card-shadow)]">
-              <CardContent className="flex items-center justify-between gap-2 px-3 py-3 md:px-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
-                    <CreditCard className="h-3.5 w-3.5 shrink-0" />
-                    <span>결제 확인</span>
+                  <div className="spm-display text-[1.45rem] text-foreground md:text-[1.8rem]">{stats.totalStudents}</div>
+                </CardContent>
+              </Card>
+              <Card className={adminMetricCardClass('warm')}>
+                <CardContent className="flex items-center justify-between gap-2 px-3 py-3 md:px-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
+                      <CreditCard className="h-3.5 w-3.5 shrink-0" />
+                      <span>결제 확인</span>
+                    </div>
                   </div>
-                </div>
-                <div className="spm-display text-[1.45rem] text-accent-foreground md:text-[1.8rem]">{stats.paidStudents}</div>
-              </CardContent>
-            </Card>
-            <Card className="spm-blue-panel gap-0 py-0 shadow-[0_7px_0_var(--card-shadow)]">
-              <CardContent className="flex items-center justify-between gap-2 px-3 py-3 md:px-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
-                    <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
-                    <span>출석률</span>
+                  <div className="spm-display text-[1.45rem] text-accent-foreground md:text-[1.8rem]">{stats.paidStudents}</div>
+                </CardContent>
+              </Card>
+              <Card className={adminMetricCardClass('blue')}>
+                <CardContent className="flex items-center justify-between gap-2 px-3 py-3 md:px-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground md:text-sm">
+                      <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
+                      <span>출석률</span>
+                    </div>
                   </div>
-                </div>
-                <div className="spm-display text-[1.45rem] text-secondary-foreground md:text-[1.8rem]">{stats.avgAttendance}%</div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                  <div className="spm-display text-[1.45rem] text-secondary-foreground md:text-[1.8rem]">{stats.avgAttendance}%</div>
+                </CardContent>
+              </Card>
+            </div>
 
-        <Card className="gap-0 overflow-hidden border border-[#e6ecda] bg-[#fffefb] py-0 shadow-[0_12px_22px_rgba(111,145,72,0.08)]">
-          <CardHeader className="px-4 pb-2 pt-3.5 md:px-5 md:pb-2.5 md:pt-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="hidden md:grid md:grid-cols-3 md:gap-3">
+              <Card className={adminMetricCardClass('mint')}>
+                <CardContent className="flex items-center justify-between gap-3 px-4 py-3.5">
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#73815f]">학생 수</div>
+                    <div className="mt-1 text-sm text-[#556449]">이번 달 운영 대상</div>
+                  </div>
+                  <div className="spm-display text-[1.35rem] text-[#314127]">{stats.totalStudents}</div>
+                </CardContent>
+              </Card>
+              <Card className={adminMetricCardClass('warm')}>
+                <CardContent className="flex items-center justify-between gap-3 px-4 py-3.5">
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8b742e]">결제 확인</div>
+                    <div className="mt-1 text-sm text-[#75663d]">승인된 등록</div>
+                  </div>
+                  <div className="spm-display text-[1.35rem] text-[#8a6a25]">{stats.paidStudents}</div>
+                </CardContent>
+              </Card>
+              <Card className={adminMetricCardClass('blue')}>
+                <CardContent className="flex items-center justify-between gap-3 px-4 py-3.5">
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#5e74b7]">출석률</div>
+                    <div className="mt-1 text-sm text-[#6174a7]">이달 평균 상태</div>
+                  </div>
+                  <div className="spm-display text-[1.35rem] text-[#5a79c9]">{stats.avgAttendance}%</div>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        ) : null}
+
+        <Card className={adminSurfaceCardClass}>
+          <CardHeader className="px-4 pb-2 pt-3.5 md:px-5 md:pb-2.5 md:pt-4 lg:px-6 lg:pb-3 lg:pt-5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <CardTitle className="spm-display text-[1.65rem] text-foreground md:text-[1.85rem]">출석부</CardTitle>
+                <CardTitle className="spm-display text-[1.65rem] text-foreground md:text-[1.85rem] lg:text-[1.45rem]">출석부</CardTitle>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {resolvedSelectedClass
                     ? '현재 선택한 수업의 출석 상태를 한 화면에서 바로 정리합니다.'
@@ -654,7 +714,7 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="sm"
                 onClick={handleExportCSV}
                 disabled={
@@ -665,7 +725,7 @@ export default function AdminDashboard() {
                   matrixData.students.length === 0 ||
                   isExporting
                 }
-                className="h-10 gap-2 self-start rounded-[1.2rem] border border-[#dce8cc] bg-white/92 px-3 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]"
+                className={adminCompactButtonClass}
               >
                 {isExporting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -676,7 +736,7 @@ export default function AdminDashboard() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="px-2 pb-2 pt-0 md:px-5 md:pb-5">
+          <CardContent className="px-2 pb-2 pt-0 md:px-5 md:pb-5 lg:px-6 lg:pb-6">
             {!resolvedSelectedClass ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <p className="text-muted-foreground">
@@ -691,7 +751,8 @@ export default function AdminDashboard() {
                 {accessState?.canCreateClass ? (
                   <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                     <Button
-                      className="gap-2"
+                      variant="ghost"
+                      className={adminPrimaryButtonClass}
                       onClick={() => setIsCreateDialogOpen(true)}
                       disabled={!accessState.canCreateClass}
                     >
@@ -717,23 +778,23 @@ export default function AdminDashboard() {
             ) : matrixError ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <AlertCircle className="mb-4 h-8 w-8 text-destructive" />
-                <p className="font-medium text-destructive">운영 데이터를 불러오지 못했습니다.</p>
-                <p className="mt-1 text-sm text-muted-foreground">{getErrorMessage(matrixError)}</p>
-              </div>
-            ) : !matrixData ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground" />
-                <p className="font-medium">선택한 범위에 아직 운영 데이터가 없습니다.</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  수업과 월 범위를 바꾸거나, 등록 상태와 수업 기록을 먼저 확인해 주세요.
-                </p>
-              </div>
-            ) : (
-              <AdminMatrix
-                data={matrixData}
-                onAttendanceChange={handleAttendanceChange}
-              />
-            )}
+                    <p className="font-medium text-destructive">운영 데이터를 불러오지 못했습니다.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{getErrorMessage(matrixError)}</p>
+                  </div>
+                ) : !matrixData ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground" />
+                    <p className="font-medium">선택한 범위에 아직 운영 데이터가 없습니다.</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      수업과 월 범위를 바꾸거나, 등록 상태와 수업 기록을 먼저 확인해 주세요.
+                    </p>
+                  </div>
+                ) : (
+                  <AdminMatrix
+                    data={matrixData}
+                    onAttendanceChange={handleAttendanceChange}
+                  />
+                )}
           </CardContent>
         </Card>
       </div>
@@ -749,7 +810,7 @@ export default function AdminDashboard() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className={adminDialogContentClass}>
           <DialogHeader>
             <DialogTitle>새 수업 만들기</DialogTitle>
             <DialogDescription>
@@ -772,6 +833,7 @@ export default function AdminDashboard() {
                   setCreateError(null)
                 }}
                 placeholder="예: 2026년 3월 기초반"
+                className={adminSurfaceInputClass}
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -779,12 +841,14 @@ export default function AdminDashboard() {
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+            <Button variant="ghost" onClick={() => setIsCreateDialogOpen(false)} className={adminCompactButtonClass}>
               취소
             </Button>
             <Button
+              variant="ghost"
               onClick={handleCreateClass}
               disabled={!newClassName.trim() || isCreating || !accessState?.canCreateClass}
+              className={adminPrimaryButtonClass}
             >
               {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : '생성'}
             </Button>
@@ -801,7 +865,7 @@ export default function AdminDashboard() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className={adminDialogContentClass}>
           <DialogHeader>
             <DialogTitle>수업 삭제</DialogTitle>
             <DialogDescription>
@@ -812,18 +876,20 @@ export default function AdminDashboard() {
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => {
                 setIsDeleteDialogOpen(false)
                 setClassToDelete(null)
               }}
+              className={adminCompactButtonClass}
             >
               취소
             </Button>
             <Button
-              variant="destructive"
+              variant="ghost"
               onClick={handleDeleteClass}
               disabled={!classToDelete || isDeletingClass}
+              className={adminCompactDangerButtonClass}
             >
               {isDeletingClass ? <Loader2 className="h-4 w-4 animate-spin" /> : '삭제'}
             </Button>
