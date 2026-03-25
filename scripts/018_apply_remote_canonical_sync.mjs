@@ -1,10 +1,14 @@
 import process from 'node:process'
 
-import { applyRemoteCanonicalTargets } from './lib/remote-canonical-sync.mjs'
+import {
+  applyRemoteCanonicalTargets,
+  readRemoteCanonicalTargetsFromArgv,
+} from './lib/remote-canonical-sync.mjs'
 
 async function main() {
   const dryRun = process.argv.includes('--dry-run')
-  const result = await applyRemoteCanonicalTargets(['enrollment-status'], { dryRun })
+  const targets = readRemoteCanonicalTargetsFromArgv(process.argv.slice(2))
+  const result = await applyRemoteCanonicalTargets(targets, { dryRun })
   console.log(JSON.stringify(result, null, 2))
 }
 
