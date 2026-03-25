@@ -53,14 +53,6 @@ function isValidEnrollmentStatus(status: unknown): status is EnrollmentLifecycle
   return status === 'ACTIVE' || status === 'PENDING' || status === 'CANCELLED'
 }
 
-function isMissingEnrollmentStatusRpc(message: string, code?: string) {
-  return (
-    code === 'PGRST202' ||
-    message.includes('Could not find the function public.update_enrollment_status') ||
-    message.includes('schema cache')
-  )
-}
-
 export async function GET(request: NextRequest) {
   const access = await readServerAccessContext()
 
@@ -227,27 +219,10 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const supabase = await createClient()
-    let { data, error } = await supabase.rpc('update_enrollment_status', {
+    const { data, error } = await supabase.rpc('update_enrollment_status', {
       p_enrollment_id: body.enrollmentId,
       p_status: body.status,
     })
-
-    if (error && isMissingEnrollmentStatusRpc(error.message, error.code)) {
-      // Connected Supabase projects can lag behind the optional helper; keep the same route contract.
-      const fallback = await supabase
-        .from('enrollments')
-        .update({ status: body.status })
-        .eq('id', body.enrollmentId)
-        .select('id, class_id, student_id, year_month, payment_status, status')
-        .maybeSingle()
-
-      data = fallback.data
-      error = fallback.error
-
-      if (!error && !data) {
-        return NextResponse.json({ error: 'ENROLLMENT_NOT_FOUND' }, { status: 404 })
-      }
-    }
 
     if (error) {
       const mapped = mapEnrollmentError(error.message, 'ENROLLMENT_STATUS_UPDATE_FAILED', 'ADMIN_REQUIRED')

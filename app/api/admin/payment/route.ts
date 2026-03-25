@@ -16,14 +16,6 @@ function mapRpcError(message: string) {
   return { error: 'PAYMENT_UPDATE_FAILED', status: 500 }
 }
 
-function isMissingPaymentRpc(message: string, code?: string) {
-  return (
-    code === 'PGRST202' ||
-    message.includes('Could not find the function public.update_enrollment_payment_status') ||
-    message.includes('schema cache')
-  )
-}
-
 export async function POST(request: NextRequest) {
   const access = await readServerAccessContext()
 
@@ -45,27 +37,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = await createClient()
-    let { data, error } = await supabase.rpc('update_enrollment_payment_status', {
+    const { data, error } = await supabase.rpc('update_enrollment_payment_status', {
       p_enrollment_id: body.enrollmentId,
       p_payment_status: body.paymentStatus === 'paid',
     })
-
-    if (error && isMissingPaymentRpc(error.message, error.code)) {
-      // Connected Supabase projects can lag behind the canonical payment helper; keep the same route contract.
-      const fallback = await supabase
-        .from('enrollments')
-        .update({ payment_status: body.paymentStatus === 'paid' })
-        .eq('id', body.enrollmentId)
-        .select('id, class_id, student_id, year_month, payment_status, status')
-        .maybeSingle()
-
-      data = fallback.data
-      error = fallback.error
-
-      if (!error && !data) {
-        return NextResponse.json({ error: 'ENROLLMENT_NOT_FOUND' }, { status: 404 })
-      }
-    }
 
     if (error) {
       const mapped = mapRpcError(error.message)
