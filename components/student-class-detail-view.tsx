@@ -4,10 +4,11 @@ import { useState } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
-  FileText,
   Image as ImageIcon,
+  Loader2,
   MessageSquareText,
   PlayCircle,
+  Send,
   UserRound,
   ZoomIn,
 } from 'lucide-react'
@@ -18,10 +19,27 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { SelectedVideoPlayer } from '@/components/selected-video-player'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 
 function getEmptyWeekMessage(enrollmentStatus: StudentClassDetail['enrollmentStatus']) {
   return enrollmentStatus === 'PENDING' ? '운영 승인 전입니다.' : '이 주차 콘텐츠는 아직 준비 중입니다.'
+}
+
+function getAttendanceTone(status: 'present' | 'absent' | 'pending' | 'excused') {
+  if (status === 'present') {
+    return 'border-[#cfe7c6] bg-[#eef8ea] text-[#38632b]'
+  }
+
+  if (status === 'absent') {
+    return 'border-[#efd3cc] bg-[#fff1ed] text-[#a14f42]'
+  }
+
+  if (status === 'excused') {
+    return 'border-[#d4e1fb] bg-[#f2f7ff] text-[#5576b7]'
+  }
+
+  return 'border-[#e7deca] bg-[#fbf6ea] text-[#816f48]'
 }
 
 export function StudentClassDetailView({
@@ -37,6 +55,11 @@ export function StudentClassDetailView({
     url: string
     alt: string
   } | null>(null)
+  const [replyDraftByWeek, setReplyDraftByWeek] = useState<Record<string, string>>(() =>
+    Object.fromEntries(detail.weeks.map((week) => [String(week.weekNumber), week.studentReplyText ?? ''])),
+  )
+  const [savingReplyWeek, setSavingReplyWeek] = useState<string | null>(null)
+  const [replyFeedbackByWeek, setReplyFeedbackByWeek] = useState<Record<string, string | null>>({})
 
   if (detail.weeks.length === 0) {
     return (
@@ -57,7 +80,9 @@ export function StudentClassDetailView({
     typeof initialWeekNumber === 'number' &&
     detail.weeks.some((week) => week.weekNumber === initialWeekNumber)
       ? initialWeekNumber
-      : detail.weeks[0]?.weekNumber ?? null
+      : detail.defaultWeekNumber && detail.weeks.some((week) => week.weekNumber === detail.defaultWeekNumber)
+        ? detail.defaultWeekNumber
+        : detail.weeks[0]?.weekNumber ?? null
   const resolvedActiveWeek =
     activeWeek && detail.weeks.some((week) => String(week.weekNumber) === activeWeek)
       ? activeWeek
@@ -81,27 +106,16 @@ export function StudentClassDetailView({
   const hasVisibleContent = youtubeItems.length > 0 || imageItems.length > 0
   const noteSections = [
     {
-      key: 'progress',
-      label: '진행 메모',
-      text: selectedWeek?.progressText ?? null,
-      icon: FileText,
-      tone: 'border-[#dce8cc] bg-[#f6faef] text-[#486035]',
-    },
-    {
-      key: 'shared',
-      label: '공통 피드백',
-      text: selectedWeek?.sharedFeedbackText ?? null,
-      icon: MessageSquareText,
-      tone: 'border-[#f6dfc8] bg-[#fff7ef] text-[#a25f35]',
-    },
-    {
       key: 'private',
-      label: '내 피드백',
+      label: '개별 피드백',
       text: selectedWeek?.privateFeedbackText ?? null,
       icon: UserRound,
       tone: 'border-[#d7e6fb] bg-[#f4f8ff] text-[#5478b8]',
     },
   ].filter((section) => Boolean(section.text))
+  const canReply = Boolean(selectedWeek?.privateFeedbackText)
+  const replyDraft = replyDraftByWeek[weekKey] ?? ''
+  const replyFeedback = replyFeedbackByWeek[weekKey] ?? null
 
   function moveSelectedVideo(direction: -1 | 1) {
     if (youtubeItems.length <= 1 || selectedVideoIndex === -1) {
@@ -114,6 +128,49 @@ export function StudentClassDetailView({
       ...current,
       [weekKey]: youtubeItems[nextIndex]?.mediaId ?? current[weekKey],
     }))
+  }
+
+  async function handleReplySave() {
+    if (!selectedWeek) {
+      return
+    }
+
+    setSavingReplyWeek(weekKey)
+    setReplyFeedbackByWeek((current) => ({
+      ...current,
+      [weekKey]: null,
+    }))
+
+    try {
+      const response = await fetch('/api/student/weekly-feedback-reply', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          classId: detail.classId,
+          yearMonth: detail.yearMonth,
+          weekNumber: selectedWeek.weekNumber,
+          replyText: replyDraft,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('답글 저장에 실패했습니다.')
+      }
+
+      setReplyFeedbackByWeek((current) => ({
+        ...current,
+        [weekKey]: replyDraft.trim() ? '이번 주 답글을 저장했습니다.' : '이번 주 답글을 지웠습니다.',
+      }))
+    } catch (error) {
+      setReplyFeedbackByWeek((current) => ({
+        ...current,
+        [weekKey]: error instanceof Error ? error.message : '답글 저장에 실패했습니다.',
+      }))
+    } finally {
+      setSavingReplyWeek(null)
+    }
   }
 
   return (
@@ -132,13 +189,18 @@ export function StudentClassDetailView({
                   key={week.weekNumber}
                   value={String(week.weekNumber)}
                   className={cn(
-                    'h-11 rounded-[1.15rem] border px-0 text-sm font-semibold data-[state=active]:shadow-none',
+                    'h-auto rounded-[1.15rem] border px-2 py-2.5 text-left data-[state=active]:shadow-none',
                     isSelected
                       ? 'border-[#f0d77b] bg-[#fff4c8] text-[#88601d] shadow-[0_8px_18px_rgba(204,167,71,0.14)]'
                       : 'border-[#e8eedc] bg-white text-[#66775b] hover:bg-[#fafaf4]',
                   )}
                 >
-                  {week.weekNumber}주차
+                  <div className="flex flex-col items-start gap-0.5">
+                    <span className="text-sm font-semibold">{week.weekNumber}주차</span>
+                    <span className="text-[11px] font-medium opacity-80">
+                      {week.sessionRangeLabel ?? `${week.sessions.length || 0}회차`}
+                    </span>
+                  </div>
                 </TabsTrigger>
               )
             })}
@@ -148,6 +210,33 @@ export function StudentClassDetailView({
         {selectedWeek ? (
           <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
             <CardContent className="space-y-4 px-3.5 pb-3.5 pt-3.5 sm:px-4 sm:pb-4 sm:pt-4">
+              {selectedWeek.sessions.length > 0 ? (
+                <div className="rounded-[1.45rem] border border-[#e6ecd8] bg-[#fbfdf7] px-3 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-[#314127]">이번 주 실제 수업 날짜</div>
+                      <div className="mt-1 text-xs text-[#6b7d5e]">
+                        {selectedWeek.sessionRangeLabel ?? `${selectedWeek.sessions.length}회차`}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {selectedWeek.sessions.map((session) => (
+                      <div
+                        key={session.sessionId}
+                        className={cn(
+                          'rounded-full border px-3 py-1.5 text-xs font-semibold shadow-[0_6px_12px_rgba(111,145,72,0.06)]',
+                          getAttendanceTone(session.attendanceStatus),
+                        )}
+                      >
+                        <span>{session.label}</span>
+                        {session.timeLabel ? <span className="ml-1.5 opacity-80">{session.timeLabel}</span> : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               {youtubeItems.length > 0 ? (
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between gap-3">
@@ -268,21 +357,62 @@ export function StudentClassDetailView({
                       const Icon = section.icon
 
                       return (
-                        <div
-                          key={section.key}
-                          className={cn('rounded-[1.35rem] border px-3.5 py-3', section.tone)}
-                        >
+                        <div key={section.key} className={cn('rounded-[1.35rem] border px-3.5 py-3', section.tone)}>
                           <div className="flex items-center gap-2 text-sm font-semibold">
                             <Icon className="h-4 w-4" />
                             <span>{section.label}</span>
                           </div>
-                          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#314127]">
-                            {section.text}
-                          </p>
+                          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#314127]">{section.text}</p>
                         </div>
                       )
                     })}
                   </div>
+                </div>
+              ) : null}
+
+              {canReply ? (
+                <div className="space-y-2.5 rounded-[1.45rem] border border-[#dde6ce] bg-[#f9fcf2] px-3.5 py-3.5">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#314127]">
+                    <Send className="h-4 w-4 text-[#6a9540]" />
+                    <span>이번 주 답글</span>
+                  </div>
+                  <p className="text-xs leading-5 text-[#6b7d5e]">
+                    개별 피드백에 대한 짧은 확인이나 질문을 남길 수 있습니다.
+                  </p>
+                  <Textarea
+                    value={replyDraft}
+                    onChange={(event) => {
+                      setReplyDraftByWeek((current) => ({
+                        ...current,
+                        [weekKey]: event.target.value,
+                      }))
+                      setReplyFeedbackByWeek((current) => ({
+                        ...current,
+                        [weekKey]: null,
+                      }))
+                    }}
+                    placeholder="이번 주 개별 피드백을 보고 느낀 점이나 질문을 적어 주세요."
+                    className="min-h-24 rounded-[1.2rem] border-[#dce8cc] bg-white"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-xs text-[#7a876d]">
+                      {selectedWeek.studentReplyText ? '저장된 답글이 있습니다.' : '아직 답글을 남기지 않았습니다.'}
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => void handleReplySave()}
+                      disabled={savingReplyWeek === weekKey}
+                      className="h-10 rounded-full bg-[#8fcf62] px-4 font-semibold text-white hover:bg-[#98d86d]"
+                    >
+                      {savingReplyWeek === weekKey ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      저장
+                    </Button>
+                  </div>
+                  {replyFeedback ? (
+                    <div className="rounded-[1rem] border border-[#dce8cc] bg-white px-3 py-2 text-sm text-[#4c5f3e]">
+                      {replyFeedback}
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </CardContent>
@@ -298,11 +428,7 @@ export function StudentClassDetailView({
           </DialogHeader>
           {selectedImage ? (
             <div className="overflow-auto rounded-xl bg-muted/40">
-              <img
-                src={selectedImage.url}
-                alt={selectedImage.alt}
-                className="max-h-[75dvh] w-full object-contain"
-              />
+              <img src={selectedImage.url} alt={selectedImage.alt} className="max-h-[75dvh] w-full object-contain" />
             </div>
           ) : null}
         </DialogContent>

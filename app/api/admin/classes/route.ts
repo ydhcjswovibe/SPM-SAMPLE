@@ -1,5 +1,12 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
+import {
+  buildGeneratedSessionsFromRules,
+  isMissingRelationMessage,
+  normalizeTimeValue,
+  normalizeWeekdayValue,
+} from '@/lib/class-schedule'
+import { getCurrentYearMonth } from '@/lib/date-selection'
 import { isAdminRole, isOwnerRole } from '@/lib/auth/roles'
 import { isValidYearMonth } from '@/lib/admin/matrix'
 import { readServerAccessContext } from '@/lib/auth/server'
@@ -9,6 +16,14 @@ import { createClient } from '@/lib/supabase/server'
 function mapCreateClassError(message: string) {
   if (message.includes('row-level security') || message.includes('permission denied')) {
     return { error: 'OWNER_REQUIRED', status: 403 }
+  }
+
+  if (message.includes('invalid schedule rule')) {
+    return { error: 'INVALID_SCHEDULE_INPUT', status: 400 }
+  }
+
+  if (isMissingRelationMessage(message)) {
+    return { error: 'SCHEDULE_FEATURE_UNAVAILABLE', status: 503 }
   }
 
   return { error: 'CLASS_CREATE_FAILED', status: 500 }
@@ -114,11 +129,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'OWNER_REQUIRED' }, { status: 403 })
   }
 
-  const body = (await request.json().catch(() => null)) as { name?: string } | null
+  const body = (await request.json().catch(() => null)) as
+    | {
+        name?: string
+        scheduleRules?: Array<{
+          weekday?: number
+          startTime?: string
+          endTime?: string | null
+        }>
+      }
+    | null
   const name = body?.name?.trim()
+  const scheduleRules =
+    body?.scheduleRules
+      ?.map((rule, index) => {
+        const weekday = normalizeWeekdayValue(rule.weekday ?? -1)
+        const startTime = normalizeTimeValue(rule.startTime)
+        const endTime = normalizeTimeValue(rule.endTime ?? null)
+
+        if (weekday === null || !startTime) {
+          return null
+        }
+
+        return {
+          weekday,
+          startTime,
+          endTime,
+          isActive: true,
+          sortOrder: index,
+        }
+      })
+      .filter((value): value is { weekday: number; startTime: string; endTime: string | null; isActive: true; sortOrder: number } => Boolean(value))
+      ?? []
 
   if (!name) {
     return NextResponse.json({ error: 'CLASS_NAME_REQUIRED' }, { status: 400 })
+  }
+
+  if (scheduleRules.length === 0) {
+    return NextResponse.json({ error: 'INVALID_SCHEDULE_INPUT' }, { status: 400 })
   }
 
   try {
@@ -134,6 +183,42 @@ export async function POST(request: NextRequest) {
     if (error) {
       const mapped = mapCreateClassError(error.message)
       return NextResponse.json({ error: mapped.error }, { status: mapped.status })
+    }
+
+    const createdClassId = data.id
+
+    const { error: scheduleError } = await supabase.from('class_schedule_rules').insert(
+      scheduleRules.map((rule) => ({
+        class_id: createdClassId,
+        weekday: rule.weekday,
+        start_time: rule.startTime,
+        end_time: rule.endTime,
+        sort_order: rule.sortOrder,
+        is_active: true,
+      })),
+    )
+
+    if (scheduleError) {
+      await supabase.from('classes').delete().eq('id', createdClassId)
+      const mapped = mapCreateClassError(scheduleError.message)
+      return NextResponse.json({ error: mapped.error }, { status: mapped.status })
+    }
+
+    const initialSessions = buildGeneratedSessionsFromRules({
+      classId: createdClassId,
+      yearMonth: getCurrentYearMonth(),
+      rules: scheduleRules,
+    })
+
+    if (initialSessions.length > 0) {
+      const { error: sessionError } = await supabase.from('class_sessions').insert(initialSessions)
+
+      if (sessionError) {
+        await supabase.from('class_schedule_rules').delete().eq('class_id', createdClassId)
+        await supabase.from('classes').delete().eq('id', createdClassId)
+        const mapped = mapCreateClassError(sessionError.message)
+        return NextResponse.json({ error: mapped.error }, { status: mapped.status })
+      }
     }
 
     return NextResponse.json({ data })

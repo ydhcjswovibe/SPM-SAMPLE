@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import { AlertCircle, Loader2, MessageSquarePlus, Plus, Search, Trash2, UserPlus } from 'lucide-react'
 
-import { buildAdminContentHref } from '@/lib/admin/content-selection'
+import { buildAdminDashboardHref } from '@/lib/admin/content-selection'
 import { formatYearMonthLabel, getCurrentYearMonth, isValidYearMonth } from '@/lib/admin/matrix'
 import {
   adminAlertCardClass,
@@ -20,7 +20,6 @@ import {
   adminSurfaceInputClass,
 } from '@/lib/admin/surface'
 import { isAdminRole, normalizeUserRole } from '@/lib/auth/roles'
-import { getCurrentWeekOfMonth } from '@/lib/date-selection'
 import { createClient } from '@/lib/supabase/client'
 import type { Class, EnrollmentLifecycleStatus, PaymentStatus } from '@/lib/types'
 import { AdminMonthSelector } from '@/components/admin-month-selector'
@@ -508,7 +507,6 @@ export default function StudentsPage() {
         paid: enrollments?.filter((item) => item.payment_status).length ?? 0,
       }
     : null
-  const currentWeekNumber = getCurrentWeekOfMonth()
 
   return (
     <div className="flex flex-col">
@@ -571,6 +569,7 @@ export default function StudentsPage() {
               classes={classes || []}
               selectedClass={resolvedSelectedClass}
               onSelect={handleSelectClass}
+              ariaLabel={isDeleteMode ? '삭제할 학생 배정 수업 선택' : '학생 배정 수업 선택'}
               triggerClassName="min-w-0 flex-1 max-w-none sm:min-w-0 sm:max-w-none md:min-w-[10.75rem] md:max-w-[13rem] lg:min-w-[11rem] lg:max-w-[14rem]"
               placeholder={isClassesLoading ? '수업 불러오는 중' : '수업 선택'}
               emptyLabel={hasValidYearMonth ? '활성 수업이 없습니다.' : '먼저 유효한 월을 선택해 주세요.'}
@@ -578,13 +577,13 @@ export default function StudentsPage() {
             <AdminMonthSelector
               value={selectedYearMonth}
               onValueChange={setSelectedYearMonth}
-              aria-label="등록 월 선택"
+              ariaLabel="등록 월 선택"
             />
           </>
         }
       />
 
-      <div className="flex-1 space-y-3 p-4 md:space-y-5 md:px-6 md:pb-5 md:pt-4 lg:px-7 lg:pt-5">
+      <div className="flex-1 space-y-3 p-4 md:space-y-4 md:px-6 md:pb-5 md:pt-3 lg:px-7 lg:pt-4">
         {actionError ? (
           <Card className={adminAlertCardClass('danger')}>
             <CardContent className="py-4 text-sm text-destructive">{actionError}</CardContent>
@@ -780,10 +779,9 @@ export default function StudentsPage() {
                           className="h-8 rounded-full border border-[#dce8cc] bg-white/96 px-2.5 text-xs text-[#314127] shadow-[0_6px_12px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]"
                         >
                           <Link
-                            href={buildAdminContentHref({
+                            href={buildAdminDashboardHref({
                               classId: resolvedSelectedClass.id,
                               yearMonth: selectedYearMonth,
-                              week: currentWeekNumber,
                               studentId: enrollment.student_id,
                             })}
                             aria-label={`${enrollment.profiles.full_name || '학생'} 피드백 입력 열기`}

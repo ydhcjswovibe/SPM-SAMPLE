@@ -42,8 +42,14 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 오너가 `PENDING -> ACTIVE` 승인한 뒤 학생 수업 상세는 같은 `class + month` 키여도 stale status에 머물지 않고 다시 읽혀야 한다
 - 학생 수업 상황판과 빈 상태 문구는 `등록 예정`과 `수강 중`을 서로 다르게 직접 읽을 수 있어야 한다
 - 모바일에서는 matrix가 얇은 학생 카드 + `1~4주` 가로 출석 버튼 구조로 읽히고, 한 화면에서 여러 학생을 훑기 어렵지 않아야 한다
+- desktop에서는 좌상단 brand block과 우측 toolbar가 같은 첫 줄에서 정렬돼 한 shell처럼 읽혀야 한다
+- desktop에서는 `운영 / 학생 / 수업` 이동 축이 상단이 아니라 고정 left sidebar rail로 유지돼야 한다
+- desktop sidebar rail은 viewport 최상단이 아니라 brand block 아래에서 시작해야 한다
+- desktop 본문 workspace는 rail 바깥의 narrower lane 안에 머물고, wide full-bleed처럼 퍼져 보이지 않아야 한다
+- desktop shell 조정 이후에도 mobile `< md` 위치/정렬은 바뀌지 않아야 한다
 - 운영 메인 첫 진입에서는 현재 월과 해당 월 첫 수업이 기본 선택으로 열려야 하고, 월 변경 시에도 선택 수업이 활성 상태면 유지돼야 한다
 - owner class delete mode는 운영 헤더의 `삭제 모드` trigger로 진입되고, `-` 표시된 항목 선택 -> 확인 다이얼로그 -> soft delete로 이어져야 한다
+- 운영 mobile browser smoke에서는 상단 `수업 selector / 월 selector / 메뉴 / 하단탭`이 불투명 surface를 유지하고, matrix/card action이 viewport 안에서 눌릴 크기를 유지해야 한다
 - access-sensitive GET contract stays explicit:
   - anonymous -> `401 AUTH_REQUIRED`
   - signed-in non-admin -> `403 ADMIN_REQUIRED`
@@ -81,11 +87,17 @@ If the package is docs-only, commands are optional; say which source docs or rep
   - missing target -> not-found
 
 ### Weekly notes mutations
-- allowed admin or owner can read and save weekly notes on `/admin/content`
+- allowed admin or owner can read and save weekly notes on `/admin`
 - weekly notes mutation uses the canonical RPC helper directly
-- `/admin/content`는 현재 날짜 기준 주차를 기본 선택으로 열고, `week` deep link가 있으면 그 값을 우선하되 유효 범위 안으로 clamp해야 한다
-- `/admin/students`의 `피드백` action은 notes editor를 복제하지 않고 `/admin/content` 해당 주차/학생 입력칸으로 연결돼야 한다
-- student surface에는 `진행 메모`, `공통 피드백`, `내 피드백`만 보이고, 운영 내부메모는 어떤 학생 DOM/API payload에도 노출되면 안 된다
+- `/admin` first entry must open a single student-by-week attendance board on both mobile and desktop
+- `/admin`에는 visible `출석 / 피드백` 모드 전환이 남아 있으면 안 된다
+- `/admin/content`는 실제 session이 있는 월이면 그 session이 속한 주차를 기본 선택으로 열어야 하고, `week` deep link는 실제 존재하는 weekNumber에만 맞춰야 한다
+- `/admin/content`는 media-only surface여야 하며, notes/피드백 편집 textarea가 남아 있으면 안 된다
+- `/admin/students`의 `피드백` action은 notes editor를 복제하지 않고 `/admin` 해당 학생/주차 sheet로 연결돼야 한다
+- 주차 헤더 옆 icon-only button은 `주차별 운영 메모` sheet만 열어야 하고, 학생-주차 메모 icon은 `학생 메모 + 학생 reply read-only`만 보여야 한다
+- 주차 헤더에는 큰 카드 strip이나 `운영` 텍스트 버튼이 남아 있으면 안 된다
+- student surface에는 `개별 피드백`과 `reply slot`만 보이고, 주차별 수업 피드백이나 hidden legacy notes는 어떤 학생 DOM/API payload에도 노출되면 안 된다
+- `/admin` 학생 메모 sheet에는 학생의 `reply slot`이 read-only로 함께 보여야 한다
 - denied outcomes stay distinguishable:
   - anonymous -> auth-required
   - signed-in non-admin -> admin-required
@@ -118,6 +130,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - legacy `/student/class/[classId]?yearMonth=...` deep link는 새 `수업` route contract로 정규화되어야 한다
 - `홈`과 `수업`은 같은 `classId + yearMonth` selection key를 공유해야 하고, `홈 -> 수업` 이동 뒤에도 선택이 바뀌지 않아야 한다
 - 기존 최상단 헤더 바의 수업/월 선택 control에서 다른 월별 수업으로 바꾸면 `수업` 탭 안의 주차 콘텐츠가 함께 바뀌어야 한다
+- 실제 session이 있는 월이면 student `수업` 탭 기본 주차는 실제 수업 날짜를 따라야 하고, 없는 legacy 월만 기존 주차 fallback을 쓴다
 - 학생 상단 헤더는 전 탭에서 `캐릭터 / 수업 selector / YY.MM 월 selector / 메뉴`가 한 줄에서 바로 보여야 하고, 숨겨진 가로 스크롤에 의존하지 않아야 한다
 - 학생 상단 헤더는 뒤판 plate와 본체 bar가 구분되어 배경과 한 덩어리로 붙어 보이지 않아야 한다
 - `홈` 탭과 `수업` 탭은 역할이 겹치지 않아야 한다:
@@ -140,7 +153,8 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - student 선택 영상의 전체화면 버튼은 fullscreen 진입을 시도하고, 종료 뒤에도 같은 주차/영상 맥락으로 자연스럽게 복귀해야 한다
 - student weekly image는 여러 건일 때 한 줄 가로 스크롤로 훑히고, snap 없이 엉키지 않아야 한다
 - student 이미지 카드는 tap/click으로 확대 다이얼로그가 열리고, 닫은 뒤 주차 맥락으로 자연스럽게 돌아와야 한다
-- student `수업` 탭 본문은 주차 제목/상태 badge/helper를 반복하지 않고, ready media 뒤에 `진행 메모`, `공통 피드백`, `내 피드백`만 이어서 보여 줘야 한다
+- student `수업` 탭 본문은 주차 제목/상태 badge/helper를 반복하지 않고, ready media 뒤에 `개별 피드백`만 이어서 보여 줘야 한다
+- 피드백이 있는 주차에서는 학생이 `reply slot`을 저장/수정/비우기 할 수 있어야 하고, 다른 학생 reply나 운영 내부메모는 노출되면 안 된다
 - 학생 홈 상황판과 내상태 요약 카드는 불필요한 세로 부피 없이 한 화면에서 핵심 상태를 빠르게 읽을 수 있어야 한다
 - 학생 하단 탭은 icon-only로 낮아져도 active tab이 색/배경만으로 즉시 구분되고, touch target과 safe area 여백이 유지돼야 한다
 - CTA labels match the real action:
@@ -162,6 +176,23 @@ If the package is docs-only, commands are optional; say which source docs or rep
     - and at least one failure or retry-recovery case when that path was claimed
     - the observed UI matched the claimed running / saved / error feedback
 - if no interactive mutation was executed, keep the result `source-backed` only and do not report it as runtime-proven
+
+### Admin mobile attendance shell
+- `/admin` mobile 출석부는 `이름 + 결제 + 1~4주 컨트롤` 조밀한 리스트 구조로 보여야 한다
+- 같은 기준은 desktop에서도 `학생 행 + 주차 열` 운영판으로 이어져야 한다
+- 출석부 상단에는 `출석부` 제목과 우상단 icon action(`CSV`, `필터`)만 남아야 하고, helper text / wide export button / fallback notice box가 고정 노출되면 안 된다
+- mobile/desktop 모두 학생-주차 셀은 `원터치 출석 버튼 + 옆 작은 메모 칩` 구조여야 한다
+- 원터치 출석 버튼은 해당 주의 실제 수업 날짜 전체를 한 번에 `출석 / 결석`으로 토글해야 한다
+- 체크되지 않은 값은 operator UI에서 `결석`으로 읽혀야 하고, admin board에는 별도 `pending` state가 남아 있으면 안 된다
+- `지난 실제 수업 주차 결석`은 red tone으로, `현재/미래 미체크`는 neutral tone으로 구분돼야 한다
+- 학생 메모 칩은 `메모 있음 / 답글 도착` 상태를 tint로 구분하면서도 32px 이상 tap target을 유지해야 한다
+- 주차별 운영 메모는 `1주 / 2주 / 3주 / 4주` 헤더 옆의 작은 icon-only button으로만 열려야 한다
+- desktop에서는 주차 라벨 hover에만 날짜+요일 tooltip이 보이고, mobile에서는 sheet 안에서만 날짜+요일이 보여야 한다
+- 학생 리스트 row, 출석 버튼, 메모 칩, 주차 헤더 note icon은 pressed/open/saving 상태에서도 반투명해 보이면 안 된다
+- attendance icon은 모든 상태에서 실제로 보여야 하고, week auto-focus와 필터 상태가 즉시 구분돼야 한다
+- `class_sessions`가 있는 월에서는 버튼 라벨과 tab label이 실제 날짜 range와 일치해야 한다
+- `class_sessions`가 없는 legacy 월에서도 같은 출석부 surface로 열려야 하고, main surface에 legacy fallback 설명 박스를 새로 띄우지 않아야 한다
+- 우상단 필터 메뉴에는 `답글 도착만`만 남아 있어야 하고, 기존 filter chip strip는 없어야 한다
 
 ### Route-local copy / state alignment
 - touched labels, helper text, status chips, and empty/error copy must match the real reachable state in the touched block
@@ -200,6 +231,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - `/auth/login`은 localhost에서만 `오너 / 운영 / 학생` 원클릭 QA 로그인 표면을 보여 줄 수 있다
 - weekly media + notes allowed-session smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:weekly-media-runtime`로 재현할 수 있어야 한다
 - student weekly media browser smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:student-browser-smoke`로 재현할 수 있어야 한다
+- admin mobile browser smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:admin-mobile-browser`로 재현할 수 있어야 한다
 - auth / wrong-role / self-profile route smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:route-guards`로 재현할 수 있어야 한다
 - enrollment create/status/delete smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:enrollment-runtime`로 재현할 수 있어야 한다
 - connected Supabase helper drift는 `npm run verify:enrollment-rpc-presence`로 먼저 확인한다

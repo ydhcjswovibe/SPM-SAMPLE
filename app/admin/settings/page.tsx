@@ -9,6 +9,7 @@ import { useTheme } from 'next-themes'
 import { createClient } from '@/lib/supabase/client'
 import { getRoleLabel } from '@/lib/auth/roles'
 import type { Profile } from '@/lib/types'
+import { AdminShellHeader } from '@/components/admin-shell-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -68,6 +69,12 @@ export default function SettingsPage() {
 
   const savedName = profile?.full_name ?? ''
   const hasPendingNameChange = fullName.trim() !== savedName
+  const desktopLead = (
+    <div className="min-w-0">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7f8b69]">계정</div>
+      <div className="mt-1 text-[1.05rem] font-semibold text-[#314127]">설정</div>
+    </div>
+  )
 
   useEffect(() => {
     if (profile) {
@@ -118,11 +125,12 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col">
-        <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
           <div className="flex h-14 items-center px-4 md:px-6">
             <h1 className="font-semibold text-lg">설정</h1>
           </div>
         </header>
+        <AdminShellHeader className="hidden md:block" desktopLead={desktopLead} />
 
         <div className="flex flex-1 items-center justify-center px-4 text-center">
           <div className="space-y-3">
@@ -140,13 +148,14 @@ export default function SettingsPage() {
 
     return (
       <div className="flex flex-col">
-        <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
           <div className="flex h-14 items-center px-4 md:px-6">
             <h1 className="font-semibold text-lg">설정</h1>
           </div>
         </header>
+        <AdminShellHeader className="hidden md:block" desktopLead={desktopLead} />
 
-        <div className="flex-1 p-4 md:p-6">
+        <div className="flex-1 p-4 md:px-6 md:pb-5 md:pt-3 lg:px-7 lg:pt-4">
           <Card className="mx-auto max-w-lg border-destructive/30 bg-destructive/5">
             <CardHeader>
               <CardTitle className="text-base text-destructive">설정을 열 수 없습니다.</CardTitle>
@@ -173,13 +182,14 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
         <div className="flex h-14 items-center px-4 md:px-6">
           <h1 className="font-semibold text-lg">설정</h1>
         </div>
       </header>
+      <AdminShellHeader className="hidden md:block" desktopLead={desktopLead} />
 
-      <div className="flex-1 space-y-6 p-4 md:p-6">
+      <div className="flex-1 space-y-6 p-4 md:space-y-5 md:px-6 md:pb-5 md:pt-3 lg:px-7 lg:pt-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">내 계정</CardTitle>

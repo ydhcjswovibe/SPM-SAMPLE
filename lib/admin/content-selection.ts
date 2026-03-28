@@ -1,4 +1,4 @@
-export function buildAdminContentHref(args: {
+function buildAdminSelectionQuery(args: {
   classId?: string | null
   yearMonth?: string | null
   week?: number | string | null
@@ -22,6 +22,25 @@ export function buildAdminContentHref(args: {
     params.set('studentId', args.studentId)
   }
 
-  const query = params.toString()
+  return params.toString()
+}
+
+export function buildAdminContentHref(args: {
+  classId?: string | null
+  yearMonth?: string | null
+  week?: number | string | null
+  studentId?: string | null
+}) {
+  const query = buildAdminSelectionQuery(args)
   return query ? `/admin/content?${query}` : '/admin/content'
+}
+
+export function buildAdminDashboardHref(args: {
+  classId?: string | null
+  yearMonth?: string | null
+  week?: number | string | null
+  studentId?: string | null
+}) {
+  const query = buildAdminSelectionQuery(args)
+  return query ? `/admin?${query}` : '/admin'
 }

@@ -6,9 +6,9 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { AlertCircle, Loader2, RefreshCcw } from 'lucide-react'
 
-import type { AdminWeeklyNotesState } from '@/lib/admin/weekly-notes'
 import { buildAdminContentHref } from '@/lib/admin/content-selection'
-import { clampWeekNumber, getCurrentYearMonth, resolveDefaultWeekNumber } from '@/lib/date-selection'
+import { getCurrentYearMonth, resolveDefaultWeekNumber } from '@/lib/date-selection'
+import { resolveDefaultWeekNumberFromSessions } from '@/lib/class-schedule'
 import {
   adminAlertCardClass,
   adminCompactButtonClass,
@@ -24,7 +24,6 @@ import { AdminShellHeader } from '@/components/admin-shell-header'
 import { AdminHeaderActionMenu } from '@/components/admin-header-action-menu'
 import { ClassSelector } from '@/components/class-selector'
 import { WeekContentEditor } from '@/components/week-content-editor'
-import { WeekNotesEditor } from '@/components/week-notes-editor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
@@ -161,25 +160,6 @@ async function fetchWeeklyMediaState(classId: string, yearMonth: string): Promis
   return payload.data
 }
 
-async function fetchWeeklyNotesState(classId: string, yearMonth: string): Promise<AdminWeeklyNotesState> {
-  const searchParams = new URLSearchParams({
-    classId,
-    yearMonth,
-  })
-
-  const response = await fetch(`/api/admin/weekly-notes?${searchParams.toString()}`, {
-    credentials: 'include',
-    cache: 'no-store',
-  })
-
-  if (!response.ok) {
-    throw new Error(getFriendlyRouteError(await readRouteError(response)))
-  }
-
-  const payload = (await response.json()) as { data: AdminWeeklyNotesState }
-  return payload.data
-}
-
 export default function ContentPage() {
   const pathname = usePathname()
   const router = useRouter()
@@ -187,7 +167,6 @@ export default function ContentPage() {
   const currentSearch = searchParams.toString()
   const requestedClassId = searchParams.get('classId')
   const requestedYearMonth = searchParams.get('yearMonth')
-  const requestedStudentId = searchParams.get('studentId')
   const requestedWeekParam = searchParams.get('week')
   const [selectedClassId, setSelectedClassId] = useState<string | null>(requestedClassId)
   const [selectedYearMonth, setSelectedYearMonth] = useState(
@@ -238,31 +217,29 @@ export default function ContentPage() {
       : null,
     ([, classId, yearMonth]) => fetchWeeklyMediaState(classId, yearMonth),
   )
-  const {
-    data: notesState,
-    error: notesError,
-    isLoading: isNotesLoading,
-    mutate: mutateNotesState,
-  } = useSWR(
-    resolvedSelectedClass && hasValidYearMonth
-      ? ['admin-weekly-notes', resolvedSelectedClass.id, selectedYearMonth]
-      : null,
-    ([, classId, yearMonth]) => fetchWeeklyNotesState(classId, yearMonth),
-  )
   const visibleWeekCount = mediaState ? getVisibleWeekCount(mediaState.weeks.length, mediaState.weeks.length) : 0
-  const resolvedVisibleWeekCount = visibleWeekCount || notesState?.weeks.length || 0
+  const resolvedVisibleWeekCount = visibleWeekCount
   const requestedWeek = parseRequestedWeek(activeWeek)
+  const availableWeekNumbers = mediaState?.weeks.map((week) => week.weekNumber) ?? []
+  const defaultWeekNumber =
+    mediaState?.weeks.length
+      ? resolveDefaultWeekNumberFromSessions(
+          mediaState.weeks.map((week) => ({
+            weekNumber: week.weekNumber,
+            sessions: week.sessions.map((session) => ({ sessionDate: session.sessionDate })),
+          })),
+          selectedYearMonth,
+        ) ?? mediaState.weeks[0]?.weekNumber ?? null
+      : availableWeekNumbers[0] ?? null
   const resolvedActiveWeek =
-    resolvedVisibleWeekCount > 0
+    availableWeekNumbers.length > 0
       ? String(
-          requestedWeek
-            ? clampWeekNumber(requestedWeek, resolvedVisibleWeekCount)
-            : resolveDefaultWeekNumber(resolvedVisibleWeekCount),
+          requestedWeek && availableWeekNumbers.includes(requestedWeek)
+            ? requestedWeek
+            : defaultWeekNumber ?? availableWeekNumbers[0],
         )
       : String(resolveDefaultWeekNumber())
-  const notesErrorMessage = getKnownClientMessage(notesError, '운영 메모를 불러오지 못했습니다.')
-  const isWeeklyStateLoading =
-    (isMediaLoading && !mediaState) || (resolvedSelectedClass !== null && isNotesLoading && !notesState)
+  const isWeeklyStateLoading = isMediaLoading && !mediaState
 
   useEffect(() => {
     if (!resolvedSelectedClass || !hasValidYearMonth || resolvedVisibleWeekCount === 0) {
@@ -273,7 +250,6 @@ export default function ContentPage() {
       classId: resolvedSelectedClass.id,
       yearMonth: selectedYearMonth,
       week: resolvedActiveWeek,
-      studentId: requestedStudentId,
     })
     const currentHref = currentSearch ? `${pathname}?${currentSearch}` : pathname
 
@@ -283,7 +259,6 @@ export default function ContentPage() {
   }, [
     hasValidYearMonth,
     pathname,
-    requestedStudentId,
     resolvedActiveWeek,
     resolvedSelectedClass,
     resolvedVisibleWeekCount,
@@ -321,33 +296,6 @@ export default function ContentPage() {
     })
 
     await mutateMediaState()
-  }
-
-  async function handleSaveNotes(
-    weekNumber: number,
-    payload: {
-      progressText: string
-      sharedFeedbackText: string
-      adminNoteText: string
-      memberFeedbackByStudentId: Record<string, string>
-    },
-  ) {
-    if (!resolvedSelectedClass) return
-
-    await requestJson('/api/admin/weekly-notes', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        classId: resolvedSelectedClass.id,
-        yearMonth: selectedYearMonth,
-        weekNumber,
-        ...payload,
-      }),
-    })
-
-    await Promise.all([mutateNotesState(), mutateMediaState()])
   }
 
   async function handleUpdateVideo(mediaId: string, url: string) {
@@ -405,8 +353,8 @@ export default function ContentPage() {
         controlsClassName="md:flex-nowrap"
         mobileActionMenu={
           <DropdownMenuItem
-            onSelect={() => void Promise.all([mutateMediaState(), mutateNotesState()])}
-            disabled={!resolvedSelectedClass || !hasValidYearMonth || isMediaLoading || isNotesLoading}
+            onSelect={() => void mutateMediaState()}
+            disabled={!resolvedSelectedClass || !hasValidYearMonth || isMediaLoading}
             className={adminDropdownItemClass}
           >
             <RefreshCcw className="h-4 w-4" />
@@ -416,8 +364,8 @@ export default function ContentPage() {
         desktopSecondaryActions={
           <AdminHeaderActionMenu label="작업">
             <DropdownMenuItem
-              onSelect={() => void Promise.all([mutateMediaState(), mutateNotesState()])}
-              disabled={!resolvedSelectedClass || !hasValidYearMonth || isMediaLoading || isNotesLoading}
+              onSelect={() => void mutateMediaState()}
+              disabled={!resolvedSelectedClass || !hasValidYearMonth || isMediaLoading}
               className={adminDropdownItemClass}
             >
               <RefreshCcw className="h-4 w-4" />
@@ -430,6 +378,7 @@ export default function ContentPage() {
             <ClassSelector
               classes={classes ?? []}
               selectedClass={resolvedSelectedClass}
+              ariaLabel="콘텐츠 수업 선택"
               triggerClassName="min-w-0 flex-1 max-w-none sm:min-w-0 sm:max-w-none md:min-w-[10.75rem] md:max-w-[13rem] lg:min-w-[11rem] lg:max-w-[14rem]"
               onSelect={(classItem) => {
                 setSelectedClassId(classItem.id)
@@ -442,13 +391,13 @@ export default function ContentPage() {
                 setSelectedYearMonth(value)
                 setActiveWeek(null)
               }}
-              aria-label="콘텐츠 월 선택"
+              ariaLabel="콘텐츠 월 선택"
             />
           </>
         }
       />
 
-      <div className="flex-1 space-y-6 p-4 md:space-y-5 md:px-6 md:pb-5 md:pt-4 lg:px-7 lg:pt-5">
+      <div className="flex-1 space-y-6 p-4 md:space-y-4 md:px-6 md:pb-5 md:pt-3 lg:px-7 lg:pt-4">
         {classError ? (
           <Card className={adminAlertCardClass('danger')}>
             <CardContent className="space-y-3 py-4 text-sm text-destructive">
@@ -526,7 +475,7 @@ export default function ContentPage() {
               <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
-                  선택한 클래스의 주차 콘텐츠와 메모를 불러오는 중입니다.
+                  선택한 클래스의 주차 콘텐츠를 불러오는 중입니다.
                 </p>
               </div>
             ) : mediaError ? (
@@ -541,17 +490,6 @@ export default function ContentPage() {
               </div>
             ) : mediaState ? (
               <div className="space-y-4">
-                {notesError ? (
-                  <Card className={adminAlertCardClass('danger')}>
-                    <CardContent className="space-y-3 py-4 text-sm text-destructive">
-                      <p>{notesErrorMessage}</p>
-                      <Button variant="ghost" size="sm" onClick={() => void mutateNotesState()} className={adminCompactButtonClass}>
-                        운영 메모 다시 불러오기
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : null}
-
                 <Tabs value={resolvedActiveWeek} onValueChange={setActiveWeek}>
                   <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto bg-transparent p-0">
                     {mediaState.weeks.map((week) => {
@@ -563,15 +501,15 @@ export default function ContentPage() {
                         >
                           <div className="flex flex-col items-start gap-0.5 text-left">
                             <span>{week.weekNumber}주차</span>
-                            <span className="text-[11px] opacity-70">{getWeekStatusLabel(week)}</span>
+                            <span className="text-[11px] opacity-70">
+                              {week.sessionRangeLabel ?? getWeekStatusLabel(week)}
+                            </span>
                           </div>
                         </TabsTrigger>
                       )
                     })}
                   </TabsList>
                   {mediaState.weeks.map((week) => {
-                    const notesWeek = notesState?.weeks.find((item) => item.weekNumber === week.weekNumber) ?? null
-
                     return (
                       <TabsContent
                         key={week.weekNumber}
@@ -586,14 +524,6 @@ export default function ContentPage() {
                           onDeleteMedia={handleDeleteMedia}
                           onUploadImage={(file, mediaId) => handleUploadImage(week.weekNumber, file, mediaId)}
                         />
-                        {notesWeek && notesState ? (
-                          <WeekNotesEditor
-                            week={notesWeek}
-                            students={notesState.students}
-                            focusStudentId={requestedStudentId}
-                            onSave={(payload) => handleSaveNotes(week.weekNumber, payload)}
-                          />
-                        ) : null}
                       </TabsContent>
                     )
                   })}

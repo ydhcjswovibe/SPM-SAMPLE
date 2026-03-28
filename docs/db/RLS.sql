@@ -8,9 +8,13 @@
 -- =========================================================
 alter table profiles enable row level security;
 alter table classes enable row level security;
+alter table class_schedule_rules enable row level security;
+alter table class_sessions enable row level security;
+alter table session_attendance enable row level security;
 alter table enrollments enable row level security;
 alter table feedback_presets enable row level security;
 alter table class_logs enable row level security;
+alter table student_week_feedback_replies enable row level security;
 alter table media enable row level security;
 alter table storage.objects enable row level security;
 
@@ -96,6 +100,23 @@ as $$
   );
 $$;
 
+create or replace function public.is_student_of_class_month(target_class_id uuid, target_year_month text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.enrollments e
+    where e.class_id = target_class_id
+      and e.year_month = target_year_month
+      and e.student_id = auth.uid()
+      and e.status in ('ACTIVE', 'PENDING')
+  );
+$$;
+
 -- =========================================================
 -- Drop legacy policies before recreating current truth
 -- =========================================================
@@ -107,6 +128,21 @@ drop policy if exists "classes_select_by_role" on classes;
 drop policy if exists "classes_insert_owner_only" on classes;
 drop policy if exists "classes_update_owner_only" on classes;
 drop policy if exists "classes_delete_owner_only" on classes;
+
+drop policy if exists "class_schedule_rules_select_by_role" on class_schedule_rules;
+drop policy if exists "class_schedule_rules_insert_owner_only" on class_schedule_rules;
+drop policy if exists "class_schedule_rules_update_owner_only" on class_schedule_rules;
+drop policy if exists "class_schedule_rules_delete_owner_only" on class_schedule_rules;
+
+drop policy if exists "class_sessions_select_by_role" on class_sessions;
+drop policy if exists "class_sessions_insert_admin_or_owner" on class_sessions;
+drop policy if exists "class_sessions_update_admin_or_owner" on class_sessions;
+drop policy if exists "class_sessions_delete_admin_or_owner" on class_sessions;
+
+drop policy if exists "session_attendance_select_by_role" on session_attendance;
+drop policy if exists "session_attendance_insert_admin_or_owner" on session_attendance;
+drop policy if exists "session_attendance_update_admin_or_owner" on session_attendance;
+drop policy if exists "session_attendance_delete_admin_or_owner" on session_attendance;
 
 drop policy if exists "enrollments_select_by_role" on enrollments;
 drop policy if exists "enrollments_insert_admin_or_owner" on enrollments;
@@ -122,6 +158,11 @@ drop policy if exists "class_logs_select_by_role" on class_logs;
 drop policy if exists "class_logs_insert_admin_or_owner" on class_logs;
 drop policy if exists "class_logs_update_admin_or_owner" on class_logs;
 drop policy if exists "class_logs_delete_owner_only" on class_logs;
+
+drop policy if exists "student_week_feedback_replies_select_by_role" on student_week_feedback_replies;
+drop policy if exists "student_week_feedback_replies_insert_self" on student_week_feedback_replies;
+drop policy if exists "student_week_feedback_replies_update_self" on student_week_feedback_replies;
+drop policy if exists "student_week_feedback_replies_delete_self_or_admin" on student_week_feedback_replies;
 
 drop policy if exists "media_select_by_role" on media;
 drop policy if exists "media_insert_admin_or_owner" on media;
@@ -196,6 +237,107 @@ on classes
 for delete
 using (
   public.is_owner()
+);
+
+-- =========================================================
+-- Class schedule rules / sessions policies
+-- =========================================================
+
+create policy "class_schedule_rules_select_by_role"
+on class_schedule_rules
+for select
+using (
+  public.is_admin_or_owner()
+  or public.is_class_instructor(class_id)
+);
+
+create policy "class_schedule_rules_insert_owner_only"
+on class_schedule_rules
+for insert
+with check (
+  public.is_owner()
+);
+
+create policy "class_schedule_rules_update_owner_only"
+on class_schedule_rules
+for update
+using (
+  public.is_owner()
+)
+with check (
+  public.is_owner()
+);
+
+create policy "class_schedule_rules_delete_owner_only"
+on class_schedule_rules
+for delete
+using (
+  public.is_owner()
+);
+
+create policy "class_sessions_select_by_role"
+on class_sessions
+for select
+using (
+  public.is_admin_or_owner()
+  or public.is_class_instructor(class_id)
+  or public.is_student_of_class_month(class_id, year_month)
+);
+
+create policy "class_sessions_insert_admin_or_owner"
+on class_sessions
+for insert
+with check (
+  public.is_admin_or_owner()
+);
+
+create policy "class_sessions_update_admin_or_owner"
+on class_sessions
+for update
+using (
+  public.is_admin_or_owner()
+)
+with check (
+  public.is_admin_or_owner()
+);
+
+create policy "class_sessions_delete_admin_or_owner"
+on class_sessions
+for delete
+using (
+  public.is_admin_or_owner()
+);
+
+create policy "session_attendance_select_by_role"
+on session_attendance
+for select
+using (
+  public.is_admin_or_owner()
+  or student_id = auth.uid()
+);
+
+create policy "session_attendance_insert_admin_or_owner"
+on session_attendance
+for insert
+with check (
+  public.is_admin_or_owner()
+);
+
+create policy "session_attendance_update_admin_or_owner"
+on session_attendance
+for update
+using (
+  public.is_admin_or_owner()
+)
+with check (
+  public.is_admin_or_owner()
+);
+
+create policy "session_attendance_delete_admin_or_owner"
+on session_attendance
+for delete
+using (
+  public.is_admin_or_owner()
 );
 
 -- =========================================================
@@ -306,6 +448,46 @@ on class_logs
 for delete
 using (
   public.is_owner()
+);
+
+-- =========================================================
+-- Student weekly feedback reply policies
+-- =========================================================
+
+create policy "student_week_feedback_replies_select_by_role"
+on student_week_feedback_replies
+for select
+using (
+  public.is_admin_or_owner()
+  or public.is_class_instructor(class_id)
+  or student_id = auth.uid()
+);
+
+create policy "student_week_feedback_replies_insert_self"
+on student_week_feedback_replies
+for insert
+with check (
+  student_id = auth.uid()
+  and public.is_student_of_class_month(class_id, year_month)
+);
+
+create policy "student_week_feedback_replies_update_self"
+on student_week_feedback_replies
+for update
+using (
+  student_id = auth.uid()
+)
+with check (
+  student_id = auth.uid()
+  and public.is_student_of_class_month(class_id, year_month)
+);
+
+create policy "student_week_feedback_replies_delete_self_or_admin"
+on student_week_feedback_replies
+for delete
+using (
+  public.is_admin_or_owner()
+  or student_id = auth.uid()
 );
 
 -- =========================================================

@@ -226,6 +226,7 @@ export function WeekContentEditor({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span>{formatYearMonthLabel(yearMonth)} / {week.weekNumber}주차</span>
+        {week.sessionRangeLabel ? <span>{week.sessionRangeLabel}</span> : null}
         <span className="hidden sm:inline">영상은 YouTube 링크로만 연결합니다.</span>
       </div>
 

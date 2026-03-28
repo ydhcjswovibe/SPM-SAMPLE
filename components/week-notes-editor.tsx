@@ -240,6 +240,14 @@ export function WeekNotesEditor({
                     placeholder={`${student.fullName} 학생에게만 보일 피드백을 적어 주세요.`}
                     className="min-h-20 rounded-[1.1rem] border-[#dce8cc] bg-white/96"
                   />
+                  <div className="mt-2 rounded-[1.05rem] border border-[#e5ead9] bg-white/90 px-3 py-2.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7d8a6e]">
+                      학생 답글
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-[#58664d]">
+                      {week.studentReplyByStudentId[student.id] ?? '아직 남긴 답글이 없습니다.'}
+                    </p>
+                  </div>
                 </div>
               )
             })}

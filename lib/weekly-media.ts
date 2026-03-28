@@ -1,5 +1,15 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+import {
+  buildSessionWeekGroups,
+  ensureClassSessionsForMonth,
+  formatSessionDateLabel,
+  formatSessionTimeRangeLabel,
+  formatWeekSessionRangeLabel,
+  normalizeSessionRows,
+  resolveDefaultWeekNumberFromSessions,
+} from '@/lib/class-schedule'
+import type { ClassSessionRow } from '@/lib/class-schedule'
 import type { Class } from '@/lib/types'
 
 export const DEFAULT_CLASS_WEEKS = 4
@@ -44,14 +54,25 @@ export interface WeeklyMediaBucket<TReady> {
 export interface WeeklyMediaWeek {
   weekNumber: number
   logId: string | null
+  sessionRangeLabel: string | null
+  sessions: WeeklySessionSummary[]
   progressText: string | null
   reflectionText: string | null
   sharedFeedbackText: string | null
   privateFeedbackText: string | null
-  attendanceStatus: 'present' | 'absent' | 'pending'
+  studentReplyText: string | null
+  attendanceStatus: 'present' | 'absent' | 'pending' | 'excused'
   attendanceChecked: boolean
   video: WeeklyMediaBucket<ReadyVideoItem>
   image: WeeklyMediaBucket<ReadyImageItem>
+}
+
+export interface WeeklySessionSummary {
+  sessionId: string
+  sessionDate: string
+  label: string
+  timeLabel: string | null
+  attendanceStatus: 'present' | 'absent' | 'pending' | 'excused'
 }
 
 type DbClassRow = {
@@ -72,6 +93,31 @@ type ClassLogRow = {
   attendance_data: Record<string, boolean> | null
   member_feedback: Record<string, string> | null
   media: MediaRelation
+}
+
+type SessionAttendanceRow = {
+  session_id: string
+  student_id: string
+  status: 'present' | 'absent' | 'pending' | 'excused' | null
+}
+
+type StudentReplyRow = {
+  class_id: string
+  student_id: string
+  year_month: string
+  week_number: number | null
+  reply_text: string | null
+}
+
+type RawSessionRow = {
+  id: string
+  class_id: string
+  year_month: string
+  week_number: number
+  session_date: string
+  start_time: string
+  end_time: string | null
+  source: 'RULE' | 'MANUAL' | 'LEGACY' | null
 }
 
 type EnrollmentRow = {
@@ -104,6 +150,7 @@ export interface StudentClassDetail {
   yearMonth: string
   enrollmentStatus: 'ACTIVE' | 'PENDING'
   paymentStatus: boolean
+  defaultWeekNumber: number | null
   weeks: WeeklyMediaWeek[]
 }
 
@@ -307,26 +354,49 @@ export function resolveWeeklyImageItems(rows: MediaRow[]) {
 }
 
 function buildWeeklyMediaWeek(
-  log: ClassLogRow | null,
-  weekNumber: number,
-  userId: string | null,
+  args: {
+    log: ClassLogRow | null
+    weekNumber: number
+    userId: string | null
+    sessions?: ClassSessionRow[]
+    sessionAttendanceById?: Map<string, SessionAttendanceRow['status']>
+    studentReplyText?: string | null
+  },
 ): WeeklyMediaWeek {
-  const rows = toMediaRows(log?.media ?? null)
+  const rows = toMediaRows(args.log?.media ?? null)
   const video = resolveWeeklyVideoItems(rows)
   const image = resolveWeeklyImageItems(rows)
 
-  const attendanceValue = userId ? log?.attendance_data?.[userId] : undefined
+  const attendanceValue = args.userId ? args.log?.attendance_data?.[args.userId] : undefined
+  const sessions = args.sessions ?? []
+  const sessionStatuses = sessions.map(
+    (session) => args.sessionAttendanceById?.get(session.id) ?? 'pending',
+  )
+
+  const attendanceStatus =
+    sessionStatuses.find((status) => status === 'present')
+      ?? sessionStatuses.find((status) => status === 'excused')
+      ?? sessionStatuses.find((status) => status === 'absent')
+      ?? (attendanceValue === true ? 'present' : attendanceValue === false ? 'absent' : 'pending')
 
   return {
-    weekNumber,
-    logId: log?.id ?? null,
-    progressText: trimNullableText(log?.progress ?? null),
-    reflectionText: trimNullableText(log?.reflection ?? null),
-    sharedFeedbackText: trimNullableText(log?.reflection ?? null),
-    privateFeedbackText: userId ? trimNullableText(log?.member_feedback?.[userId] ?? null) : null,
-    attendanceStatus:
-      attendanceValue === true ? 'present' : attendanceValue === false ? 'absent' : 'pending',
-    attendanceChecked: attendanceValue === true,
+    weekNumber: args.weekNumber,
+    logId: args.log?.id ?? null,
+    sessionRangeLabel: formatWeekSessionRangeLabel(sessions),
+    sessions: sessions.map((session) => ({
+      sessionId: session.id,
+      sessionDate: session.sessionDate,
+      label: formatSessionDateLabel(session.sessionDate),
+      timeLabel: formatSessionTimeRangeLabel(session.startTime, session.endTime),
+      attendanceStatus: args.sessionAttendanceById?.get(session.id) ?? 'pending',
+    })),
+    progressText: null,
+    reflectionText: null,
+    sharedFeedbackText: null,
+    privateFeedbackText: args.userId ? trimNullableText(args.log?.member_feedback?.[args.userId] ?? null) : null,
+    studentReplyText: trimNullableText(args.studentReplyText ?? null),
+    attendanceStatus,
+    attendanceChecked: sessionStatuses.length > 0 ? sessionStatuses.some((status) => status === 'present' || status === 'excused') : attendanceValue === true,
     video,
     image,
   }
@@ -336,15 +406,47 @@ function hasReadyStudentLessonMedia(week: WeeklyMediaWeek) {
   return week.video.items.length > 0 || week.image.items.length > 0
 }
 
-function buildStudentLessonWeeks(logs: ClassLogRow[], userId: string) {
+function buildStudentLessonWeeks(args: {
+  logs: ClassLogRow[]
+  userId: string
+  sessions?: ClassSessionRow[] | null
+  sessionAttendanceById?: Map<string, SessionAttendanceRow['status']>
+  replyByWeek?: Map<number, string>
+}) {
   const logByWeek = new Map(
-    logs
+    args.logs
       .filter((log) => typeof log.week_number === 'number')
       .map((log) => [log.week_number as number, log]),
   )
+  const sessionGroups = args.sessions ? buildSessionWeekGroups(args.sessions) : []
+
+  if (sessionGroups.length > 0) {
+    const weekNumbers = Array.from(
+      new Set([
+        ...sessionGroups.map((week) => week.weekNumber),
+        ...Array.from(logByWeek.keys()),
+      ]),
+    ).sort((left, right) => left - right)
+
+    return weekNumbers.map((weekNumber) =>
+      buildWeeklyMediaWeek({
+        log: logByWeek.get(weekNumber) ?? null,
+        weekNumber,
+        userId: args.userId,
+        sessions: sessionGroups.find((week) => week.weekNumber === weekNumber)?.sessions ?? [],
+        sessionAttendanceById: args.sessionAttendanceById,
+        studentReplyText: args.replyByWeek?.get(weekNumber) ?? null,
+      }),
+    )
+  }
 
   const allWeeks = buildVisibleWeekNumbers(MAX_CLASS_WEEKS, DEFAULT_CLASS_WEEKS).map((weekNumber) =>
-    buildWeeklyMediaWeek(logByWeek.get(weekNumber) ?? null, weekNumber, userId),
+    buildWeeklyMediaWeek({
+      log: logByWeek.get(weekNumber) ?? null,
+      weekNumber,
+      userId: args.userId,
+      studentReplyText: args.replyByWeek?.get(weekNumber) ?? null,
+    }),
   )
 
   const weekFive = allWeeks.find((week) => week.weekNumber === MAX_CLASS_WEEKS) ?? null
@@ -352,6 +454,66 @@ function buildStudentLessonWeeks(logs: ClassLogRow[], userId: string) {
   return weekFive && hasReadyStudentLessonMedia(weekFive)
     ? allWeeks
     : allWeeks.slice(0, DEFAULT_CLASS_WEEKS)
+}
+
+async function readStudentRepliesByWeek(
+  supabase: SupabaseClient,
+  classId: string,
+  yearMonth: string,
+  userId: string,
+) {
+  const { data, error } = await supabase
+    .from('student_week_feedback_replies')
+    .select('class_id, student_id, year_month, week_number, reply_text')
+    .eq('class_id', classId)
+    .eq('year_month', yearMonth)
+    .eq('student_id', userId)
+    .order('week_number', { ascending: true })
+
+  if (error) {
+    if (error.message.includes('student_week_feedback_replies') || error.message.includes('relation')) {
+      return new Map<number, string>()
+    }
+
+    throw error
+  }
+
+  return new Map(
+    ((data ?? []) as StudentReplyRow[])
+      .filter((row) => typeof row.week_number === 'number')
+      .flatMap((row) => {
+        const replyText = trimNullableText(row.reply_text)
+        return replyText && row.week_number ? [[row.week_number, replyText] as const] : []
+      }),
+  )
+}
+
+async function readSessionAttendanceMapForUser(
+  supabase: SupabaseClient,
+  userId: string,
+  sessions: ClassSessionRow[] | null,
+) {
+  if (!sessions || sessions.length === 0) {
+    return new Map<string, SessionAttendanceRow['status']>()
+  }
+
+  const { data, error } = await supabase
+    .from('session_attendance')
+    .select('session_id, student_id, status')
+    .eq('student_id', userId)
+    .in('session_id', sessions.map((session) => session.id))
+
+  if (error) {
+    if (error.message.includes('session_attendance') || error.message.includes('relation')) {
+      return new Map<string, SessionAttendanceRow['status']>()
+    }
+
+    throw error
+  }
+
+  return new Map(
+    ((data ?? []) as SessionAttendanceRow[]).map((row) => [row.session_id, row.status ?? 'pending']),
+  )
 }
 
 export async function readAdminWeeklyMediaState(
@@ -385,12 +547,26 @@ export async function readAdminWeeklyMediaState(
       .filter((log) => typeof log.week_number === 'number')
       .map((log) => [log.week_number as number, log]),
   )
+  const sessions = (await ensureClassSessionsForMonth(supabase, classId, yearMonth)) as ClassSessionRow[] | null
+  const sessionGroups = sessions ? buildSessionWeekGroups(sessions) : []
+  const weekNumbers =
+    sessionGroups.length > 0
+      ? Array.from(new Set([
+          ...sessionGroups.map((week) => week.weekNumber),
+          ...Array.from(logByWeek.keys()),
+        ])).sort((left, right) => left - right)
+      : buildVisibleWeekNumbers(MAX_CLASS_WEEKS, MAX_CLASS_WEEKS)
 
   return {
     classInfo: normalizeClassRow(classRow as DbClassRow),
     yearMonth,
-    weeks: buildVisibleWeekNumbers(MAX_CLASS_WEEKS, MAX_CLASS_WEEKS).map((weekNumber) =>
-      buildWeeklyMediaWeek(logByWeek.get(weekNumber) ?? null, weekNumber, null),
+    weeks: weekNumbers.map((weekNumber) =>
+      buildWeeklyMediaWeek({
+        log: logByWeek.get(weekNumber) ?? null,
+        weekNumber,
+        userId: null,
+        sessions: sessionGroups.find((week) => week.weekNumber === weekNumber)?.sessions ?? [],
+      }),
     ),
   }
 }
@@ -489,22 +665,46 @@ export async function readStudentClassSummaries(
   if (classLogError) throw classLogError
 
   const logs = (classLogRows ?? []) as ClassLogRow[]
+  const { data: sessionRows, error: sessionError } = await supabase
+    .from('class_sessions')
+    .select('id, class_id, year_month, week_number, session_date, start_time, end_time, source')
+    .in('class_id', classIds)
+    .in('year_month', yearMonths)
+    .order('session_date', { ascending: true })
+    .order('start_time', { ascending: true })
+
+  const sessions =
+    sessionError && (sessionError.message.includes('class_sessions') || sessionError.message.includes('relation'))
+      ? null
+      : sessionError
+        ? (() => { throw sessionError })()
+        : ((sessionRows ?? []) as RawSessionRow[])
+
+  const normalizedSessions = sessions ? normalizeSessionRows(sessions) : null
+  const sessionAttendanceMap = await readSessionAttendanceMapForUser(supabase, userId, normalizedSessions)
 
   return enrollments
     .map((row) => {
       const logsForEnrollment = logs.filter(
         (log) => log.class_id === row.class_id && log.year_month === row.year_month,
       )
+      const sessionsForEnrollment =
+        normalizedSessions?.filter((session) => session.classId === row.class_id && session.yearMonth === row.year_month) ?? []
       const availableWeeks = logsForEnrollment
-        .map((log) => buildWeeklyMediaWeek(log, log.week_number ?? 0, userId))
+        .map((log) =>
+          buildWeeklyMediaWeek({
+            log,
+            weekNumber: log.week_number ?? 0,
+            userId,
+          }),
+        )
         .filter((week) => isValidWeekNumber(week.weekNumber))
         .filter(hasReadyStudentLessonMedia)
         .sort((left, right) => left.weekNumber - right.weekNumber)
 
       const feedbackCount = logsForEnrollment.reduce((count, log) => {
         const privateFeedback = trimNullableText(log.member_feedback?.[userId] ?? null)
-        const sharedFeedback = trimNullableText(log.reflection)
-        return count + (privateFeedback || sharedFeedback ? 1 : 0)
+        return count + (privateFeedback ? 1 : 0)
       }, 0)
 
       return {
@@ -513,11 +713,14 @@ export async function readStudentClassSummaries(
         yearMonth: row.year_month,
         enrollmentStatus: (row.status === 'PENDING' ? 'PENDING' : 'ACTIVE') as 'ACTIVE' | 'PENDING',
         paymentStatus: Boolean(row.payment_status),
-        attendanceChecked: logsForEnrollment.reduce(
-          (count, log) => count + (log.attendance_data?.[userId] ? 1 : 0),
-          0,
-        ),
-        attendanceTotal: logsForEnrollment.length,
+        attendanceChecked:
+          sessionsForEnrollment.length > 0
+            ? sessionsForEnrollment.reduce((count, session) => {
+                const status = sessionAttendanceMap.get(session.id)
+                return count + (status === 'present' || status === 'excused' ? 1 : 0)
+              }, 0)
+            : logsForEnrollment.reduce((count, log) => count + (log.attendance_data?.[userId] ? 1 : 0), 0),
+        attendanceTotal: sessionsForEnrollment.length > 0 ? sessionsForEnrollment.length : logsForEnrollment.length,
         feedbackCount,
         availableWeekCount: availableWeeks.length,
         nextWeekNumber: availableWeeks[0]?.weekNumber ?? null,
@@ -569,7 +772,26 @@ export async function readStudentClassDetail(
   if (classLogError) throw classLogError
 
   const logs = (classLogRows ?? []) as ClassLogRow[]
-  const weeks = buildStudentLessonWeeks(logs, userId)
+  const sessions = (await ensureClassSessionsForMonth(supabase, classId, yearMonth)) as ClassSessionRow[] | null
+  const sessionAttendanceById = await readSessionAttendanceMapForUser(supabase, userId, sessions)
+  const replyByWeek = await readStudentRepliesByWeek(supabase, classId, yearMonth, userId)
+  const weeks = buildStudentLessonWeeks({
+    logs,
+    userId,
+    sessions,
+    sessionAttendanceById,
+    replyByWeek,
+  })
+  const defaultWeekNumber =
+    sessions && sessions.length > 0
+      ? resolveDefaultWeekNumberFromSessions(
+          buildSessionWeekGroups(sessions).map((week) => ({
+            weekNumber: week.weekNumber,
+            sessions: week.sessions.map((session) => ({ sessionDate: session.sessionDate })),
+          })),
+          yearMonth,
+        )
+      : null
 
   return {
     classId,
@@ -577,6 +799,7 @@ export async function readStudentClassDetail(
     yearMonth,
     enrollmentStatus: (enrollment.status === 'PENDING' ? 'PENDING' : 'ACTIVE') as 'ACTIVE' | 'PENDING',
     paymentStatus: Boolean(enrollment.payment_status),
+    defaultWeekNumber,
     weeks,
   } satisfies StudentClassDetail
 }

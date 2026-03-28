@@ -52,6 +52,7 @@ student-facing 흐름도 중요하지만,
 - SPM은 `mobile-first web app`이다.
 - 시각적으로 polished할 수 있지만 본질은 `admin-first operations tool`이다.
 - consumer-app-inspired polish는 허용하되, operator confidence / explicit behavior / safe mutation / clear access handling을 해치면 안 된다.
+- 특정 외부 앱(Finch 포함)과의 시각적 유사도 자체는 목표나 acceptance 기준으로 두지 않는다.
 
 ### 핵심 UX 원칙
 
@@ -119,12 +120,13 @@ student-facing 흐름도 중요하지만,
 - 화면 본문은 탭 위 영역 안에서만 보이거나 스크롤된다
 - 전체 페이지 스크롤보다 shell 내부 스크롤을 우선한다
 - desktop은 mobile shell을 그대로 강제하지 않고 별도 레이아웃을 허용한다
-- 운영 desktop core는 고정 left sidebar와 본문 workspace를 분리하고, 좌측 rail은 navigation-only로 유지한다
+- 운영 desktop core는 `md+`에서 좌상단 brand block, 그 아래 고정 left sidebar rail, 우측 본문 workspace를 분리하고, 좌측 rail은 navigation-only로 유지한다
 - 운영 shell breakpoint는 `md+`부터 desktop으로 간주하고, 이 구간에서는 bottom tab 대신 left sidebar navigation을 사용한다
 - 운영 desktop의 `설정 / 처음으로 / 로그아웃` utility는 sidebar가 아니라 본문 toolbar 오른쪽 작은 버튼 묶음으로 둔다
 - 운영 desktop control/button은 본문 폭을 채우기 위해 늘어나지 않고, compact fixed width와 truncate를 우선한다
-- 운영 desktop shell은 bottom tab 대신 `left sidebar column + small toolbar + inner content workspace`를 기준으로 하고, 본문은 sidebar column 바깥의 workspace 안에서 시작해야 한다
-- 운영 desktop core 페이지는 mobile 단일열을 그대로 늘리지 않되, 좌측 summary rail을 추가하지 않고 `single main workspace + 본문 상단 compact strip` 기준으로 정리한다
+- 운영 desktop shell은 bottom tab 대신 `좌상단 brand block + 우측 top toolbar + 그 아래 fixed left sidebar rail + constrained content workspace`를 기준으로 하고, 본문은 rail 바깥의 workspace 안에서 시작해야 한다
+- 운영 desktop toolbar와 좌상단 brand block은 같은 shell language로 읽혀야 하며, sidebar는 brand block 아래에서 시작해야 한다
+- 운영 desktop core 페이지는 mobile 단일열을 그대로 늘리지 않되, 좌측 summary rail을 추가하지 않고 `single main workspace + 본문 상단 compact toolbar` 기준으로 정리하며, 본문 lane은 wide full-bleed 대신 한 단계 더 좁힌 inner width를 유지한다
 - 운영 shell은 `md~lg`에서 먼저 desktop IA로 전환하되, dense table처럼 가로 폭을 많이 쓰는 데이터 표면은 필요 시 `lg+`에서만 확장할 수 있다
 - 운영 mobile 상단바는 `캐릭터 / 수업 selector / YY년 M월 selector / 단일 메뉴` 순서를 유지한다
 - 운영 mobile 월 selector는 세로 목록 dropdown이 아니라 `연도 헤더 + 12개월 grid` month popover를 사용한다
@@ -222,8 +224,8 @@ student-facing 흐름도 중요하지만,
 - admin 주차 영상 편집은 여러 영상을 세로로 모두 펼치기보다, 현재 선택된 영상 1개 preview와 가로 선택 strip을 중심으로 다룬다
 - admin 선택 영상은 전체화면 진입 버튼을 통해 가능하면 landscape fullscreen으로 볼 수 있어야 하고, 종료 후 같은 편집 맥락으로 자연스럽게 돌아와야 한다
 - admin 주차 이미지 목록도 한 줄 가로 스크롤로 훑고, 필요 시 확대해 확인할 수 있어야 한다
-- admin은 `/admin/content`를 원본 편집 surface로 두고, 같은 주차 안에서 `진행 메모`, `공통 피드백`, `학생별 피드백`, `운영 내부메모`를 함께 다룬다
-- `/admin/students`는 notes editor를 복제하지 않고 `/admin/content` 해당 주차/학생 입력칸으로 이동하는 바로가기만 둔다
+- admin은 `/admin/content`를 `media-only` 편집 surface로 두고, 출석과 피드백 관리는 `/admin` 운영판에서 다룬다
+- `/admin/students`는 notes editor를 복제하지 않고 `/admin` 해당 학생/주차 sheet로 이동하는 바로가기만 둔다
 - student는 `수업` 탭 안에서 주차별 콘텐츠를 소비한다
 - student는 선택한 주차 화면 안에서 영상을 바로 재생할 수 있는 방향을 baseline으로 둔다
 - student `수업` 탭의 주차 버튼은 기본 `1~4주차`를 항상 보여 주고, `5주차`는 ready video/image가 있을 때만 추가로 노출한다
@@ -237,7 +239,7 @@ student-facing 흐름도 중요하지만,
 - current active media contract는 `class_log` 아래 `VIDEO` / `IMAGE` row를 여러 건 둘 수 있고, 각 row는 `media_id` 기준으로 수정/삭제한다
 - current active weekly image contract는 `upload_method='MANUAL'`, `weekly-images/{class_id}/{year_month}/week-{week_number}/{timestamp}-{safe-filename}` path 규칙을 사용한다
 - 이미지 추가 metadata contract는 아직 별도 truth로 잠기지 않는다
-- student `수업` 탭 본문은 주차 제목/상태 badge/helper를 반복하지 않고, `영상`과 `이미지`를 먼저 소비한 뒤 해당 주차의 `진행 메모`, `공통 피드백`, `내 피드백`만 조용히 이어서 읽는 구조를 우선한다
+- student `수업` 탭 본문은 주차 제목/상태 badge/helper를 반복하지 않고, `영상`과 `이미지`를 먼저 소비한 뒤 해당 주차의 `개별 피드백`만 조용히 이어서 읽는 구조를 우선한다
 
 ### Mobile / In-App Browser Handling
 - mobile browser 흐름에 대한 실용적인 처리
@@ -265,9 +267,32 @@ student-facing 흐름도 중요하지만,
 ### Admin Matrix View
 - 인가된 admin 사용자는 matrix 데이터를 불러올 수 있어야 한다
 - 관련 class / enrollment / attendance / payment 정보가 보여야 한다
+- 실제 출석 기준은 `주차 class_log`가 아니라 `실제 수업 날짜(session)`여야 하며, 하나의 주차 안에 여러 날짜가 들어갈 수 있어야 한다
+- `/admin` 출석부는 mobile/desktop 모두 `학생별 x 주차별(기본 1~4주, 필요 시 5주)`를 한눈에 보는 운영판이어야 한다
+- `/admin` 운영판은 별도 모드 전환 없이 `단일 출석부`로 유지하고, 학생-주차 셀에는 `원터치 출석 버튼 1개 + 옆 작은 메모 칩 1개`만 둔다
+- mobile 출석부는 fluffy card stack이 아니라 `이름 + 결제 + 1~4주 컨트롤`이 바로 읽히는 조밀한 리스트여야 한다
+- 출석부 상단 chrome은 `출석부` 제목과 우상단 icon action(`CSV`, `필터`)만 남기고, helper text / wide export button / fallback 안내 박스를 고정 노출하지 않는다
+- 원터치 출석은 해당 학생-주차의 실제 수업 날짜 전체를 한 번에 `출석 / 결석`으로 맞추는 주차 토글로 동작한다
+- admin 운영판에서는 `미처리`를 별도 상태로 두지 않고, 체크되지 않은 값은 `결석`으로 간주한다
+- 학생 메모는 학생-주차 토글 옆의 작은 `메모` 칩으로 열고, 이 시트에서는 `학생 메모 + 학생 답글(read-only)`만 다룬다
+- 출석 토글 색은 `출석=green`, `지난 실제 수업 주차 결석=red`, `현재/미래 미체크=neutral`로 즉시 구분돼야 한다
+- 주차 전체 작업은 `1주 / 2주 / 3주 / 4주` 얇은 헤더 옆의 작은 icon-only button으로 연다
+- 주차 헤더에는 날짜를 상시 노출하지 않고, desktop에서는 hover tooltip으로만 `날짜 + 요일`을 보여 주며 mobile에서는 opened sheet 안에서만 보여 준다
+- 주차별 운영 메모는 별도 큰 카드나 텍스트 버튼 없이 icon entry로만 진입해야 한다
+- 출석부의 카드/셀/버튼/sheet trigger는 pressed/open 상태에서도 투명하게 흐려지면 안 된다
+- 비정상 enrollment status(`보류`, `취소`)만 예외적으로 학생 이름 옆의 작은 보조 라벨로 노출하고, 기본 row는 `이름 + 결제` 리듬을 우선한다
+- 출석부 우상단 필터 메뉴에는 `답글 도착만` 같은 최소 필터만 남기고, 항상 보이는 chip strip는 두지 않는다
+- 실제 session이 없는 legacy 월은 같은 출석부 surface 안에서 주차 fallback으로 읽을 수 있어야 하고, main surface에 별도 fallback 설명 박스를 고정 노출하지 않는다
 - unavailable 또는 unauthorized 데이터는 안전하게 실패해야 한다
 - 검색/필터 결과가 0건이면 failure가 아니라 empty로 해석해야 한다
 - row detail은 보조 상세 surface이며 matrix나 학생 탭을 대체하지 않는다
+
+### Class Schedule / Actual Session Dates
+- 수업 생성 시에는 이름만이 아니라 기본 반복 일정(`요일 + 시작/종료 시간`)을 함께 정의해야 한다
+- 한 수업은 주 2회 이상 반복을 가질 수 있어야 한다
+- 운영자는 월별 실제 수업 날짜를 따로 조정할 수 있어야 하며, 이 월별 세션 목록이 출석 truth가 된다
+- base repeating rule은 owner가 관리하고, 월별 실제 날짜 조정은 admin/owner가 관리할 수 있어야 한다
+- week selection은 단순 `오늘 날짜 ÷ 7`이 아니라 실제 session이 속한 주차를 기준으로 잡아야 한다
 
 ### Student Enrollment Management
 - 운영자는 `/admin`에서 기존 `STUDENT` profile을 현재 class/month enrollment로 배정할 수 있어야 한다
@@ -291,6 +316,7 @@ student-facing 흐름도 중요하지만,
 - 인가된 사용자는 attendance 상태를 변경할 수 있어야 한다
 - unauthorized 변경은 안전하게 거부돼야 한다
 - UI는 성공/실패를 명확히 반영해야 한다
+- attendance status는 `pending / present / absent / excused`를 실제 저장값으로 써야 한다
 - 데이터 동작은 DB / RPC contract를 따라야 한다
 
 ### CSV Export
@@ -325,20 +351,24 @@ student-facing 흐름도 중요하지만,
 
 ### Weekly Content Media
 - 운영자는 `수업` 탭에서 클래스와 주차 맥락 안에 주차별 영상/이미지 콘텐츠를 다룰 수 있어야 한다
+- 주차 콘텐츠는 계속 `주차 단위`로 유지하되, 주차 상단에는 그 주의 실제 수업 날짜 range가 함께 보여야 한다
 - 영상은 YouTube 기준으로 연결할 수 있어야 한다
-- 현재 구현 baseline은 admin weekly YouTube URL 다건 저장/수정/삭제 + admin weekly image 다건 업로드/교체/삭제 + admin weekly notes save + student inline video/image/notes 확인까지다
+- 현재 구현 baseline은 admin weekly YouTube URL 다건 저장/수정/삭제 + admin weekly image 다건 업로드/교체/삭제 + admin 출석부 attendance/feedback save + student inline video/image/feedback 확인까지다
 - admin은 여러 저장 영상을 가로 선택 strip에서 고르고, 현재 선택된 영상 1개를 기준으로 preview/edit/delete 할 수 있어야 한다
 - admin 이미지 목록은 가로 스크롤로 훑고, click/tap 확대와 교체/삭제 action을 함께 사용할 수 있어야 한다
 - 이미지는 업로드 기준으로 다룰 수 있어야 한다
 - 현재 active image contract는 `spm-media` public bucket, `media.url` public URL, `upload_method=MANUAL`, fixed weekly image path convention이다
 - 공개 / 수정 / 삭제는 주차 콘텐츠 관리의 기본 행동이어야 한다
 - 학생은 `수업` 탭에서 클래스와 주차 맥락 안에서 주차별 영상/이미지를 볼 수 있어야 한다
+- 학생은 선택한 주차에서 실제 수업 날짜 chip을 함께 보고, 같은 주 안의 여러 수업 날짜를 한 번에 이해할 수 있어야 한다
 - 학생은 선택한 주차 화면 안에서 영상을 바로 재생할 수 있어야 한다
 - 학생 주차 영상은 현재 선택된 1개 플레이어를 기준으로 보고, 여러 영상은 같은 줄의 좌우 이동 control로 바꿔 볼 수 있어야 한다
 - 학생 선택 영상도 전체화면 버튼으로 가능하면 landscape fullscreen에 들어갈 수 있어야 하고, 종료 후 같은 주차 선택 상태로 자연스럽게 돌아와야 한다
 - 학생 주차 이미지는 한 줄 가로 스크롤로 훑을 수 있어야 한다
 - 학생 주차 이미지 카드는 tap/click으로 확대해 자세히 볼 수 있어야 한다
-- 학생 `수업` 탭에서는 선택한 주차 안에서 `진행 메모`, `공통 피드백`, `내 피드백`을 읽을 수 있어야 하고, 학생에게 보이지 않는 운영 내부메모는 노출하지 않는다
+- 학생 `수업` 탭에서는 선택한 주차 안에서 자기 `개별 피드백`만 읽을 수 있어야 하고, 주차별 수업 피드백이나 운영 내부메모는 노출하지 않는다
+- 학생은 피드백이 있는 주차에 한해 `주차당 1개 editable reply slot`으로 짧은 답글을 남길 수 있어야 한다
+- 학생 답글은 thread가 아니라 단일 text slot이며, 운영은 `/admin` 출석부 학생-주차 sheet에서 read-only로 본다
 - invalid media row가 있어도 유효한 media consume은 계속 가능해야 하고, student lessons 본문은 ready media 우선으로 유지한다
 - media는 별도 최상위 탭보다 `클래스 -> 주차 -> 콘텐츠` 흐름 안에서 먼저 이해돼야 한다
 - local demo merged runtime QA에서는 admin weekly video save/delete, admin weekly image upload/replace/delete, student inline video/image read, image storage cleanup까지 다시 확인했다
@@ -365,15 +395,20 @@ student-facing 흐름도 중요하지만,
 
 ## 피드백 가시성 기준
 
-- `운영 내부메모`
-  - 수업 운영자 또는 강사 내부 기록이다
+- `주차별 운영 메모`
+  - 특정 class/month/week에 대한 내부 운영 정리다
+  - `ADMIN + OWNER`만 읽고 수정한다
   - student surface에는 노출하지 않는다
-- `전체피드백`
-  - 특정 class/month/week에 대한 공통 피드백이다
-  - 해당 월 수업을 보는 학생 모두에게 노출한다
 - `학생별 피드백`
   - 특정 학생에게만 보여주는 개인 피드백이다
-  - 대상 학생 본인에게만 노출한다
+  - 대상 학생 본인과 `ADMIN + OWNER`만 읽을 수 있다
+- `학생 답글`
+  - 특정 학생이 특정 class/month/week에 대해 남기는 1개 응답 슬롯이다
+  - admin/owner와 대상 학생 본인만 읽을 수 있다
+  - 메신저형 thread나 다자 공개 댓글로 확장하지 않는다
+- legacy `progress / reflection / member_admin_notes`
+  - 현재 active UI에서는 쓰지 않는 hidden data로 간주한다
+  - schema에 남아 있어도 제품 truth로 다시 해석하지 않는다
 
 ## 기술 의도
 

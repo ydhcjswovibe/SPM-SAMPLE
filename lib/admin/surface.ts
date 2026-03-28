@@ -42,8 +42,17 @@ const adminAlertToneClass: Record<AdminAlertTone, string> = {
     'border border-[#d8e8c8] bg-[linear-gradient(180deg,rgba(247,252,240,0.98)_0%,rgba(236,248,220,0.98)_100%)] shadow-[0_14px_26px_rgba(111,145,72,0.08)]',
 }
 
+export const adminDesktopShellSurfaceClass =
+  'overflow-hidden rounded-[1.9rem] border border-[#cfdcbf] bg-[linear-gradient(180deg,rgba(252,254,247,0.98)_0%,rgba(255,253,247,0.99)_52%,rgba(247,251,239,0.98)_100%)] shadow-[0_18px_32px_rgba(96,129,51,0.12),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-md'
+
 export const adminToolbarSurfaceClass =
-  'rounded-[1.9rem] border border-[#cfdcbf] bg-[linear-gradient(180deg,rgba(252,254,247,0.98)_0%,rgba(255,253,247,0.99)_100%)] px-3 py-2.5 shadow-[0_18px_32px_rgba(96,129,51,0.12),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-md md:px-4 md:py-3 lg:px-5'
+  cn(adminDesktopShellSurfaceClass, 'px-3 py-2.5 md:px-4 md:py-3 lg:px-5')
+
+export const adminDesktopSidebarBrandClass =
+  cn(adminDesktopShellSurfaceClass, 'px-3 py-3 lg:px-3.5 lg:py-3.5')
+
+export const adminDesktopSidebarPanelClass =
+  cn(adminDesktopShellSurfaceClass, 'flex min-h-0 flex-1 flex-col px-3 py-3.5 lg:px-3.5 lg:py-4')
 
 export const adminToolbarControlClass =
   'h-9 rounded-[1rem] border-[#dbe8cc] bg-white/96 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6] active:bg-[#f5f9ea] active:text-[#314127] data-[state=open]:bg-[#f5f9ea] data-[state=open]:text-[#314127] data-[state=open]:border-[#d5e3c4] [-webkit-tap-highlight-color:transparent] touch-manipulation md:h-10 md:rounded-[1.1rem]'

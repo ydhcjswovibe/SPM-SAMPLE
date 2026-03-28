@@ -3,13 +3,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import useSWR from 'swr'
 import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { buildAdminDashboardHref } from '@/lib/admin/content-selection'
 import { formatYearMonthLabel, getCurrentYearMonth, isValidYearMonth } from '@/lib/admin/matrix'
+import type { AdminWeeklyNotesState } from '@/lib/admin/weekly-notes'
+import { cn } from '@/lib/utils'
 import {
   adminAlertCardClass,
   adminCompactButtonClass,
   adminCompactDangerButtonClass,
+  adminCompactIconButtonClass,
   adminDialogContentClass,
+  adminDropdownContentClass,
   adminDropdownItemClass,
   adminInsetCardClass,
   adminMetricCardClass,
@@ -23,6 +29,11 @@ import { AdminShellHeader } from '@/components/admin-shell-header'
 import { ClassSelector } from '@/components/class-selector'
 import { AdminHeaderActionMenu } from '@/components/admin-header-action-menu'
 import { AdminMatrix } from '@/components/admin-matrix'
+import {
+  ClassScheduleEditor,
+  type EditableClassSession,
+  type EditableScheduleRule,
+} from '@/components/class-schedule-editor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -33,10 +44,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, CalendarCheck, CreditCard, Download, Loader2, LogIn, Plus, Trash2, Users } from 'lucide-react'
+import { AlertCircle, CalendarCheck, CalendarDays, CreditCard, Download, Filter, Loader2, LogIn, Plus, Trash2, Users } from 'lucide-react'
 import type { Class, AdminMatrixData, AttendanceStatus } from '@/lib/types'
 
 const supabase = createClient()
@@ -53,6 +71,23 @@ interface AdminAccessState {
   canManage: boolean
   canCreateClass: boolean
   isAuthenticated: boolean
+}
+
+interface ClassScheduleState {
+  rules: Array<{
+    id: string
+    weekday: number
+    startTime: string
+    endTime: string | null
+  }>
+  sessions: Array<{
+    id: string
+    sessionDate: string
+    startTime: string
+    endTime: string | null
+    source: 'RULE' | 'MANUAL'
+  }>
+  canEditRules: boolean
 }
 
 function normalizeClassRow(row: DbClassRow): Class {
@@ -162,6 +197,14 @@ function getFriendlyRouteError(code: string) {
       return '월 범위를 다시 확인해 주세요.'
     case 'CLASS_NAME_REQUIRED':
       return '수업 이름을 입력해 주세요.'
+    case 'INVALID_SCHEDULE_INPUT':
+      return '반복 일정 입력값을 다시 확인해 주세요.'
+    case 'SCHEDULE_FEATURE_UNAVAILABLE':
+      return '현재 환경에는 실제 일정 기능이 아직 반영되지 않았습니다.'
+    case 'SCHEDULE_READ_FAILED':
+      return '수업 일정을 불러오지 못했습니다.'
+    case 'SCHEDULE_SAVE_FAILED':
+      return '수업 일정을 저장하지 못했습니다.'
     case 'CLASS_NOT_FOUND':
       return '삭제할 수업을 찾지 못했습니다.'
     case 'CLASS_CREATE_FAILED':
@@ -178,6 +221,8 @@ function getFriendlyRouteError(code: string) {
       return '결제 상태 변경에 실패했습니다.'
     case 'ATTENDANCE_UPDATE_FAILED':
       return '출석 상태 변경에 실패했습니다.'
+    case 'SESSION_NOT_FOUND':
+      return '대상 수업 날짜를 찾지 못했습니다.'
     case 'ENROLLMENT_NOT_FOUND':
       return '대상 등록 정보를 찾을 수 없습니다.'
     case 'CLASS_LOG_NOT_FOUND':
@@ -185,6 +230,13 @@ function getFriendlyRouteError(code: string) {
     default:
       return code
   }
+}
+
+function parseRequestedWeek(value: string | null) {
+  if (!value) return null
+
+  const parsed = Number(value)
+  return Number.isInteger(parsed) ? parsed : null
 }
 
 async function fetchMatrixData(classId: string, yearMonth: string): Promise<AdminMatrixData | null> {
@@ -210,16 +262,81 @@ async function fetchMatrixData(classId: string, yearMonth: string): Promise<Admi
   return payload.data ?? null
 }
 
-function parseAttendanceTarget(attendanceId: string) {
+async function fetchWeeklyNotesState(classId: string, yearMonth: string): Promise<AdminWeeklyNotesState> {
+  const searchParams = new URLSearchParams({
+    classId,
+    yearMonth,
+  })
+
+  const response = await fetch(`/api/admin/weekly-notes?${searchParams.toString()}`, {
+    credentials: 'include',
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    throw new Error(getFriendlyRouteError(await readRouteError(response)))
+  }
+
+  const payload = (await response.json()) as { data?: AdminWeeklyNotesState }
+  if (!payload.data) {
+    throw new Error('운영 피드백 상태를 불러오지 못했습니다.')
+  }
+
+  return payload.data
+}
+
+function buildDefaultScheduleRule(): EditableScheduleRule {
+  return {
+    id: `new-rule-${Date.now()}`,
+    weekday: 1,
+    startTime: '16:00',
+    endTime: '',
+  }
+}
+
+async function fetchScheduleState(classId: string, yearMonth: string): Promise<ClassScheduleState> {
+  const searchParams = new URLSearchParams({
+    classId,
+    yearMonth,
+  })
+  const response = await fetch(`/api/admin/class-schedule?${searchParams.toString()}`, {
+    credentials: 'include',
+    cache: 'no-store',
+  })
+
+  if (!response.ok) {
+    throw new Error(getFriendlyRouteError(await readRouteError(response)))
+  }
+
+  const payload = (await response.json()) as { data?: ClassScheduleState }
+  return payload.data ?? { rules: [], sessions: [], canEditRules: false }
+}
+
+function parseAttendanceTarget(attendanceId: string): {
+  sessionId?: string
+  classLogId?: string
+  studentId: string
+} | null {
   if (attendanceId.startsWith('missing:')) return null
 
-  const [classLogId, studentId] = attendanceId.split(':')
-  if (!classLogId || !studentId) return null
+  const [kind, targetId, studentId] = attendanceId.split(':')
+  if (!kind || !targetId || !studentId) return null
 
-  return {
-    classLogId,
-    studentId,
+  if (kind === 'session') {
+    return {
+      sessionId: targetId,
+      studentId,
+    }
   }
+
+  if (kind === 'legacy') {
+    return {
+      classLogId: targetId,
+      studentId,
+    }
+  }
+
+  return null
 }
 
 function getDownloadFileName(response: Response, fallbackName: string) {
@@ -229,20 +346,40 @@ function getDownloadFileName(response: Response, fallbackName: string) {
 }
 
 export default function AdminDashboard() {
+  const pathname = usePathname()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentSearch = searchParams.toString()
+  const requestedClassId = searchParams.get('classId')
+  const requestedYearMonth = searchParams.get('yearMonth')
+  const requestedStudentId = searchParams.get('studentId')
+  const requestedWeek = parseRequestedWeek(searchParams.get('week'))
   const [selectedClass, setSelectedClass] = useState<Class | null>(null)
-  const [selectedYearMonth, setSelectedYearMonth] = useState(getCurrentYearMonth())
+  const [selectedYearMonth, setSelectedYearMonth] = useState(
+    requestedYearMonth && isValidYearMonth(requestedYearMonth) ? requestedYearMonth : getCurrentYearMonth(),
+  )
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false)
   const [isDeleteMode, setIsDeleteMode] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [isDeletingClass, setIsDeletingClass] = useState(false)
+  const [isScheduleLoading, setIsScheduleLoading] = useState(false)
+  const [isScheduleSaving, setIsScheduleSaving] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [newClassName, setNewClassName] = useState('')
+  const [newClassScheduleRules, setNewClassScheduleRules] = useState<EditableScheduleRule[]>([buildDefaultScheduleRule()])
   const [classToDelete, setClassToDelete] = useState<Class | null>(null)
   const [createError, setCreateError] = useState<string | null>(null)
   const [createSuccess, setCreateSuccess] = useState<string | null>(null)
   const [classActionError, setClassActionError] = useState<string | null>(null)
+  const [scheduleDialogError, setScheduleDialogError] = useState<string | null>(null)
+  const [scheduleDialogSuccess, setScheduleDialogSuccess] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [showReplyOnly, setShowReplyOnly] = useState(false)
+  const [scheduleRules, setScheduleRules] = useState<EditableScheduleRule[]>([buildDefaultScheduleRule()])
+  const [scheduleSessions, setScheduleSessions] = useState<EditableClassSession[]>([])
+  const [canEditScheduleRules, setCanEditScheduleRules] = useState(false)
 
   const hasValidYearMonth = isValidYearMonth(selectedYearMonth)
 
@@ -257,7 +394,10 @@ export default function AdminDashboard() {
     ([, yearMonth]) => fetchClasses(yearMonth),
   )
   const resolvedSelectedClass =
-    classes?.find((classItem) => classItem.id === selectedClass?.id) ?? classes?.[0] ?? null
+    classes?.find((classItem) => classItem.id === selectedClass?.id)
+      ?? classes?.find((classItem) => classItem.id === requestedClassId)
+      ?? classes?.[0]
+      ?? null
   const { data: allClasses, isLoading: isAllClassesLoading, mutate: mutateAllClasses } = useSWR(
     accessState?.canCreateClass ? 'admin-all-classes' : null,
     fetchAllClasses,
@@ -274,6 +414,23 @@ export default function AdminDashboard() {
       : null,
     ([, classId, yearMonth]) => fetchMatrixData(classId, yearMonth),
   )
+  const {
+    data: notesState,
+    error: notesError,
+    isLoading: isNotesLoading,
+    mutate: mutateNotesState,
+  } = useSWR(
+    resolvedSelectedClass && hasValidYearMonth
+      ? ['admin-weekly-notes', resolvedSelectedClass.id, selectedYearMonth]
+      : null,
+    ([, classId, yearMonth]) => fetchWeeklyNotesState(classId, yearMonth),
+  )
+
+  useEffect(() => {
+    setSelectedYearMonth(
+      requestedYearMonth && isValidYearMonth(requestedYearMonth) ? requestedYearMonth : getCurrentYearMonth(),
+    )
+  }, [requestedYearMonth])
 
   useEffect(() => {
     if (!classes) return
@@ -286,13 +443,115 @@ export default function AdminDashboard() {
   }, [classes, resolvedSelectedClass, selectedClass])
 
   useEffect(() => {
+    if (!hasValidYearMonth) {
+      return
+    }
+
+    const preserveFocus =
+      requestedStudentId &&
+      requestedClassId === resolvedSelectedClass?.id &&
+      requestedYearMonth === selectedYearMonth
+    const nextHref = buildAdminDashboardHref({
+      classId: resolvedSelectedClass?.id,
+      yearMonth: selectedYearMonth,
+      studentId: preserveFocus ? requestedStudentId : null,
+      week: preserveFocus ? requestedWeek : null,
+    })
+    const currentHref = currentSearch ? `${pathname}?${currentSearch}` : pathname
+
+    if (nextHref !== currentHref) {
+      router.replace(nextHref, { scroll: false })
+    }
+  }, [
+    currentSearch,
+    hasValidYearMonth,
+    pathname,
+    requestedClassId,
+    requestedStudentId,
+    requestedWeek,
+    requestedYearMonth,
+    resolvedSelectedClass,
+    router,
+    selectedYearMonth,
+  ])
+
+  useEffect(() => {
     setCreateSuccess(null)
     setClassActionError(null)
     setIsDeleteMode(false)
   }, [selectedYearMonth])
 
+  useEffect(() => {
+    if (!isScheduleDialogOpen || !resolvedSelectedClass || !hasValidYearMonth) {
+      return
+    }
+
+    void (async () => {
+      setIsScheduleLoading(true)
+      setScheduleDialogError(null)
+      setScheduleDialogSuccess(null)
+
+      try {
+        const scheduleState = await fetchScheduleState(resolvedSelectedClass.id, selectedYearMonth)
+        setScheduleRules(
+          scheduleState.rules.map((rule) => ({
+            id: rule.id,
+            weekday: rule.weekday,
+            startTime: rule.startTime,
+            endTime: rule.endTime ?? '',
+          })),
+        )
+        setScheduleSessions(
+          scheduleState.sessions.map((session) => ({
+            id: session.id,
+            sessionDate: session.sessionDate,
+            startTime: session.startTime,
+            endTime: session.endTime ?? '',
+            source: session.source,
+          })),
+        )
+        setCanEditScheduleRules(scheduleState.canEditRules)
+      } catch (error) {
+        setScheduleDialogError(getErrorMessage(error))
+      } finally {
+        setIsScheduleLoading(false)
+      }
+    })()
+  }, [hasValidYearMonth, isScheduleDialogOpen, resolvedSelectedClass, selectedYearMonth])
+
+  const createSchedulePayload = newClassScheduleRules
+    .map((rule) => ({
+      weekday: rule.weekday,
+      startTime: rule.startTime.trim(),
+      endTime: rule.endTime.trim() || null,
+    }))
+    .filter((rule) => rule.startTime)
+
+  const scheduleSavePayload = {
+    scheduleRules: scheduleRules
+      .map((rule, index) => ({
+        weekday: rule.weekday,
+        startTime: rule.startTime.trim(),
+        endTime: rule.endTime.trim() || null,
+        sortOrder: index,
+      }))
+      .filter((rule) => rule.startTime),
+    sessions: scheduleSessions
+      .map((session) => ({
+        sessionDate: session.sessionDate,
+        startTime: session.startTime.trim(),
+        endTime: session.endTime.trim() || null,
+        source: session.source,
+      }))
+      .filter((session) => session.sessionDate && session.startTime),
+  }
+
   const handleCreateClass = async () => {
     if (!newClassName.trim()) return
+    if (createSchedulePayload.length === 0) {
+      setCreateError('반복 일정은 최소 1개 이상 필요합니다.')
+      return
+    }
     if (!accessState?.canCreateClass) {
       setCreateError(
         accessState?.isAuthenticated
@@ -312,6 +571,7 @@ export default function AdminDashboard() {
         },
         body: JSON.stringify({
           name: newClassName.trim(),
+          scheduleRules: createSchedulePayload,
         }),
       })
 
@@ -329,6 +589,7 @@ export default function AdminDashboard() {
       }
       setIsCreateDialogOpen(false)
       setNewClassName('')
+      setNewClassScheduleRules([buildDefaultScheduleRule()])
       setCreateSuccess(
         createdClass && nextClasses?.some((classItem) => classItem.id === createdClass.id)
           ? `${createdClass.name} 수업을 만들고 바로 선택했습니다.`
@@ -342,6 +603,61 @@ export default function AdminDashboard() {
       console.error('Failed to create class:', message, error)
     } finally {
       setIsCreating(false)
+    }
+  }
+
+  const handleOpenScheduleDialog = () => {
+    if (!resolvedSelectedClass || !hasValidYearMonth) {
+      setClassActionError('수업과 월을 먼저 선택해 주세요.')
+      return
+    }
+
+    setIsScheduleDialogOpen(true)
+  }
+
+  const handleSaveSchedule = async () => {
+    if (!resolvedSelectedClass || !hasValidYearMonth) {
+      return
+    }
+
+    if (scheduleSavePayload.sessions.length === 0) {
+      setScheduleDialogError('실제 수업 날짜는 최소 1개 이상 필요합니다.')
+      return
+    }
+
+    if (canEditScheduleRules && scheduleSavePayload.scheduleRules.length === 0) {
+      setScheduleDialogError('반복 일정은 최소 1개 이상 필요합니다.')
+      return
+    }
+
+    setIsScheduleSaving(true)
+    setScheduleDialogError(null)
+    setScheduleDialogSuccess(null)
+
+    try {
+      const response = await fetch('/api/admin/class-schedule', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          classId: resolvedSelectedClass.id,
+          yearMonth: selectedYearMonth,
+          scheduleRules: canEditScheduleRules ? scheduleSavePayload.scheduleRules : undefined,
+          sessions: scheduleSavePayload.sessions,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(getFriendlyRouteError(await readRouteError(response)))
+      }
+
+      setScheduleDialogSuccess('이번 달 실제 수업 날짜를 저장했습니다.')
+      await mutateMatrix()
+    } catch (error) {
+      setScheduleDialogError(getErrorMessage(error))
+    } finally {
+      setIsScheduleSaving(false)
     }
   }
 
@@ -361,6 +677,7 @@ export default function AdminDashboard() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        sessionId: target.sessionId,
         classLogId: target.classLogId,
         studentId: target.studentId,
         status,
@@ -372,6 +689,36 @@ export default function AdminDashboard() {
     }
 
     await mutateMatrix()
+  }
+
+  const handleSaveNotes = async (payload: {
+    weekNumber: number
+    ownerFeedbackText: string
+    memberFeedbackByStudentId: Record<string, string>
+  }) => {
+    if (!resolvedSelectedClass) {
+      throw new Error('클래스를 다시 선택해 주세요.')
+    }
+
+    const response = await fetch('/api/admin/weekly-notes', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        classId: resolvedSelectedClass.id,
+        yearMonth: selectedYearMonth,
+        weekNumber: payload.weekNumber,
+        ownerFeedbackText: payload.ownerFeedbackText,
+        memberFeedbackByStudentId: payload.memberFeedbackByStudentId,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(getFriendlyRouteError(await readRouteError(response)))
+    }
+
+    await mutateNotesState()
   }
 
   const handleExportCSV = useCallback(() => {
@@ -423,6 +770,7 @@ export default function AdminDashboard() {
         )
       : 0,
   } : null
+  const notesErrorMessage = notesError ? getErrorMessage(notesError) : null
 
   const handleSelectClass = (classItem: Class) => {
     setSelectedClass(classItem)
@@ -486,49 +834,62 @@ export default function AdminDashboard() {
       <AdminShellHeader
         controlsClassName="md:flex-nowrap"
         mobileActionMenu={
-          accessState?.canCreateClass ? (
+          accessState?.canManage ? (
             <>
-              <DropdownMenuItem
-                onSelect={() => setIsCreateDialogOpen(true)}
-                className={adminDropdownItemClass}
-              >
-                <Plus className="h-4 w-4" />
-                새 수업 만들기
+              <DropdownMenuItem onSelect={handleOpenScheduleDialog} disabled={!resolvedSelectedClass || !hasValidYearMonth} className={adminDropdownItemClass}>
+                <CalendarDays className="h-4 w-4" />
+                일정 관리
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={handleToggleDeleteMode}
-                disabled={isAllClassesLoading || (allClasses?.length ?? 0) === 0}
-                variant={isDeleteMode ? 'default' : 'destructive'}
-                className={adminDropdownItemClass}
-              >
-                <Trash2 className="h-4 w-4" />
-                {isDeleteMode ? '삭제 취소' : '삭제 모드'}
-              </DropdownMenuItem>
+              {accessState.canCreateClass ? <DropdownMenuSeparator /> : null}
+              {accessState.canCreateClass ? (
+                <DropdownMenuItem onSelect={() => setIsCreateDialogOpen(true)} className={adminDropdownItemClass}>
+                  <Plus className="h-4 w-4" />
+                  새 수업 만들기
+                </DropdownMenuItem>
+              ) : null}
+              {accessState.canCreateClass ? <DropdownMenuSeparator /> : null}
+              {accessState.canCreateClass ? (
+                <DropdownMenuItem
+                  onSelect={handleToggleDeleteMode}
+                  disabled={isAllClassesLoading || (allClasses?.length ?? 0) === 0}
+                  variant={isDeleteMode ? 'default' : 'destructive'}
+                  className={adminDropdownItemClass}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {isDeleteMode ? '삭제 취소' : '삭제 모드'}
+                </DropdownMenuItem>
+              ) : null}
             </>
           ) : null
         }
         desktopSecondaryActions={
-          accessState?.canCreateClass ? (
-            <AdminHeaderActionMenu label="작업">
-              <DropdownMenuItem
-                onSelect={() => setIsCreateDialogOpen(true)}
-                className={adminDropdownItemClass}
-              >
-                <Plus className="h-4 w-4" />
-                새 수업 만들기
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={handleToggleDeleteMode}
-                disabled={isAllClassesLoading || (allClasses?.length ?? 0) === 0}
-                variant={isDeleteMode ? 'default' : 'destructive'}
-                className={adminDropdownItemClass}
-              >
-                <Trash2 className="h-4 w-4" />
-                {isDeleteMode ? '삭제 취소' : '삭제 모드'}
-              </DropdownMenuItem>
-            </AdminHeaderActionMenu>
+          accessState?.canManage ? (
+            <>
+              <AdminHeaderActionMenu label="일정">
+                <DropdownMenuItem onSelect={handleOpenScheduleDialog} disabled={!resolvedSelectedClass || !hasValidYearMonth} className={adminDropdownItemClass}>
+                  <CalendarDays className="h-4 w-4" />
+                  일정 관리
+                </DropdownMenuItem>
+              </AdminHeaderActionMenu>
+              {accessState.canCreateClass ? (
+                <AdminHeaderActionMenu label="작업">
+                  <DropdownMenuItem onSelect={() => setIsCreateDialogOpen(true)} className={adminDropdownItemClass}>
+                    <Plus className="h-4 w-4" />
+                    새 수업 만들기
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={handleToggleDeleteMode}
+                    disabled={isAllClassesLoading || (allClasses?.length ?? 0) === 0}
+                    variant={isDeleteMode ? 'default' : 'destructive'}
+                    className={adminDropdownItemClass}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {isDeleteMode ? '삭제 취소' : '삭제 모드'}
+                  </DropdownMenuItem>
+                </AdminHeaderActionMenu>
+              ) : null}
+            </>
           ) : null
         }
         controls={
@@ -537,6 +898,7 @@ export default function AdminDashboard() {
               classes={selectorClasses}
               selectedClass={resolvedSelectedClass}
               onSelect={handleSelectClass}
+              ariaLabel={isDeleteMode ? '삭제할 운영 수업 선택' : '운영 수업 선택'}
               triggerClassName="min-w-0 flex-1 max-w-none sm:min-w-0 sm:max-w-none md:min-w-[10.75rem] md:max-w-[13rem] lg:min-w-[11rem] lg:max-w-[14rem]"
               onCreateNew={accessState?.canCreateClass ? () => setIsCreateDialogOpen(true) : undefined}
               isDeleteMode={isDeleteMode}
@@ -562,13 +924,13 @@ export default function AdminDashboard() {
             <AdminMonthSelector
               value={selectedYearMonth}
               onValueChange={setSelectedYearMonth}
-              aria-label="운영 월 선택"
+              ariaLabel="운영 월 선택"
             />
           </>
         }
       />
 
-      <div className="flex-1 space-y-4 px-4 pb-28 pt-3 md:space-y-5 md:px-6 md:pb-8 md:pt-4 lg:px-7 lg:pt-5">
+      <div className="flex-1 space-y-4 px-4 pb-28 pt-3 md:space-y-4 md:px-6 md:pb-8 md:pt-3 lg:px-7 lg:pt-4">
         {isAccessLoading ? (
           <Card className={adminInsetCardClass}>
             <CardContent className="flex items-center gap-3 py-4 text-sm text-muted-foreground">
@@ -704,36 +1066,57 @@ export default function AdminDashboard() {
 
         <Card className={adminSurfaceCardClass}>
           <CardHeader className="px-4 pb-2 pt-3.5 md:px-5 md:pb-2.5 md:pt-4 lg:px-6 lg:pb-3 lg:pt-5">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <CardTitle className="spm-display text-[1.65rem] text-foreground md:text-[1.85rem] lg:text-[1.45rem]">출석부</CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {resolvedSelectedClass
-                    ? '현재 선택한 수업의 출석 상태를 한 화면에서 바로 정리합니다.'
-                    : '수업과 월을 먼저 고르면 이달 출석부가 바로 열립니다.'}
-                </p>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="spm-display text-[1.65rem] text-foreground md:text-[1.85rem] lg:text-[1.45rem]">출석부</CardTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleExportCSV}
+                  aria-label="출석 CSV 다운로드"
+                  disabled={
+                    !accessState?.canManage ||
+                    !resolvedSelectedClass ||
+                    !hasValidYearMonth ||
+                    !matrixData ||
+                    matrixData.students.length === 0 ||
+                    isExporting
+                  }
+                  className={cn(adminCompactIconButtonClass, 'h-9 w-9 rounded-[0.95rem]')}
+                >
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      aria-label="학생 출석부 필터 열기"
+                      className={cn(
+                        adminCompactIconButtonClass,
+                        'relative h-9 w-9 rounded-[0.95rem]',
+                        showReplyOnly ? 'border-[#e0d8ff] bg-[#f7f3ff] text-[#6f59b5]' : '',
+                      )}
+                    >
+                      <Filter className="h-4 w-4" />
+                      {showReplyOnly ? <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#7b68b1]" /> : null}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className={adminDropdownContentClass}>
+                    <DropdownMenuCheckboxItem
+                      checked={showReplyOnly}
+                      onCheckedChange={(checked) => setShowReplyOnly(checked === true)}
+                      className={adminDropdownItemClass}
+                    >
+                      답글 도착만
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleExportCSV}
-                disabled={
-                  !accessState?.canManage ||
-                  !resolvedSelectedClass ||
-                  !hasValidYearMonth ||
-                  !matrixData ||
-                  matrixData.students.length === 0 ||
-                  isExporting
-                }
-                className={adminCompactButtonClass}
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                <span>CSV 다운로드</span>
-              </Button>
             </div>
           </CardHeader>
           <CardContent className="px-2 pb-2 pt-0 md:px-5 md:pb-5 lg:px-6 lg:pb-6">
@@ -792,7 +1175,14 @@ export default function AdminDashboard() {
                 ) : (
                   <AdminMatrix
                     data={matrixData}
+                    notesState={notesState ?? null}
+                    showReplyOnly={showReplyOnly}
+                    isNotesLoading={isNotesLoading}
+                    notesErrorMessage={notesErrorMessage}
+                    focusStudentId={requestedStudentId}
+                    focusWeekNumber={requestedWeek}
                     onAttendanceChange={handleAttendanceChange}
+                    onSaveWeekNotes={handleSaveNotes}
                   />
                 )}
           </CardContent>
@@ -807,6 +1197,7 @@ export default function AdminDashboard() {
           if (!open) {
             setCreateError(null)
             setNewClassName('')
+            setNewClassScheduleRules([buildDefaultScheduleRule()])
           }
         }}
       >
@@ -814,7 +1205,7 @@ export default function AdminDashboard() {
           <DialogHeader>
             <DialogTitle>새 수업 만들기</DialogTitle>
             <DialogDescription>
-              현재 운영 기준에서는 수업 이름만 먼저 만들고, 생성 직후 선택 수업을 새 항목으로 바꿉니다.
+              수업 이름과 기본 반복 일정을 함께 만듭니다. 생성 직후 현재 월 실제 수업 날짜도 바로 생성됩니다.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
@@ -836,6 +1227,101 @@ export default function AdminDashboard() {
                 className={adminSurfaceInputClass}
               />
             </div>
+            <div className="space-y-3 rounded-[1.5rem] border border-[#e5ecd8] bg-[#fbfcf7] p-3">
+              <div>
+                <div className="text-sm font-semibold text-[#314127]">기본 반복 일정</div>
+                <p className="mt-1 text-xs leading-5 text-[#6b7d5e]">
+                  같은 반은 여러 요일을 함께 둘 수 있습니다. 실제 날짜는 생성 후 `일정 관리`에서 월별로 조정합니다.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {newClassScheduleRules.map((rule, index) => (
+                  <div key={rule.id} className="rounded-[1.2rem] border border-[#e5ecd8] bg-white px-3 py-3">
+                    <div className="grid gap-3 md:grid-cols-[minmax(0,0.8fr)_minmax(0,0.7fr)_minmax(0,0.7fr)_auto]">
+                      <div className="space-y-2">
+                        <Label htmlFor={`new-rule-weekday-${rule.id}`}>요일</Label>
+                        <select
+                          id={`new-rule-weekday-${rule.id}`}
+                          value={String(rule.weekday)}
+                          onChange={(event) =>
+                            setNewClassScheduleRules((current) =>
+                              current.map((item) =>
+                                item.id === rule.id ? { ...item, weekday: Number(event.target.value) } : item,
+                              ),
+                            )
+                          }
+                          className={`${adminSurfaceInputClass} h-11`}
+                        >
+                          <option value="0">일요일</option>
+                          <option value="1">월요일</option>
+                          <option value="2">화요일</option>
+                          <option value="3">수요일</option>
+                          <option value="4">목요일</option>
+                          <option value="5">금요일</option>
+                          <option value="6">토요일</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`new-rule-start-${rule.id}`}>시작</Label>
+                        <input
+                          id={`new-rule-start-${rule.id}`}
+                          type="time"
+                          value={rule.startTime}
+                          onChange={(event) =>
+                            setNewClassScheduleRules((current) =>
+                              current.map((item) =>
+                                item.id === rule.id ? { ...item, startTime: event.target.value } : item,
+                              ),
+                            )
+                          }
+                          className={`${adminSurfaceInputClass} h-11`}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`new-rule-end-${rule.id}`}>종료</Label>
+                        <input
+                          id={`new-rule-end-${rule.id}`}
+                          type="time"
+                          value={rule.endTime}
+                          onChange={(event) =>
+                            setNewClassScheduleRules((current) =>
+                              current.map((item) =>
+                                item.id === rule.id ? { ...item, endTime: event.target.value } : item,
+                              ),
+                            )
+                          }
+                          className={`${adminSurfaceInputClass} h-11`}
+                        />
+                      </div>
+                      <div className="flex items-end justify-end">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() =>
+                            setNewClassScheduleRules((current) => current.filter((item) => item.id !== rule.id))
+                          }
+                          disabled={newClassScheduleRules.length <= 1}
+                          className={adminCompactDangerButtonClass}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          삭제
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-[#7b866e]">반복 규칙 {index + 1}</div>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setNewClassScheduleRules((current) => [...current, buildDefaultScheduleRule()])}
+                  className={adminCompactButtonClass}
+                >
+                  <Plus className="h-4 w-4" />
+                  반복 추가
+                </Button>
+              </div>
+            </div>
             <p className="text-xs text-muted-foreground">
               이 동작은 오너 계정에서만 열립니다.
             </p>
@@ -847,10 +1333,72 @@ export default function AdminDashboard() {
             <Button
               variant="ghost"
               onClick={handleCreateClass}
-              disabled={!newClassName.trim() || isCreating || !accessState?.canCreateClass}
+              disabled={!newClassName.trim() || createSchedulePayload.length === 0 || isCreating || !accessState?.canCreateClass}
               className={adminPrimaryButtonClass}
             >
               {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : '생성'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isScheduleDialogOpen}
+        onOpenChange={(open) => {
+          setIsScheduleDialogOpen(open)
+          if (!open) {
+            setScheduleDialogError(null)
+            setScheduleDialogSuccess(null)
+          }
+        }}
+      >
+        <DialogContent className={`${adminDialogContentClass} max-h-[85dvh] overflow-hidden`}>
+          <DialogHeader>
+            <DialogTitle>일정 관리</DialogTitle>
+            <DialogDescription>
+              {resolvedSelectedClass
+                ? `${resolvedSelectedClass.name} / ${formatYearMonthLabel(selectedYearMonth)} 실제 수업 날짜를 관리합니다.`
+                : '수업과 월을 먼저 선택해 주세요.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 overflow-y-auto py-2">
+            {scheduleDialogError ? (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {scheduleDialogError}
+              </div>
+            ) : null}
+            {scheduleDialogSuccess ? (
+              <div className="rounded-md border border-emerald-300/60 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                {scheduleDialogSuccess}
+              </div>
+            ) : null}
+            {isScheduleLoading ? (
+              <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                수업 일정을 불러오는 중입니다.
+              </div>
+            ) : (
+              <ClassScheduleEditor
+                yearMonth={selectedYearMonth}
+                rules={scheduleRules}
+                sessions={scheduleSessions}
+                canEditRules={canEditScheduleRules}
+                onRulesChange={setScheduleRules}
+                onSessionsChange={setScheduleSessions}
+              />
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsScheduleDialogOpen(false)} className={adminCompactButtonClass}>
+              닫기
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleSaveSchedule}
+              disabled={isScheduleLoading || isScheduleSaving || !resolvedSelectedClass}
+              className={adminPrimaryButtonClass}
+            >
+              {isScheduleSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : '저장'}
             </Button>
           </DialogFooter>
         </DialogContent>

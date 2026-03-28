@@ -11,7 +11,6 @@ import { StudentEnrollmentRequestDialog } from '@/components/student-enrollment-
 import { SpmMascot } from '@/components/spm-mascot'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { getCurrentWeekOfMonth } from '@/lib/date-selection'
 import { createClient } from '@/lib/supabase/client'
 import {
   fetchStudentSummaries,
@@ -227,7 +226,7 @@ export default function StudentLessonsPage() {
           <StudentClassDetailView
             key={`${selectedDetail.classId}:${selectedDetail.yearMonth}:${selectedDetail.enrollmentStatus}`}
             detail={selectedDetail}
-            initialWeekNumber={getCurrentWeekOfMonth()}
+            initialWeekNumber={selectedDetail.defaultWeekNumber}
           />
         ) : (
           <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-white py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+import { buildSessionWeekGroups, ensureClassSessionsForMonth } from '@/lib/class-schedule'
 import { buildVisibleWeekNumbers, MAX_CLASS_WEEKS } from '@/lib/weekly-media'
 
 export const ADMIN_NOTE_MEMBER_FEEDBACK_KEY = '__admin_note__'
@@ -12,6 +13,7 @@ type WeeklyNotesClassLogRow = {
   progress: string | null
   reflection: string | null
   member_feedback: Record<string, string> | null
+  member_admin_notes?: Record<string, string> | null
   admin_note?: string | null
 }
 
@@ -34,6 +36,12 @@ type WeeklyNotesEnrollmentRow = {
   profiles: EnrollmentProfileRow
 }
 
+type StudentReplyRow = {
+  student_id: string
+  week_number: number | null
+  reply_text: string | null
+}
+
 export interface WeeklyNotesStudent {
   id: string
   fullName: string
@@ -44,10 +52,13 @@ export interface WeeklyNotesStudent {
 export interface WeeklyNotesWeek {
   weekNumber: number
   logId: string | null
+  ownerFeedbackText: string | null
   progressText: string | null
   sharedFeedbackText: string | null
   adminNoteText: string | null
   memberFeedbackByStudentId: Record<string, string>
+  memberAdminNotesByStudentId: Record<string, string>
+  studentReplyByStudentId: Record<string, string>
 }
 
 export interface AdminWeeklyNotesState {
@@ -74,7 +85,7 @@ function getEnrollmentStatusRank(status: WeeklyNotesStudent['enrollmentStatus'])
   return status === 'ACTIVE' ? 0 : 1
 }
 
-export function sanitizeMemberFeedbackByStudentId(
+function sanitizeStudentTextByStudentId(
   value: unknown,
   allowedStudentIds?: Set<string>,
 ) {
@@ -102,6 +113,20 @@ export function sanitizeMemberFeedbackByStudentId(
   return Object.fromEntries(nextEntries)
 }
 
+export function sanitizeMemberFeedbackByStudentId(
+  value: unknown,
+  allowedStudentIds?: Set<string>,
+) {
+  return sanitizeStudentTextByStudentId(value, allowedStudentIds)
+}
+
+export function sanitizeMemberAdminNotesByStudentId(
+  value: unknown,
+  allowedStudentIds?: Set<string>,
+) {
+  return sanitizeStudentTextByStudentId(value, allowedStudentIds)
+}
+
 export function buildStoredMemberFeedback(args: {
   memberFeedbackByStudentId: Record<string, string>
   adminNoteText: string | null
@@ -127,14 +152,20 @@ function buildWeeklyNotesWeek(
   weekNumber: number,
   row: WeeklyNotesClassLogRow | null,
   allowedStudentIds: Set<string>,
+  studentReplyByStudentId: Record<string, string>,
 ) {
+  const ownerFeedbackText = getAdminNoteText(row?.admin_note, row?.member_feedback)
+
   return {
     weekNumber,
     logId: row?.id ?? null,
+    ownerFeedbackText,
     progressText: trimNullableText(row?.progress),
     sharedFeedbackText: trimNullableText(row?.reflection),
-    adminNoteText: getAdminNoteText(row?.admin_note, row?.member_feedback),
+    adminNoteText: ownerFeedbackText,
     memberFeedbackByStudentId: sanitizeMemberFeedbackByStudentId(row?.member_feedback ?? {}, allowedStudentIds),
+    memberAdminNotesByStudentId: sanitizeMemberAdminNotesByStudentId(row?.member_admin_notes ?? {}, allowedStudentIds),
+    studentReplyByStudentId,
   } satisfies WeeklyNotesWeek
 }
 
@@ -206,7 +237,7 @@ export async function readAdminWeeklyNotesState(
   {
     const result = await supabase
       .from('class_logs')
-      .select('id, class_id, year_month, week_number, progress, reflection, member_feedback, admin_note')
+      .select('id, class_id, year_month, week_number, progress, reflection, member_feedback, member_admin_notes, admin_note')
       .eq('class_id', classId)
       .eq('year_month', yearMonth)
       .order('week_number', { ascending: true })
@@ -217,7 +248,9 @@ export async function readAdminWeeklyNotesState(
 
   if (
     classLogError &&
-    (classLogError.message.includes('admin_note') || classLogError.message.includes('column'))
+    (classLogError.message.includes('admin_note') ||
+      classLogError.message.includes('member_admin_notes') ||
+      classLogError.message.includes('column'))
   ) {
     const fallback = await supabase
       .from('class_logs')
@@ -240,13 +273,61 @@ export async function readAdminWeeklyNotesState(
       .filter((row) => typeof row.week_number === 'number')
       .map((row) => [row.week_number as number, row]),
   )
+  const { data: replyRows, error: replyError } = await supabase
+    .from('student_week_feedback_replies')
+    .select('student_id, week_number, reply_text')
+    .eq('class_id', classId)
+    .eq('year_month', yearMonth)
+    .order('week_number', { ascending: true })
+
+  if (
+    replyError &&
+    !replyError.message.includes('student_week_feedback_replies') &&
+    !replyError.message.includes('relation')
+  ) {
+    throw replyError
+  }
+
+  const replyByWeekAndStudentId = new Map<string, string>()
+  for (const row of ((replyRows ?? []) as StudentReplyRow[])) {
+    if (!row.week_number || !allowedStudentIds.has(row.student_id)) {
+      continue
+    }
+
+    const replyText = trimNullableText(row.reply_text)
+    if (!replyText) {
+      continue
+    }
+
+    replyByWeekAndStudentId.set(`${row.week_number}:${row.student_id}`, replyText)
+  }
+
+  const sessions = await ensureClassSessionsForMonth(supabase, classId, yearMonth)
+  const sessionWeekNumbers =
+    sessions && sessions.length > 0
+      ? buildSessionWeekGroups(sessions).map((week) => week.weekNumber)
+      : []
+  const weekNumbers =
+    sessionWeekNumbers.length > 0
+      ? Array.from(new Set([...sessionWeekNumbers, ...Array.from(rowByWeek.keys())])).sort((left, right) => left - right)
+      : buildVisibleWeekNumbers(MAX_CLASS_WEEKS, MAX_CLASS_WEEKS)
 
   return {
     classId,
     yearMonth,
     students,
-    weeks: buildVisibleWeekNumbers(MAX_CLASS_WEEKS, MAX_CLASS_WEEKS).map((weekNumber) =>
-      buildWeeklyNotesWeek(weekNumber, rowByWeek.get(weekNumber) ?? null, allowedStudentIds),
+    weeks: weekNumbers.map((weekNumber) =>
+      buildWeeklyNotesWeek(
+        weekNumber,
+        rowByWeek.get(weekNumber) ?? null,
+        allowedStudentIds,
+        Object.fromEntries(
+          students.flatMap((student) => {
+            const replyText = replyByWeekAndStudentId.get(`${weekNumber}:${student.id}`)
+            return replyText ? [[student.id, replyText] as const] : []
+          }),
+        ),
+      ),
     ),
   } satisfies AdminWeeklyNotesState
 }

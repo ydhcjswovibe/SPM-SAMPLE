@@ -4,6 +4,7 @@ export type UserRole = 'OWNER' | 'ADMIN' | 'STUDENT'
 export type EnrollmentLifecycleStatus = 'ACTIVE' | 'PENDING' | 'CANCELLED'
 export type PaymentStatus = 'unpaid' | 'paid' | 'refunded'
 export type AttendanceStatus = 'pending' | 'present' | 'absent' | 'excused'
+export type MatrixAttendanceStorageKind = 'session' | 'legacy'
 
 export interface Profile {
   id: string
@@ -68,10 +69,28 @@ export interface WeeklyContent {
 
 // Admin Matrix Types
 export interface MatrixAttendanceCell {
-  week: number
+  weekNumber: number
+  sessionId: string
+  sessionLabel: string
+  sessionDate: string | null
+  sessionTimeLabel?: string | null
   status: AttendanceStatus
   attendanceId: string
+  storageKind: MatrixAttendanceStorageKind
   canUpdate?: boolean
+}
+
+export interface MatrixWeek {
+  weekNumber: number
+  label: string
+  dateRangeLabel: string | null
+  sessions: Array<{
+    sessionId: string
+    sessionLabel: string
+    sessionDate: string | null
+    sessionTimeLabel?: string | null
+    storageKind: MatrixAttendanceStorageKind
+  }>
 }
 
 export interface MatrixCell {
@@ -89,7 +108,8 @@ export interface AdminMatrixData {
   classId: string
   className: string
   yearMonth: string
-  totalWeeks: number
+  weeks: MatrixWeek[]
+  usesLegacyAttendance: boolean
   students: MatrixCell[]
 }
 

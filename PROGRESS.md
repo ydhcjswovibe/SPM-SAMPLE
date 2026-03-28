@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `학생 화면은 그대로 두고, 운영 mobile 월 selector를 `연도 헤더 + 12개월 grid` popover로 바꾸고, `수업 / 월 / 메뉴 / 하단탭` pressed/open 상태가 투명해지지 않도록 surface state를 다시 잠갔다. [components/admin-month-selector.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-month-selector.tsx), [lib/admin/surface.ts](/home/ydhcjswo/projects/SPM-SAMPLE/lib/admin/surface.ts), [components/admin-mobile-utility-menu.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-mobile-utility-menu.tsx), [components/class-selector.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/class-selector.tsx), [components/mobile-nav.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/mobile-nav.tsx) 기준으로 운영 mobile interaction polish를 정리했다.`
+- focus: `운영 출석부를 mobile/desktop 공통 4주 운영판으로 유지하되, mobile은 `이름 + 결제 + 1~4주 컨트롤` 조밀한 리스트로 더 낮게 정리한다. 학생-주차 셀은 `원터치 출석 + 옆 메모 칩` 구조로 바꾸고, 지난 주차 결석만 red로 강하게 구분한다.`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,16 @@
 
 ## Recent Work Windows
 
+- `2026-03-27 | admin attendance stronger status + memo-chip pass | start: not recorded | end: 2026-03-27 21:06 KST | status: done`
+- `2026-03-27 | admin attendance dense-list + memo-dot simplification | start: not recorded | end: 2026-03-27 21:06 KST | status: done`
+- `2026-03-27 | admin one-tap attendance + memo-icon board simplification | start: not recorded | end: 2026-03-27 02:10 KST | status: done`
+- `2026-03-27 | admin single attendance board + week icon entry reset | start: not recorded | end: 2026-03-27 01:40 KST | status: done`
+- `2026-03-26 | admin attendance/feedback two-mode board + student private-feedback-only cleanup | start: not recorded | end: 2026-03-26 19:22 KST | status: done`
+- `2026-03-26 | admin four-week ops board + media-only content split | start: not recorded | end: 2026-03-26 22:47 KST | status: done`
+- `2026-03-26 | admin mobile session attendance + weekly reply package | start: not recorded | end: 2026-03-26 19:41 KST | status: done`
+- `2026-03-26 | admin desktop shell cohesion pass | start: not recorded | end: 2026-03-26 16:22 KST | status: done`
+- `2026-03-26 | admin desktop fixed sidebar + constrained workspace pass | start: not recorded | end: 2026-03-26 15:47 KST | status: done`
+- `2026-03-26 | admin mobile browser verify entry + GIS blocker recheck | start: not recorded | end: 2026-03-26 12:04 KST | status: done`
 - `2026-03-25 | admin mobile one-line header + gear action menu pass | start: not recorded | end: 2026-03-25 18:26 KST | status: done`
 - `2026-03-25 | admin mobile single-menu + compact month selector follow-up | start: not recorded | end: 2026-03-25 18:51 KST | status: done`
 - `2026-03-26 | admin mobile month-popover + opaque pressed-state polish | start: not recorded | end: 2026-03-26 00:50 KST | status: done`
@@ -128,6 +138,44 @@
 
 ## Done Recently
 
+- `npm run typecheck`, `npm run lint`, `npm run build`, `npm run runtime:seed-auth`, `SPM_BASE_URL=http://127.0.0.1:3920 npm run verify:admin-mobile-browser` 재통과 완료
+- [components/admin-matrix.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-matrix.tsx)를 `출석 토글 + 옆 메모 칩` 가로 구조로 다시 정리하고, `지난 실제 수업 주차 결석=red / 현재·미래 미체크=neutral / 출석=green` 색 규칙을 반영 완료
+- [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md), [2026-03-27-admin-attendance-stronger-status-and-memo-chip.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/reports/2026-03-27-admin-attendance-stronger-status-and-memo-chip.md)에 새 `메모 칩 + overdue red absent` truth 반영 완료
+- `npm run typecheck`, `npm run lint`, `npm run build`, `npm run runtime:seed-auth`, `SPM_BASE_URL=http://127.0.0.1:3920 npm run verify:admin-mobile-browser` 재통과 완료
+- [components/admin-matrix.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-matrix.tsx)를 mobile `조밀한 리스트 + 이름/상태 배지 + 1~4주 버튼` 구조로 다시 정리하고, 학생-주차 메모 진입을 `메모 아이콘` 대신 `하단 점 1개`로 축소 완료
+- [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx)에서 출석부 helper text, fallback notice box, wide `CSV 다운로드` 버튼을 제거하고 `출석부 + 우상단 CSV/filter icon` header로 정리 완료
+- [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md), [2026-03-27-admin-attendance-dense-list-and-memo-dot.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/reports/2026-03-27-admin-attendance-dense-list-and-memo-dot.md)에 새 `조밀한 리스트 + 하단 메모 점 + helper/fallback 제거` truth 반영 완료
+- [components/admin-matrix.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-matrix.tsx)를 `원터치 출석 + 메모 아이콘 + 2개 상태 점` 구조로 다시 단순화하고, 학생 메모 sheet에서는 `메모 + 학생 답글`만 보이도록 정리 완료
+- [app/api/admin/attendance/route.ts](/home/ydhcjswo/projects/SPM-SAMPLE/app/api/admin/attendance/route.ts), [lib/admin/matrix.ts](/home/ydhcjswo/projects/SPM-SAMPLE/lib/admin/matrix.ts), [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx)에서 admin 출석을 `present / absent` 2상태로 정규화하고, unchecked 값은 운영판에서 `결석`으로 읽히게 정리 완료
+- [scripts/019_verify_admin_mobile_browser.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/019_verify_admin_mobile_browser.mjs), [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md)에 새 `원터치 출석 + 메모 아이콘 + 우상단 답글 필터 메뉴` 기준 sync 완료
+- `npm run typecheck`, `npm run lint`, `npm run build`, `npm run runtime:seed-auth`, `SPM_BASE_URL=http://127.0.0.1:3920 npm run verify:admin-mobile-browser` 재통과 완료
+- 이번 출석부 단순화 결과를 [2026-03-27-admin-one-tap-attendance-and-memo-icon-board.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/reports/2026-03-27-admin-one-tap-attendance-and-memo-icon-board.md)로 기록 완료
+- [components/admin-matrix.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-matrix.tsx)를 `단일 출석부 + 학생셀 상세 sheet + 주차 헤더 아이콘 entry` 구조로 다시 정리해, 큰 주차 카드 strip과 visible `출석 / 피드백` 모드 전환을 제거 완료
+- [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx), [app/admin/students/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/students/page.tsx), [lib/admin/content-selection.ts](/home/ydhcjswo/projects/SPM-SAMPLE/lib/admin/content-selection.ts)에서 `/admin` query를 `classId + yearMonth + week + studentId` 중심으로 정리하고 `mode` visible contract를 제거 완료
+- [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md)에 `단일 출석부 + 주차 헤더 아이콘 버튼 + desktop tooltip / mobile sheet date visibility` truth와 검증 기준 sync 완료
+- `npm run typecheck`, `npm run lint`, `npm run build`, `npm run runtime:seed-auth`, `SPM_BASE_URL=http://127.0.0.1:3920 npm run verify:admin-mobile-browser` 재통과 완료
+- 이번 단일 보드 재정렬 결과를 [2026-03-27-admin-single-attendance-board-and-week-icon-entry.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/reports/2026-03-27-admin-single-attendance-board-and-week-icon-entry.md)로 기록 완료
+- [components/admin-matrix.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-matrix.tsx)를 `출석 / 피드백` 2모드 운영판으로 재작성해 mobile/desktop 공통 4주 레이아웃은 유지하고, `출석` 기본 진입 + `피드백` sheet 구조로 정리 완료
+- [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx), [lib/admin/content-selection.ts](/home/ydhcjswo/projects/SPM-SAMPLE/lib/admin/content-selection.ts), [app/admin/students/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/students/page.tsx)에서 `mode=feedback` deep link와 `/admin` query sync를 정렬 완료
+- [app/api/admin/weekly-notes/route.ts](/home/ydhcjswo/projects/SPM-SAMPLE/app/api/admin/weekly-notes/route.ts), [lib/admin/weekly-notes.ts](/home/ydhcjswo/projects/SPM-SAMPLE/lib/admin/weekly-notes.ts)에서 active UI 저장 계약을 `ownerFeedbackText + memberFeedbackByStudentId`로 축소하고, hidden legacy notes는 preserve-only로 정리 완료
+- [lib/weekly-media.ts](/home/ydhcjswo/projects/SPM-SAMPLE/lib/weekly-media.ts), [components/student-class-detail-view.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-class-detail-view.tsx)에서 student-facing 공개 텍스트를 `개별 피드백 + reply`만 남기도록 정리 완료
+- [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md)에 `출석 / 피드백` 2모드, student private-feedback-only truth, media-only content 역할 기준 sync 완료
+- `npm run typecheck`, `npm run lint`, `npm run build` 통과 완료
+- [components/admin-shell-header.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-shell-header.tsx)에 desktop `desktopLead` slot을 추가하고, 상단 toolbar를 sidebar brand block과 같은 shell surface로 재정렬 완료
+- [components/desktop-sidebar.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/desktop-sidebar.tsx)를 `brand block + nav panel` 2단 구조로 분리해 desktop에서 상단과 좌측 rail이 더 이어져 보이도록 조정 완료
+- [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx), [app/admin/students/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/students/page.tsx), [app/admin/content/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/content/page.tsx), [app/admin/settings/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/settings/page.tsx)의 desktop 본문 첫 여백을 줄이고 `/admin/settings`를 공통 desktop shell header에 맞춤 완료
+- [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md)에 `brand block + toolbar + below-rail` desktop shell truth와 acceptance 기준 sync 완료
+- `npm run typecheck`, `npm run lint`, `npm run build` 통과 및 local browser에서 `/admin`, `/admin/settings` desktop `brand top = toolbar top (20px)`, `nav panel top (104.9px) > brand bottom (94.9px)`, mobile `aside hidden + mobile nav visible` 확인 완료
+- 이번 desktop shell cohesion 결과를 [docs/reports/2026-03-26-admin-desktop-shell-cohesion-pass.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/reports/2026-03-26-admin-desktop-shell-cohesion-pass.md)로 기록 완료
+- [app/admin/layout.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/layout.tsx)에서 desktop `md+` shell을 grid column 대신 `fixed left sidebar rail + constrained main workspace` 구조로 재정렬 완료
+- [components/desktop-sidebar.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/desktop-sidebar.tsx)를 desktop 고정 rail로 바꾸고, mobile에는 영향 없도록 `md+`에서만 위치 변경 완료
+- [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md)에 `desktop only` shell truth와 검증 기준 sync 완료
+- `npm run typecheck`, `npm run build`, `npm run lint` 통과 및 local browser에서 `/admin`, `/admin/students`, `/admin/content`, `/admin/settings` desktop sidebar `position: fixed`, main workspace width `1120px`, mobile `aside hidden + mobile nav visible` 확인 완료
+- 이번 desktop shell 조정 결과를 [docs/reports/2026-03-26-admin-desktop-fixed-sidebar-and-constrained-workspace.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/reports/2026-03-26-admin-desktop-fixed-sidebar-and-constrained-workspace.md)로 기록 완료
+- reusable admin mobile browser smoke entry로 [scripts/019_verify_admin_mobile_browser.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/019_verify_admin_mobile_browser.mjs) 추가 완료
+- [components/class-selector.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/class-selector.tsx)에 selector `ariaLabel` 지원을 넣고, [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx), [app/admin/students/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/students/page.tsx), [app/admin/content/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/content/page.tsx)의 `AdminMonthSelector` prop을 `ariaLabel`로 정리 완료
+- `npm run typecheck`, `npm run build`, `npm run lint`, `npm run runtime:seed-auth`, `SPM_BASE_URL=http://127.0.0.1:3920 npm run verify:admin-mobile-browser`, `npm run verify:remote-canonical-presence` 재통과 완료
+- configured GIS success path local blocker를 `.env.local`의 `NEXT_PUBLIC_GOOGLE_CLIENT_ID` 부재 기준으로 재확인했고, 이번 결과를 [docs/reports/2026-03-26-admin-mobile-browser-verify-and-gis-blocker.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/reports/2026-03-26-admin-mobile-browser-verify-and-gis-blocker.md)로 기록 완료
 - remote canonical drift verify/apply 공통 entry로 [scripts/lib/remote-canonical-sync.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/lib/remote-canonical-sync.mjs), [scripts/017_verify_remote_canonical_presence.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/017_verify_remote_canonical_presence.mjs), [scripts/018_apply_remote_canonical_sync.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/018_apply_remote_canonical_sync.mjs) 추가 완료
 - `npm run apply:remote-canonical-sync` 실제 실행으로 connected Supabase에 `update_enrollment_status`, `update_enrollment_payment_status`, `class_logs.admin_note`, `upsert_weekly_class_log_notes` 반영 완료
 - `npm run verify:remote-canonical-presence` 재실행으로 4개 canonical target이 모두 present로 보이는 것 확인 완료
@@ -348,24 +396,18 @@
 
 ## Next Up
 
-1. sample(Finch) 유사도를 더 높이는 2차 패스 진행:
-   - `/student` hero 배경 레이어, 숲 실루엣, 캐릭터 배치, 진행 카드 비율을 sample에 더 가깝게 보정
-   - `/student/lessons` 상단 요약 카드와 detail 첫 진입 밀도를 sample 톤에 더 맞게 조정
-   - `/student/profile` 상단 카드 장식, 색분리, 정보 카드 높낮이를 sample 톤에 더 맞게 조정
-   - 학생 하단 탭의 pill 비율, 아이콘 톤, safe area 여백을 sample과 다시 비교
-2. 1차 톤이 맞으면 `/admin/content`, `/admin/settings`, wrong-role/access gate 표면에도 같은 간결한 copy 기준을 확장
-3. configured env에서 GIS Google login success path를 실제 runtime으로 확인
-4. connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC를 remote에 반영하고 fallback 제거 여부 재판단
-5. admin mobile browser smoke와 student request/approval browser flow를 reusable verify entry로 승격할지 판단
+1. configured env에서 GIS Google login success path를 실제 runtime으로 확인
+2. student request/approval browser flow를 reusable verify entry로 승격
+3. 새 4주 운영판의 physical device finger test와 note sheet 체감 검증
+4. 위 신뢰도 작업이 닫힌 뒤 `/admin/settings`, wrong-role/access gate 표면에도 같은 간결한 copy 기준을 확장
 
 ## Risks / Open Questions
 
-- 이번 패키지는 local browser/runtime proof 기준으로는 닫혔지만, admin matrix/action button 체감과 safe-area 여백은 physical device finger test가 있으면 더 안전하다.
-- cute redesign 1차 구현은 runtime/browser 기준으로는 닫혔지만, admin main에서 귀여운 톤이 장기적으로 matrix 판독성을 해치지 않는지는 sample 2차 패스와 함께 다시 볼 필요가 있다.
+- admin mobile browser smoke는 reusable entry 기준으로 닫혔지만, matrix/action button 체감과 safe-area 여백은 physical device finger test가 있으면 더 안전하다.
+- desktop shell은 local browser 기준으로 닫히는 중이지만, brand block + toolbar 결속감이 실제 운영 화면에서 충분한지는 사용자 체감 한 번 더 확인할 여지가 있다.
+- cute redesign 1차 구현은 runtime/browser 기준으로는 닫혔지만, admin main에서 귀여운 톤이 장기적으로 matrix 판독성을 해치지 않는지는 실제 운영 사용 중 계속 볼 필요가 있다.
 - 공통 버튼/카드/입력 톤이 바뀌어 1차 범위 밖 화면도 시각적으로 일부 영향받을 수 있다.
 - 구현 시작 전 `docs/archive/**/*`를 active truth로 다시 인용하지 않도록 주의가 필요하다.
-- connected Supabase의 `update_enrollment_status`, `update_enrollment_payment_status` helper RPC는 아직 schema cache에 없어, 현재 route는 compatibility fallback을 함께 유지한다.
-- remote sync credential이 없어서 connected Supabase에 helper RPC를 실제 push하지 못했다.
 - 현재 `.env.local`에는 `NEXT_PUBLIC_GOOGLE_CLIENT_ID`가 없어, 로컬 `/auth/login`은 redirect 기반 compatibility fallback으로 동작한다.
 - configured GIS success path는 local runtime에서 아직 재현하지 못했고, deployed env 또는 client id가 들어간 local env에서 별도 runtime 확인이 필요하다.
 

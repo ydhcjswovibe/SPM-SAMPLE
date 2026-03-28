@@ -22,6 +22,7 @@ interface ClassSelectorProps {
   classes: Class[]
   selectedClass: Class | null
   onSelect: (classItem: Class) => void
+  ariaLabel?: string
   triggerClassName?: string
   onCreateNew?: () => void
   placeholder?: string
@@ -36,6 +37,7 @@ export function ClassSelector({
   classes, 
   selectedClass, 
   onSelect,
+  ariaLabel,
   triggerClassName,
   onCreateNew,
   placeholder = '수업 선택',
@@ -53,6 +55,7 @@ export function ClassSelector({
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
+          aria-label={ariaLabel}
           className={cn(
             adminToolbarControlClass,
             'w-auto min-w-[9.75rem] max-w-[12.5rem] justify-between gap-2 rounded-[1.25rem] px-3 sm:min-w-[10.75rem] sm:max-w-[13.5rem] lg:min-w-[11rem] lg:max-w-[14.5rem] xl:max-w-[15.5rem]',
