@@ -49,7 +49,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - desktop shell 조정 이후에도 mobile `< md` 위치/정렬은 바뀌지 않아야 한다
 - 운영 메인 첫 진입에서는 현재 월과 해당 월 첫 수업이 기본 선택으로 열려야 하고, 월 변경 시에도 선택 수업이 활성 상태면 유지돼야 한다
 - owner class delete mode는 운영 헤더의 `삭제 모드` trigger로 진입되고, `-` 표시된 항목 선택 -> 확인 다이얼로그 -> soft delete로 이어져야 한다
-- 운영 mobile browser smoke에서는 상단 `수업 selector / 월 selector / 메뉴 / 하단탭`이 불투명 surface를 유지하고, matrix/card action이 viewport 안에서 눌릴 크기를 유지해야 한다
+- 운영 mobile browser smoke에서는 상단 `수업 selector / 월 selector / 메뉴 / 하단탭`과 `월 popover / menu open state / content week rail / bottom nav active-inactive`가 `background alpha > 0.9` 또는 `backgroundImage` 기반 opaque surface여야 하고, matrix/card action이 viewport 안에서 눌릴 크기를 유지해야 한다
 - access-sensitive GET contract stays explicit:
   - anonymous -> `401 AUTH_REQUIRED`
   - signed-in non-admin -> `403 ADMIN_REQUIRED`
@@ -133,6 +133,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 실제 session이 있는 월이면 student `수업` 탭 기본 주차는 실제 수업 날짜를 따라야 하고, 없는 legacy 월만 기존 주차 fallback을 쓴다
 - 학생 상단 헤더는 전 탭에서 `캐릭터 / 수업 selector / YY.MM 월 selector / 메뉴`가 한 줄에서 바로 보여야 하고, 숨겨진 가로 스크롤에 의존하지 않아야 한다
 - 학생 상단 헤더는 뒤판 plate와 본체 bar가 구분되어 배경과 한 덩어리로 붙어 보이지 않아야 한다
+- student browser smoke는 학생 헤더 selector/menu, 하단탭 active-inactive, 홈 progress rail, 홈 summary cards, 수업 주차 rail/button, reply composer, 이미지 확대 프레임, 비디오 overlay control을 같은 opaque surface 기준으로 확인해야 한다
 - `홈` 탭과 `수업` 탭은 역할이 겹치지 않아야 한다:
   - `홈`: 요약 / 진행 / 체크리스트 / quick action
   - `수업`: 선택 / 주차 / 콘텐츠

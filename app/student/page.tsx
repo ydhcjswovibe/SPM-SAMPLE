@@ -16,6 +16,7 @@ import { SpmMascot } from '@/components/spm-mascot'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { studentProgressRailClass } from '@/lib/student/surface'
 import { cn } from '@/lib/utils'
 
 const supabase = createClient()
@@ -108,7 +109,7 @@ export default function StudentDashboardPage() {
           <div className="absolute left-8 top-7 h-8 w-8 rounded-full bg-white/68" />
           <div className="absolute right-5 top-5 h-12 w-12 rounded-full bg-[rgba(255,244,207,0.5)]" />
           <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="inline-flex items-center rounded-full border border-[#edf1e3] bg-white/98 px-3 py-1 text-[11px] font-semibold text-[#597246] shadow-[0_4px_10px_rgba(111,145,72,0.06)]">
+            <div className="inline-flex items-center rounded-full border border-[#edf1e3] bg-[#fffef8] px-3 py-1 text-[11px] font-semibold text-[#597246] shadow-[0_4px_10px_rgba(111,145,72,0.06)]">
               첫 수업을 기다리고 있어요
             </div>
             <div className="mt-5 flex h-28 w-28 items-center justify-center rounded-full bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(250,253,243,0.98)_100%)] shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
@@ -231,7 +232,7 @@ export default function StudentDashboardPage() {
           <div className="relative z-10 flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center rounded-full border border-white/80 bg-white/94 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6f8752] shadow-[0_6px_12px_rgba(126,153,86,0.08)]">
+                <span className="inline-flex items-center rounded-full border border-[#f0eddc] bg-[#fffef8] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6f8752] shadow-[0_6px_12px_rgba(126,153,86,0.08)]">
                   진척
                 </span>
                 <p className="text-[11px] font-semibold text-[#60724e]">
@@ -247,13 +248,13 @@ export default function StudentDashboardPage() {
             </div>
 
             <div className="flex items-center gap-1.5">
-              <div className="rounded-[1rem] border border-white/82 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(248,251,239,0.96)_100%)] px-2.5 py-1.5 text-center shadow-[0_8px_14px_rgba(132,160,91,0.12)]">
+              <div className="rounded-[1rem] border border-[#ece6d3] bg-[#fffef8] px-2.5 py-1.5 text-center shadow-[0_8px_14px_rgba(132,160,91,0.12)]">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#83936d]">남은</p>
                 <p className="mt-0.5 text-[1.15rem] font-black leading-none tracking-[-0.05em] text-[#314127]">
                   {remainingRoutineCount}
                 </p>
               </div>
-              <div className="rounded-[1rem] border border-white/82 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(255,249,229,0.95)_100%)] px-2.5 py-1.5 text-center shadow-[0_8px_14px_rgba(196,175,102,0.12)]">
+              <div className="rounded-[1rem] border border-[#ece6d3] bg-[#fffaf0] px-2.5 py-1.5 text-center shadow-[0_8px_14px_rgba(196,175,102,0.12)]">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#8c7b4f]">확인</p>
                 <p className="mt-0.5 text-[0.95rem] font-black leading-none tracking-[-0.05em] text-[#314127]">
                   {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
@@ -264,7 +265,7 @@ export default function StudentDashboardPage() {
 
           <Progress
             value={selectedProgressPercent}
-            className="relative z-10 mt-2.5 h-3 border border-[rgba(221,232,202,0.95)] bg-white/90 shadow-[inset_0_2px_4px_rgba(140,166,99,0.08)] [&>div]:bg-[linear-gradient(90deg,#ffe177_0%,#ffd55b_50%,#ffc43d_100%)] [&>div]:shadow-[0_6px_12px_rgba(255,209,98,0.26)]"
+            className={studentProgressRailClass}
           />
         </div>
       </section>
@@ -317,8 +318,8 @@ export default function StudentDashboardPage() {
                             className={cn(
                               'inline-flex rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em]',
                               item.done
-                                ? 'border-white/90 bg-white/96 text-[#5c8e36]'
-                                : 'border-white/90 bg-[#fff9ef] text-[#907d58]',
+                                ? 'border-[#ece6d3] bg-[#fffef8] text-[#5c8e36]'
+                                : 'border-[#ece6d3] bg-[#fff9ef] text-[#907d58]',
                             )}
                           >
                             {item.done ? '완료' : '대기'}

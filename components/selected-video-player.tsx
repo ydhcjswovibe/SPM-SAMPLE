@@ -5,6 +5,14 @@ import { ChevronLeft, ChevronRight, Expand, Shrink } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  studentOverlayBadgeClass,
+  studentOverlayButtonClass,
+  studentOverlayControlRowClass,
+  studentOverlayButtonShellClass,
+  studentOverlayClusterClass,
+  studentVideoPlayerClass,
+} from '@/lib/student/surface'
 import { cn } from '@/lib/utils'
 
 type FullscreenCapableElement = HTMLElement & {
@@ -120,14 +128,12 @@ export function SelectedVideoPlayer({
   }
 
   function renderFullscreenButton(overlay: boolean) {
-    const buttonClassName = overlay
-      ? 'border border-white/15 bg-black/55 text-white hover:bg-black/72 hover:text-white'
-      : undefined
+    const buttonClassName = overlay ? studentOverlayButtonClass : undefined
 
     return (
       <Button
         type="button"
-        variant={overlay ? 'ghost' : isFullscreen ? 'secondary' : 'outline'}
+        variant="outline"
         size="icon"
         className={buttonClassName}
         onClick={() => void toggleFullscreen()}
@@ -143,15 +149,13 @@ export function SelectedVideoPlayer({
       return null
     }
 
-    const buttonClassName = overlay
-      ? 'border border-white/15 bg-black/55 text-white hover:bg-black/72 hover:text-white'
-      : undefined
+    const buttonClassName = overlay ? studentOverlayButtonClass : undefined
 
     return (
       <>
         <Button
           type="button"
-          variant={overlay ? 'ghost' : isFullscreen ? 'secondary' : 'outline'}
+          variant="outline"
           size="icon"
           className={buttonClassName}
           onClick={onPrevious}
@@ -161,7 +165,7 @@ export function SelectedVideoPlayer({
         </Button>
         <Button
           type="button"
-          variant={overlay ? 'ghost' : isFullscreen ? 'secondary' : 'outline'}
+          variant="outline"
           size="icon"
           className={buttonClassName}
           onClick={onNext}
@@ -199,32 +203,32 @@ export function SelectedVideoPlayer({
         </div>
       ) : null}
 
-      <div className={cn('relative aspect-video bg-muted', isFullscreen && 'min-h-0 flex-1 bg-black', playerClassName)}>
+      <div className={cn('relative aspect-video', studentVideoPlayerClass, isFullscreen && 'min-h-0 flex-1 bg-black', playerClassName)}>
         {!isFullscreen && showOverlayFullscreenControl ? (
           <div className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-2">
-            <div className="pointer-events-auto rounded-full border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm">
+            <div className={studentOverlayButtonShellClass}>
               {renderFullscreenButton(true)}
             </div>
           </div>
         ) : null}
         {isFullscreen ? (
           <>
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-black/65 via-black/30 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-[#111711] shadow-[0_10px_24px_rgba(0,0,0,0.34)]" />
             <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-              <div className="pointer-events-auto flex min-w-0 items-center gap-2 rounded-full border border-white/12 bg-black/55 px-3 py-2 backdrop-blur-sm">
+              <div className={studentOverlayClusterClass}>
                 <Badge
                   variant="outline"
-                  className="border-white/18 bg-white/12 text-white"
+                  className={studentOverlayBadgeClass}
                 >
                   {label}
                 </Badge>
                 {countLabel ? (
-                  <span className="truncate text-xs font-medium text-white/80">
+                  <span className="truncate text-xs font-medium text-white">
                     {countLabel}
                   </span>
                 ) : null}
               </div>
-              <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm">
+              <div className={studentOverlayControlRowClass}>
                 {renderFullscreenButton(true)}
                 {renderNavigationControls(true)}
               </div>

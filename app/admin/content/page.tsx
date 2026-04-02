@@ -491,7 +491,7 @@ export default function ContentPage() {
             ) : mediaState ? (
               <div className="space-y-4">
                 <Tabs value={resolvedActiveWeek} onValueChange={setActiveWeek}>
-                  <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto bg-transparent p-0">
+                  <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-[1.7rem] border border-[#e2ead4] bg-[linear-gradient(180deg,rgba(247,251,239,0.98)_0%,rgba(255,255,252,0.98)_100%)] p-2 shadow-[0_12px_26px_rgba(111,145,72,0.08)]">
                     {mediaState.weeks.map((week) => {
                       return (
                         <TabsTrigger

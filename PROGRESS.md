@@ -3,7 +3,7 @@
 ## Current Status
 
 - stage: `cute redesign main surfaces`
-- focus: `운영 출석부를 mobile/desktop 공통 4주 운영판으로 유지하되, mobile은 `이름 + 결제 + 1~4주 컨트롤` 조밀한 리스트로 더 낮게 정리한다. 학생-주차 셀은 `원터치 출석 + 옆 메모 칩` 구조로 바꾸고, 지난 주차 결석만 red로 강하게 구분한다.`
+- focus: `로그인 메인 화면을 중앙 집중형 단일 카드로 정리하고, 이메일 로그인/redirect fallback을 제거한 Google-only auth 진입으로 맞춘다.`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,8 @@
 
 ## Recent Work Windows
 
+- `2026-04-02 | student/common surface visibility audit + opaque sweep | start: not recorded | end: 2026-04-02 19:46 KST | status: done`
+- `2026-04-01 | login centered card + google-only auth pass | start: not recorded | end: 2026-04-01 18:58 KST | status: done`
 - `2026-03-27 | admin attendance stronger status + memo-chip pass | start: not recorded | end: 2026-03-27 21:06 KST | status: done`
 - `2026-03-27 | admin attendance dense-list + memo-dot simplification | start: not recorded | end: 2026-03-27 21:06 KST | status: done`
 - `2026-03-27 | admin one-tap attendance + memo-icon board simplification | start: not recorded | end: 2026-03-27 02:10 KST | status: done`
@@ -138,6 +140,11 @@
 
 ## Done Recently
 
+- 공통 `DropdownMenu / Select / Popover / Tabs / Progress` primitive와 학생 `header / bottom tab / home progress / lessons week rail / reply composer / image dialog / video overlay / profile cards`, admin `month popover / dropdown / content week rail / bottom tab`를 opaque surface contract로 정리 완료
+- `scripts/lib/surface-assert.mjs`를 추가해 admin/student browser smoke가 같은 `background alpha > 0.9 또는 backgroundImage 존재` 기준을 공유하도록 맞춤 완료
+- `npm run typecheck`, `npm run lint`, `npm run build`, `node --check scripts/014_verify_student_weekly_media_browser.mjs`, `node --check scripts/019_verify_admin_mobile_browser.mjs`, `node --check scripts/lib/surface-assert.mjs` 통과 완료
+- `SPM_BASE_URL=http://127.0.0.1:3100 npm run verify:admin-mobile-browser`는 opacity 체크 구간을 지난 뒤 local data에서 `출석 trigger`가 보이지 않아 runtime proof가 일부 blocked 상태로 남음
+- `SPM_BASE_URL=http://127.0.0.1:3100 npm run verify:student-browser-smoke`, `SPM_BASE_URL=http://127.0.0.1:3100 npm run verify:weekly-media-runtime`는 이번 패키지 범위 밖 기존 `NOTES_SAVE_FAILED`로 blocked 상태를 재확인함
 - `npm run typecheck`, `npm run lint`, `npm run build`, `npm run runtime:seed-auth`, `SPM_BASE_URL=http://127.0.0.1:3920 npm run verify:admin-mobile-browser` 재통과 완료
 - [components/admin-matrix.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-matrix.tsx)를 `출석 토글 + 옆 메모 칩` 가로 구조로 다시 정리하고, `지난 실제 수업 주차 결석=red / 현재·미래 미체크=neutral / 출석=green` 색 규칙을 반영 완료
 - [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md), [2026-03-27-admin-attendance-stronger-status-and-memo-chip.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/reports/2026-03-27-admin-attendance-stronger-status-and-memo-chip.md)에 새 `메모 칩 + overdue red absent` truth 반영 완료
@@ -380,6 +387,10 @@
 - Vercel auth hotfix와 Supabase project drift 분석을 [docs/reports/2026-03-17-vercel-auth-login-hotfix.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-vercel-auth-login-hotfix.md)로 기록 완료
 - `/auth/login` Google entry를 GIS ID token + Supabase `signInWithIdToken` 우선, redirect 기반 compatibility fallback 포함 구조로 전환 완료
 - local no-client-id 환경에서 Google compatibility fallback 렌더와 auth/role smoke 재검증을 [docs/reports/2026-03-17-google-gis-login-migration.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-google-gis-login-migration.md)로 기록 완료
+- `/auth/login`을 `Social Plus` 브랜드 라벨 + 화면 중앙 단일 카드 기준으로 다시 정리하고, 이메일/비밀번호 form을 제거해 Google-only 로그인 표면으로 전환 완료
+- Google client 미설정/GIS load failure 상태에서는 redirect/email fallback 없이 explicit unavailable 안내만 보이고, localhost에서만 QA 원클릭 로그인 표면을 추가로 유지하도록 정리 완료
+- [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md)에 Google-only auth contract와 중앙 카드 검증 기준 sync 완료
+- 이번 패키지에서 `npm run lint`, `npm run typecheck`, `npm run build`, `npm run runtime:seed-auth` 통과 확인 완료
 - student 주차 영상은 단일 플레이어 + 선택 strip 구조로, 이미지는 가로 스크롤 + click/tap 확대 구조로 정리 완료
 - admin 주차 미디어 편집기도 단일 preview + 선택 strip / 가로 이미지 + 확대 구조로 정렬 완료
 - student media browser smoke를 영상 selector + 이미지 확대 포함 기준으로 보강하고 [docs/reports/2026-03-17-student-media-horizontal-scroll-and-zoom.md](/home/ydhcjswo/projects/SPM_SAMPLE/docs/reports/2026-03-17-student-media-horizontal-scroll-and-zoom.md)로 기록 완료
@@ -408,7 +419,7 @@
 - cute redesign 1차 구현은 runtime/browser 기준으로는 닫혔지만, admin main에서 귀여운 톤이 장기적으로 matrix 판독성을 해치지 않는지는 실제 운영 사용 중 계속 볼 필요가 있다.
 - 공통 버튼/카드/입력 톤이 바뀌어 1차 범위 밖 화면도 시각적으로 일부 영향받을 수 있다.
 - 구현 시작 전 `docs/archive/**/*`를 active truth로 다시 인용하지 않도록 주의가 필요하다.
-- 현재 `.env.local`에는 `NEXT_PUBLIC_GOOGLE_CLIENT_ID`가 없어, 로컬 `/auth/login`은 redirect 기반 compatibility fallback으로 동작한다.
+- 현재 `.env.local`에는 `NEXT_PUBLIC_GOOGLE_CLIENT_ID`가 없어, 로컬 `/auth/login`은 login unavailable 안내와 localhost QA 표면만 보여 준다.
 - configured GIS success path는 local runtime에서 아직 재현하지 못했고, deployed env 또는 client id가 들어간 local env에서 별도 runtime 확인이 필요하다.
 
 ## Legacy Snapshot

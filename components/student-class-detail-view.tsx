@@ -20,6 +20,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { SelectedVideoPlayer } from '@/components/selected-video-player'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  studentImageCaptionClass,
+  studentImageDialogClass,
+  studentImageDialogFrameClass,
+  studentInsetCardClass,
+  studentReplyComposerClass,
+  studentReplyTextareaClass,
+  studentSurfaceCardClass,
+  studentVideoPlayerClass,
+  studentVideoSurfaceClass,
+} from '@/lib/student/surface'
 import { cn } from '@/lib/utils'
 
 function getEmptyWeekMessage(enrollmentStatus: StudentClassDetail['enrollmentStatus']) {
@@ -63,7 +74,7 @@ export function StudentClassDetailView({
 
   if (detail.weeks.length === 0) {
     return (
-      <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
+      <Card className={studentSurfaceCardClass}>
         <CardContent className="px-4 py-10 text-center">
           <p className="text-base font-semibold text-[#314127]">{getEmptyWeekMessage(detail.enrollmentStatus)}</p>
           <p className="mt-2 text-sm leading-6 text-[#6b7d5e]">
@@ -208,10 +219,10 @@ export function StudentClassDetailView({
         </Tabs>
 
         {selectedWeek ? (
-          <Card className="overflow-hidden rounded-[1.9rem] border border-[#e2ead5] bg-white py-0 shadow-[0_14px_30px_rgba(111,145,72,0.08)]">
+          <Card className={studentSurfaceCardClass}>
             <CardContent className="space-y-4 px-3.5 pb-3.5 pt-3.5 sm:px-4 sm:pb-4 sm:pt-4">
               {selectedWeek.sessions.length > 0 ? (
-                <div className="rounded-[1.45rem] border border-[#e6ecd8] bg-[#fbfdf7] px-3 py-3">
+                <div className={studentInsetCardClass}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <div className="text-sm font-semibold text-[#314127]">이번 주 실제 수업 날짜</div>
@@ -283,8 +294,8 @@ export function StudentClassDetailView({
                       onNext={() => moveSelectedVideo(1)}
                       showHeader={false}
                       fullscreenControlMode="overlay"
-                      surfaceClassName="rounded-[1.45rem] border border-[#e4ead8] bg-[#f6faef]"
-                      playerClassName="bg-[#eef3e4]"
+                      surfaceClassName={studentVideoSurfaceClass}
+                      playerClassName={studentVideoPlayerClass}
                     >
                       <iframe
                         src={`https://www.youtube.com/embed/${selectedVideo.youtubeId}`}
@@ -317,7 +328,7 @@ export function StudentClassDetailView({
                           key={item.mediaId}
                           type="button"
                           onClick={() => setSelectedImage({ url: item.url, alt })}
-                          className="group min-w-[75%] overflow-hidden rounded-[1.35rem] border border-[#ebefde] bg-white text-left shadow-sm transition hover:border-[#c9dca8] sm:min-w-[22rem]"
+                          className="group min-w-[75%] overflow-hidden rounded-[1.35rem] border border-[#ebefde] bg-[#fffef8] text-left shadow-sm transition hover:border-[#c9dca8] sm:min-w-[22rem]"
                         >
                           <div className="relative">
                             <img
@@ -325,7 +336,7 @@ export function StudentClassDetailView({
                               alt={alt}
                               className="h-56 w-full object-cover transition duration-200 group-hover:scale-[1.02]"
                             />
-                            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/50 px-3 py-2 text-xs text-white">
+                            <div className={studentImageCaptionClass}>
                               <span>이미지 {index + 1}</span>
                               <span className="inline-flex items-center gap-1">
                                 <ZoomIn className="h-3.5 w-3.5" />
@@ -371,7 +382,7 @@ export function StudentClassDetailView({
               ) : null}
 
               {canReply ? (
-                <div className="space-y-2.5 rounded-[1.45rem] border border-[#dde6ce] bg-[#f9fcf2] px-3.5 py-3.5">
+                <div className={studentReplyComposerClass}>
                   <div className="flex items-center gap-2 text-sm font-semibold text-[#314127]">
                     <Send className="h-4 w-4 text-[#6a9540]" />
                     <span>이번 주 답글</span>
@@ -392,7 +403,7 @@ export function StudentClassDetailView({
                       }))
                     }}
                     placeholder="이번 주 개별 피드백을 보고 느낀 점이나 질문을 적어 주세요."
-                    className="min-h-24 rounded-[1.2rem] border-[#dce8cc] bg-white"
+                    className={studentReplyTextareaClass}
                   />
                   <div className="flex items-center justify-between gap-3">
                     <div className="text-xs text-[#7a876d]">
@@ -409,7 +420,7 @@ export function StudentClassDetailView({
                     </Button>
                   </div>
                   {replyFeedback ? (
-                    <div className="rounded-[1rem] border border-[#dce8cc] bg-white px-3 py-2 text-sm text-[#4c5f3e]">
+                    <div className="rounded-[1rem] border border-[#dce8cc] bg-[#fffef8] px-3 py-2 text-sm text-[#4c5f3e]">
                       {replyFeedback}
                     </div>
                   ) : null}
@@ -421,13 +432,13 @@ export function StudentClassDetailView({
       </div>
 
       <Dialog open={selectedImage !== null} onOpenChange={(open) => (!open ? setSelectedImage(null) : null)}>
-        <DialogContent className="max-h-[90dvh] overflow-hidden rounded-[1.8rem] p-3 sm:max-w-5xl">
+        <DialogContent className={studentImageDialogClass}>
           <DialogHeader className="pr-8">
             <DialogTitle>이미지 크게 보기</DialogTitle>
             <DialogDescription>선택한 이미지를 크게 봅니다.</DialogDescription>
           </DialogHeader>
           {selectedImage ? (
-            <div className="overflow-auto rounded-xl bg-muted/40">
+            <div className={studentImageDialogFrameClass}>
               <img src={selectedImage.url} alt={selectedImage.alt} className="max-h-[75dvh] w-full object-contain" />
             </div>
           ) : null}

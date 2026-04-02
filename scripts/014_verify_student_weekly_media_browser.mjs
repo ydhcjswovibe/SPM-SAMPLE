@@ -10,6 +10,7 @@ import {
   readJson,
 } from './lib/runtime-auth.mjs'
 import { loginAs, request, resolveBaseUrl } from './lib/runtime-http.mjs'
+import { expectOpaqueSurface } from './lib/surface-assert.mjs'
 
 const baseUrl = resolveBaseUrl()
 const adminAccount = LOCAL_RUNTIME_ACCOUNTS.find((account) => account.role === 'ADMIN')
@@ -232,7 +233,83 @@ async function loginWithUi(page, account) {
   })
 }
 
-async function verifyStudentDom(page, results, target) {
+function surfaceCardLocator(page, label, classToken) {
+  return page
+    .getByText(label, { exact: true })
+    .first()
+    .locator(`xpath=ancestor::*[contains(@class,"${classToken}")][1]`)
+}
+
+async function verifyStudentHome(page, results, target) {
+  await page.goto(`${baseUrl}/student?classId=${target.classId}&yearMonth=${target.yearMonth}`, {
+    waitUntil: 'domcontentloaded',
+  })
+  await page.waitForURL((url) => url.pathname === '/student', {
+    timeout: 15000,
+    waitUntil: 'domcontentloaded',
+  })
+
+  const classSelect = page.getByLabel('수업 선택').first()
+  const monthSelect = page.getByLabel('월 선택').first()
+  const menuButton = page.getByLabel('학생 메뉴').first()
+  const homeTabLink = page.locator('[aria-label="학생 홈"]').first()
+  const lessonsTabLink = page.locator('[aria-label="학생 수업"]').first()
+  const profileTabLink = page.locator('[aria-label="학생 내상태"]').first()
+  const progressCard = page.getByText('진척', { exact: true }).first().locator('xpath=ancestor::section[1]')
+  const progressRail = page.locator('[data-slot="progress"]').first()
+  const attendanceCard = surfaceCardLocator(page, '출석', 'rounded-[1.55rem]')
+  const openCard = surfaceCardLocator(page, '공개', 'rounded-[1.55rem]')
+  const feedbackCard = surfaceCardLocator(page, '피드백', 'rounded-[1.55rem]')
+
+  await classSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await monthSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await menuButton.waitFor({ state: 'visible', timeout: 15000 })
+  await homeTabLink.waitFor({ state: 'visible', timeout: 15000 })
+  await lessonsTabLink.waitFor({ state: 'visible', timeout: 15000 })
+  await profileTabLink.waitFor({ state: 'visible', timeout: 15000 })
+
+  const classSurface = await expectOpaqueSurface(classSelect, '학생 수업 선택')
+  const monthSurface = await expectOpaqueSurface(monthSelect, '학생 월 선택')
+  const menuButtonSurface = await expectOpaqueSurface(menuButton, '학생 메뉴 button')
+  const homeTabSurface = await expectOpaqueSurface(homeTabLink, '학생 하단탭 active state')
+  const lessonsTabSurface = await expectOpaqueSurface(lessonsTabLink, '학생 하단탭 inactive state')
+  const profileTabSurface = await expectOpaqueSurface(profileTabLink, '학생 하단탭 inactive profile state')
+  const progressCardSurface = await expectOpaqueSurface(progressCard, '학생 홈 진척 카드')
+  const progressRailSurface = await expectOpaqueSurface(progressRail, '학생 홈 progress rail')
+  const attendanceCardSurface = await expectOpaqueSurface(attendanceCard, '학생 홈 출석 카드')
+  const openCardSurface = await expectOpaqueSurface(openCard, '학생 홈 공개 카드')
+  const feedbackCardSurface = await expectOpaqueSurface(feedbackCard, '학생 홈 피드백 카드')
+
+  await menuButton.click()
+  const menuSurface = await expectOpaqueSurface(
+    page.locator('[data-slot="dropdown-menu-content"]').first(),
+    '학생 메뉴 open state',
+  )
+  await page.keyboard.press('Escape')
+
+  results.student.home = {
+    detailPath: page.url(),
+    classSurface,
+    monthSurface,
+    menuButtonSurface,
+    menuSurface,
+    bottomTabsVisible: {
+      home: await homeTabLink.isVisible(),
+      lessons: await lessonsTabLink.isVisible(),
+      profile: await profileTabLink.isVisible(),
+    },
+    homeTabSurface,
+    lessonsTabSurface,
+    profileTabSurface,
+    progressCardSurface,
+    progressRailSurface,
+    attendanceCardSurface,
+    openCardSurface,
+    feedbackCardSurface,
+  }
+}
+
+async function verifyStudentLessons(page, results, target) {
   await page.goto(`${baseUrl}/student/class/${target.classId}?yearMonth=${target.yearMonth}`, {
     waitUntil: 'domcontentloaded',
   })
@@ -241,20 +318,34 @@ async function verifyStudentDom(page, results, target) {
     waitUntil: 'domcontentloaded',
   })
 
-  const classSelect = page.locator('[aria-label="수업 선택"]').first()
-  const monthSelect = page.locator('[aria-label="월 선택"]').first()
+  const classSelect = page.getByLabel('수업 선택').first()
+  const monthSelect = page.getByLabel('월 선택').first()
+  const menuButton = page.getByLabel('학생 메뉴').first()
   const homeTabLink = page.locator('[aria-label="학생 홈"]').first()
   const lessonsTabLink = page.locator('[aria-label="학생 수업"]').first()
   const profileTabLink = page.locator('[aria-label="학생 내상태"]').first()
+  const weekRail = page.locator('[data-slot="tabs-list"]').first()
+  const activeWeekTab = page.locator('[data-slot="tabs-trigger"][data-state="active"]').first()
+  const inactiveWeekTab = page.locator('[data-slot="tabs-trigger"][data-state="inactive"]').first()
 
   await classSelect.waitFor({ state: 'visible', timeout: 15000 })
   await monthSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await menuButton.waitFor({ state: 'visible', timeout: 15000 })
   await homeTabLink.waitFor({ state: 'visible', timeout: 15000 })
   await lessonsTabLink.waitFor({ state: 'visible', timeout: 15000 })
   await profileTabLink.waitFor({ state: 'visible', timeout: 15000 })
-
   const weekTab = page.getByRole('tab').filter({ hasText: '1주차' }).first()
   await weekTab.click()
+
+  const classSurface = await expectOpaqueSurface(classSelect, '학생 수업 선택')
+  const monthSurface = await expectOpaqueSurface(monthSelect, '학생 월 선택')
+  const menuButtonSurface = await expectOpaqueSurface(menuButton, '학생 메뉴 button')
+  const homeTabSurface = await expectOpaqueSurface(homeTabLink, '학생 하단탭 inactive home state')
+  const lessonsTabSurface = await expectOpaqueSurface(lessonsTabLink, '학생 하단탭 active state')
+  const profileTabSurface = await expectOpaqueSurface(profileTabLink, '학생 하단탭 inactive profile state')
+  const weekRailSurface = await expectOpaqueSurface(weekRail, '학생 수업 주차 rail')
+  const activeWeekTabSurface = await expectOpaqueSurface(activeWeekTab, '학생 수업 주차 active button')
+  const inactiveWeekTabSurface = await expectOpaqueSurface(inactiveWeekTab, '학생 수업 주차 inactive button')
 
   const videoFrame = page.locator('iframe[title="1주차 선택 영상"]').first()
   await videoFrame.waitFor({ state: 'visible', timeout: 15000 })
@@ -283,6 +374,9 @@ async function verifyStudentDom(page, results, target) {
     { selector: 'iframe[title="1주차 선택 영상"]', expectedSrc: initialFrameSrc },
   )
   const afterPreviousSrc = await videoFrame.getAttribute('src')
+  const overlayFullscreenButton = page.getByRole('button', { name: /전체화면$/ }).first()
+  await overlayFullscreenButton.waitFor({ state: 'visible', timeout: 15000 })
+  const overlayFullscreenSurface = await expectOpaqueSurface(overlayFullscreenButton, '학생 비디오 overlay control')
 
   const image = page.locator('img[alt*="1주차 이미지"]').first()
   await image.waitFor({ state: 'visible', timeout: 15000 })
@@ -294,41 +388,65 @@ async function verifyStudentDom(page, results, target) {
   const progressNote = page.getByText(browserSmokeNotes.progress).first()
   const sharedNote = page.getByText(browserSmokeNotes.shared).first()
   const privateNote = page.getByText(browserSmokeNotes.private).first()
+  const replyComposer = page.getByText('이번 주 답글', { exact: true }).first().locator('xpath=ancestor::*[contains(@class,"rounded-[1.45rem]")][1]')
 
   await noteHeading.waitFor({ state: 'visible', timeout: 15000 })
   await progressNote.waitFor({ state: 'visible', timeout: 15000 })
   await sharedNote.waitFor({ state: 'visible', timeout: 15000 })
   await privateNote.waitFor({ state: 'visible', timeout: 15000 })
+  await replyComposer.waitFor({ state: 'visible', timeout: 15000 })
   const adminNoteVisible = await page.getByText(browserSmokeNotes.admin).first().isVisible().catch(() => false)
+  const replyComposerSurface = await expectOpaqueSurface(replyComposer, '학생 reply composer')
 
   await image.click()
   const imageDialog = page.getByRole('dialog', { name: '이미지 크게 보기' })
   await imageDialog.waitFor({ state: 'visible', timeout: 15000 })
   const dialogImage = imageDialog.locator('img[alt*="1주차 이미지"]').first()
   await dialogImage.waitFor({ state: 'visible', timeout: 15000 })
+  const imageFrameSurface = await expectOpaqueSurface(
+    imageDialog.locator('div.overflow-auto').first(),
+    '학생 이미지 확대 프레임',
+  )
 
-  results.student = {
+  results.student.lessons = {
     detailPath: page.url(),
     headerControlsVisible: {
       classSelect: await classSelect.isVisible(),
       monthSelect: await monthSelect.isVisible(),
+      menuButton: await menuButton.isVisible(),
+    },
+    headerSurfaces: {
+      classSurface,
+      monthSurface,
+      menuButtonSurface,
     },
     bottomTabsVisible: {
       home: await homeTabLink.isVisible(),
       lessons: await lessonsTabLink.isVisible(),
       profile: await profileTabLink.isVisible(),
     },
+    bottomTabSurfaces: {
+      homeTabSurface,
+      lessonsTabSurface,
+      profileTabSurface,
+    },
+    weekRailSurface,
+    activeWeekTabSurface,
+    inactiveWeekTabSurface,
     frameVisible: await videoFrame.isVisible(),
     initialFrameSrc,
     afterNextSrc,
     afterPreviousSrc,
+    overlayFullscreenSurface,
     imageVisible: await image.isVisible(),
     imageLoaded: await image.evaluate((element) => element.complete && element.naturalWidth > 0),
     imageDialogVisible: await imageDialog.isVisible(),
+    imageFrameSurface,
     noteHeadingVisible: await noteHeading.isVisible(),
     progressNoteVisible: await progressNote.isVisible(),
     sharedNoteVisible: await sharedNote.isVisible(),
     privateNoteVisible: await privateNote.isVisible(),
+    replyComposerSurface,
     adminNoteVisible,
   }
 
@@ -361,23 +479,27 @@ async function verifyStudentDom(page, results, target) {
     deniedAdminFetch,
   }
 
-  expect(results.student.frameVisible, 'Student video iframe should be visible')
-  expect(results.student.headerControlsVisible.classSelect, 'Student class selector should be visible')
-  expect(results.student.headerControlsVisible.monthSelect, 'Student month selector should be visible')
-  expect(results.student.bottomTabsVisible.home, 'Student home tab should be visible')
-  expect(results.student.bottomTabsVisible.lessons, 'Student lessons tab should be visible')
-  expect(results.student.bottomTabsVisible.profile, 'Student profile tab should be visible')
-  expect(results.student.imageVisible, 'Student image should be visible')
-  expect(results.student.imageLoaded, 'Student image should load successfully')
-  expect(results.student.imageDialogVisible, 'Student image zoom dialog should be visible after click')
-  expect(results.student.noteHeadingVisible, 'Student note heading should be visible')
-  expect(results.student.progressNoteVisible, 'Student progress note should be visible')
-  expect(results.student.sharedNoteVisible, 'Student shared feedback should be visible')
-  expect(results.student.privateNoteVisible, 'Student private feedback should be visible')
-  expect(!results.student.adminNoteVisible, 'Student DOM should not expose admin-only note text')
-  expect(results.student.afterReload.frameVisible, 'Student iframe should remain visible after reload')
-  expect(results.student.afterReload.frameSrc === initialFrameSrc, 'Student iframe should return to the first video after reload')
-  expect(results.student.afterReload.imageVisible, 'Student image should remain visible after reload')
+  expect(results.student.lessons.frameVisible, 'Student video iframe should be visible')
+  expect(results.student.lessons.headerControlsVisible.classSelect, 'Student class selector should be visible')
+  expect(results.student.lessons.headerControlsVisible.monthSelect, 'Student month selector should be visible')
+  expect(results.student.lessons.bottomTabsVisible.home, 'Student home tab should be visible')
+  expect(results.student.lessons.bottomTabsVisible.lessons, 'Student lessons tab should be visible')
+  expect(results.student.lessons.bottomTabsVisible.profile, 'Student profile tab should be visible')
+  expect(results.student.home.bottomTabsVisible.home, 'Student home bottom tab should be visible')
+  expect(results.student.home.progressRailSurface.width >= 0, 'Student home progress rail should be readable')
+  expect(results.student.lessons.bottomTabSurfaces.homeTabSurface.width >= 0, 'Student home tab surface should be readable')
+  expect(results.student.lessons.weekRailSurface.width >= 0, 'Student week rail should be readable')
+  expect(results.student.lessons.imageVisible, 'Student image should be visible')
+  expect(results.student.lessons.imageLoaded, 'Student image should load successfully')
+  expect(results.student.lessons.imageDialogVisible, 'Student image zoom dialog should be visible after click')
+  expect(results.student.lessons.noteHeadingVisible, 'Student note heading should be visible')
+  expect(results.student.lessons.progressNoteVisible, 'Student progress note should be visible')
+  expect(results.student.lessons.sharedNoteVisible, 'Student shared feedback should be visible')
+  expect(results.student.lessons.privateNoteVisible, 'Student private feedback should be visible')
+  expect(!results.student.lessons.adminNoteVisible, 'Student DOM should not expose admin-only note text')
+  expect(results.student.lessons.afterReload.frameVisible, 'Student iframe should remain visible after reload')
+  expect(results.student.lessons.afterReload.frameSrc === initialFrameSrc, 'Student iframe should return to the first video after reload')
+  expect(results.student.lessons.afterReload.imageVisible, 'Student image should remain visible after reload')
   expect(deniedAdminFetch.status === 403, 'Student admin weekly-media fetch should return 403')
 }
 
@@ -425,7 +547,8 @@ async function main() {
       finalUrl: page.url(),
       method: 'local-qa-quick-login',
     }
-    await verifyStudentDom(page, results, target)
+    await verifyStudentHome(page, results, target)
+    await verifyStudentLessons(page, results, target)
 
     await context.close()
   } finally {

@@ -7,6 +7,7 @@ import {
   LOCAL_RUNTIME_ACCOUNTS,
 } from './lib/runtime-auth.mjs'
 import { resolveBaseUrl } from './lib/runtime-http.mjs'
+import { expectOpaqueSurface } from './lib/surface-assert.mjs'
 
 const baseUrl = resolveBaseUrl()
 const ownerAccount = LOCAL_RUNTIME_ACCOUNTS.find((account) => account.role === 'OWNER')
@@ -40,54 +41,6 @@ function configureLocalBrowserLibs() {
   return candidateDirs
 }
 
-function alphaFromCssColor(value) {
-  if (!value || value === 'transparent') {
-    return 0
-  }
-
-  const rgbaMatch = value.match(/^rgba\((.+)\)$/)
-  if (rgbaMatch) {
-    const parts = rgbaMatch[1].split(',').map((part) => part.trim())
-    return Number(parts[3] ?? 1)
-  }
-
-  if (value.startsWith('rgb(')) {
-    return 1
-  }
-
-  return 1
-}
-
-async function readSurface(locator) {
-  return await locator.evaluate((node) => {
-    const style = window.getComputedStyle(node)
-    const rect = node.getBoundingClientRect()
-
-    return {
-      backgroundColor: style.backgroundColor,
-      backgroundImage: style.backgroundImage,
-      borderColor: style.borderColor,
-      boxShadow: style.boxShadow,
-      opacity: style.opacity,
-      width: rect.width,
-      height: rect.height,
-      left: rect.left,
-      right: rect.right,
-      top: rect.top,
-      bottom: rect.bottom,
-    }
-  })
-}
-
-function assertOpaqueSurface(surface, label) {
-  const alpha = alphaFromCssColor(surface.backgroundColor)
-  const hasVisibleBackground = alpha > 0.15 || surface.backgroundImage !== 'none'
-  const opacity = Number(surface.opacity)
-
-  expect(hasVisibleBackground, `${label} background should not be transparent`)
-  expect(Number.isFinite(opacity) && opacity >= 0.85, `${label} opacity should stay opaque enough`)
-}
-
 async function loginWithUi(page, account) {
   const roleLabel = account.role === 'OWNER' ? '오너' : account.role === 'ADMIN' ? '운영' : '학생'
 
@@ -109,8 +62,10 @@ async function verifyMonthPopover(page, results) {
   await monthSelect.click()
   await page.getByRole('button', { name: '이전 연도' }).waitFor({ state: 'visible', timeout: 15000 })
 
-  const openSurface = await readSurface(monthSelect)
-  assertOpaqueSurface(openSurface, '운영 월 선택 open state')
+  const popoverSurface = await expectOpaqueSurface(
+    page.locator('[data-slot="popover-content"]').first(),
+    '운영 월 선택 popover open state',
+  )
 
   for (const label of monthLabels) {
     await page.getByRole('button', { name: label }).first().waitFor({ state: 'visible', timeout: 15000 })
@@ -140,7 +95,7 @@ async function verifyMonthPopover(page, results) {
   results.admin.monthSelector = {
     beforeLabel,
     afterLabel,
-    surface: openSurface,
+    surface: popoverSurface,
     monthButtonCount: monthLabels.length,
     initialYear,
   }
@@ -162,6 +117,8 @@ async function verifyAdminHome(page, results) {
   const menuButton = page.getByLabel('관리자 메뉴 열기').first()
   const filterButton = page.getByLabel('학생 출석부 필터 열기').first()
   const bottomNav = page.locator('nav').filter({ has: page.locator('a[aria-label="운영"]') }).first()
+  const activeBottomNavLink = bottomNav.locator('a[aria-label="운영"]').first()
+  const inactiveBottomNavLink = bottomNav.locator('a[aria-label="학생"]').first()
 
   await classSelect.waitFor({ state: 'visible', timeout: 15000 })
   await monthSelect.waitFor({ state: 'visible', timeout: 15000 })
@@ -169,14 +126,12 @@ async function verifyAdminHome(page, results) {
   await filterButton.waitFor({ state: 'visible', timeout: 15000 })
   await bottomNav.waitFor({ state: 'visible', timeout: 15000 })
 
-  const classSurface = await readSurface(classSelect)
-  const monthSurface = await readSurface(monthSelect)
-  const filterSurface = await readSurface(filterButton)
-  const bottomNavSurface = await readSurface(bottomNav.locator('div').first())
-  assertOpaqueSurface(classSurface, '운영 수업 선택')
-  assertOpaqueSurface(monthSurface, '운영 월 선택')
-  assertOpaqueSurface(filterSurface, '학생 출석부 필터 버튼')
-  assertOpaqueSurface(bottomNavSurface, '운영 하단탭 바')
+  const classSurface = await expectOpaqueSurface(classSelect, '운영 수업 선택')
+  const monthSurface = await expectOpaqueSurface(monthSelect, '운영 월 선택')
+  const filterSurface = await expectOpaqueSurface(filterButton, '학생 출석부 필터 버튼')
+  const bottomNavSurface = await expectOpaqueSurface(bottomNav.locator('div').first(), '운영 하단탭 바')
+  const activeBottomNavSurface = await expectOpaqueSurface(activeBottomNavLink, '운영 하단탭 active state')
+  const inactiveBottomNavSurface = await expectOpaqueSurface(inactiveBottomNavLink, '운영 하단탭 inactive state')
 
   expect(classSurface.left < monthSurface.left, '운영 수업 선택 should render before 운영 월 선택')
   const menuLeft = await menuButton.evaluate((node) => node.getBoundingClientRect().left)
@@ -187,13 +142,19 @@ async function verifyAdminHome(page, results) {
   await filterButton.click()
   const replyOnlyItem = page.getByRole('menuitemcheckbox', { name: '답글 도착만' }).first()
   await replyOnlyItem.waitFor({ state: 'visible', timeout: 15000 })
+  const filterMenuSurface = await expectOpaqueSurface(
+    page.locator('[data-slot="dropdown-menu-content"]').first(),
+    '학생 출석부 필터 open state',
+  )
   await page.keyboard.press('Escape')
   await expectLocatorHidden(replyOnlyItem, '학생 출석부 필터 메뉴')
 
   await menuButton.click()
   await page.getByRole('menuitem', { name: '새 수업 만들기' }).waitFor({ state: 'visible', timeout: 15000 })
-  const menuSurface = await readSurface(menuButton)
-  assertOpaqueSurface(menuSurface, '관리자 메뉴 open state')
+  const menuSurface = await expectOpaqueSurface(
+    page.locator('[data-slot="dropdown-menu-content"]').first(),
+    '관리자 메뉴 open state',
+  )
 
   await page.getByRole('menuitem', { name: '삭제 모드' }).click()
   await page.getByLabel('삭제할 운영 수업 선택').first().waitFor({ state: 'visible', timeout: 15000 })
@@ -202,8 +163,8 @@ async function verifyAdminHome(page, results) {
   const memoTrigger = page.getByRole('button', { name: /학생.*메모 열기/ }).first()
   await attendanceTrigger.waitFor({ state: 'visible', timeout: 15000 })
   await memoTrigger.waitFor({ state: 'visible', timeout: 15000 })
-  const attendanceSurface = await readSurface(attendanceTrigger)
-  const memoSurface = await readSurface(memoTrigger)
+  const attendanceSurface = await expectOpaqueSurface(attendanceTrigger, '운영 출석 trigger')
+  const memoSurface = await expectOpaqueSurface(memoTrigger, '운영 메모 trigger')
   expect(attendanceSurface.width >= 32, '운영 mobile 출석 trigger width should keep touch target')
   expect(attendanceSurface.height >= 32, '운영 mobile 출석 trigger height should keep touch target')
   expect(memoSurface.width >= 32, '운영 mobile 메모 trigger width should keep touch target')
@@ -215,6 +176,9 @@ async function verifyAdminHome(page, results) {
     filterSurface,
     menuSurface,
     bottomNavSurface,
+    activeBottomNavSurface,
+    inactiveBottomNavSurface,
+    filterMenuSurface,
     attendanceSurface,
     memoSurface,
   }
@@ -230,6 +194,7 @@ async function verifyAdminStudents(page, results) {
   const classSelect = page.getByLabel('학생 배정 수업 선택').first()
   const monthSelect = page.getByLabel('등록 월 선택').first()
   const activeNav = page.locator('nav').filter({ has: page.locator('a[aria-label="운영"]') }).first().locator('a[aria-label="학생"]').first()
+  const inactiveNav = page.locator('nav').filter({ has: page.locator('a[aria-label="운영"]') }).first().locator('a[aria-label="운영"]').first()
   const paymentButton = page.getByLabel(/결제 상태/).first()
   const statusButton = page.getByLabel(/등록 상태/).first()
   const feedbackLink = page.getByLabel(/피드백 입력 열기/).first()
@@ -240,16 +205,13 @@ async function verifyAdminStudents(page, results) {
   await statusButton.waitFor({ state: 'visible', timeout: 15000 })
   await feedbackLink.waitFor({ state: 'visible', timeout: 15000 })
 
-  const classSurface = await readSurface(classSelect)
-  const monthSurface = await readSurface(monthSelect)
-  const activeNavSurface = await readSurface(activeNav)
-  const paymentSurface = await readSurface(paymentButton)
-  const statusSurface = await readSurface(statusButton)
-  const feedbackSurface = await readSurface(feedbackLink)
-
-  assertOpaqueSurface(classSurface, '학생 배정 수업 선택')
-  assertOpaqueSurface(monthSurface, '등록 월 선택')
-  assertOpaqueSurface(activeNavSurface, '학생 하단탭 active state')
+  const classSurface = await expectOpaqueSurface(classSelect, '학생 배정 수업 선택')
+  const monthSurface = await expectOpaqueSurface(monthSelect, '등록 월 선택')
+  const activeNavSurface = await expectOpaqueSurface(activeNav, '학생 하단탭 active state')
+  const inactiveNavSurface = await expectOpaqueSurface(inactiveNav, '학생 하단탭 inactive state')
+  const paymentSurface = await expectOpaqueSurface(paymentButton, '결제 상태 button')
+  const statusSurface = await expectOpaqueSurface(statusButton, '등록 상태 button')
+  const feedbackSurface = await expectOpaqueSurface(feedbackLink, '피드백 입력 link')
 
   expect(classSurface.left < monthSurface.left, '학생 배정 수업 선택 should render before 등록 월 선택')
   expect(paymentSurface.width >= 64 && paymentSurface.height >= 30, '결제 상태 버튼 should keep mobile touch target')
@@ -260,6 +222,7 @@ async function verifyAdminStudents(page, results) {
     classSurface,
     monthSurface,
     activeNavSurface,
+    inactiveNavSurface,
     paymentSurface,
     statusSurface,
     feedbackSurface,
@@ -276,23 +239,32 @@ async function verifyAdminContent(page, results) {
   const classSelect = page.getByLabel('콘텐츠 수업 선택').first()
   const monthSelect = page.getByLabel('콘텐츠 월 선택').first()
   const activeNav = page.locator('nav').filter({ has: page.locator('a[aria-label="운영"]') }).first().locator('a[aria-label="수업"]').first()
+  const inactiveNav = page.locator('nav').filter({ has: page.locator('a[aria-label="운영"]') }).first().locator('a[aria-label="운영"]').first()
+  const tabsList = page.locator('[data-slot="tabs-list"]').first()
+  const activeWeekTab = page.locator('[data-slot="tabs-trigger"][data-state="active"]').first()
+  const inactiveWeekTab = page.locator('[data-slot="tabs-trigger"][data-state="inactive"]').first()
 
   await classSelect.waitFor({ state: 'visible', timeout: 15000 })
   await monthSelect.waitFor({ state: 'visible', timeout: 15000 })
 
-  const classSurface = await readSurface(classSelect)
-  const monthSurface = await readSurface(monthSelect)
-  const activeNavSurface = await readSurface(activeNav)
+  const classSurface = await expectOpaqueSurface(classSelect, '콘텐츠 수업 선택')
+  const monthSurface = await expectOpaqueSurface(monthSelect, '콘텐츠 월 선택')
+  const tabsSurface = await expectOpaqueSurface(tabsList, '콘텐츠 주차 rail')
+  const activeNavSurface = await expectOpaqueSurface(activeNav, '수업 하단탭 active state')
+  const inactiveNavSurface = await expectOpaqueSurface(inactiveNav, '수업 하단탭 inactive state')
+  const activeWeekTabSurface = await expectOpaqueSurface(activeWeekTab, '콘텐츠 주차 active button')
+  const inactiveWeekTabSurface = await expectOpaqueSurface(inactiveWeekTab, '콘텐츠 주차 inactive button')
 
-  assertOpaqueSurface(classSurface, '콘텐츠 수업 선택')
-  assertOpaqueSurface(monthSurface, '콘텐츠 월 선택')
-  assertOpaqueSurface(activeNavSurface, '수업 하단탭 active state')
   expect(classSurface.left < monthSurface.left, '콘텐츠 수업 선택 should render before 콘텐츠 월 선택')
 
   results.admin.content = {
     classSurface,
     monthSurface,
+    tabsSurface,
     activeNavSurface,
+    inactiveNavSurface,
+    activeWeekTabSurface,
+    inactiveWeekTabSurface,
   }
 }
 

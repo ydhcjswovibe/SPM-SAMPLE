@@ -55,7 +55,7 @@ export const adminDesktopSidebarPanelClass =
   cn(adminDesktopShellSurfaceClass, 'flex min-h-0 flex-1 flex-col px-3 py-3.5 lg:px-3.5 lg:py-4')
 
 export const adminToolbarControlClass =
-  'h-9 rounded-[1rem] border-[#dbe8cc] bg-white/96 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6] active:bg-[#f5f9ea] active:text-[#314127] data-[state=open]:bg-[#f5f9ea] data-[state=open]:text-[#314127] data-[state=open]:border-[#d5e3c4] [-webkit-tap-highlight-color:transparent] touch-manipulation md:h-10 md:rounded-[1.1rem]'
+  'h-9 rounded-[1rem] border-[#dbe8cc] bg-white/98 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6] active:bg-[#f5f9ea] active:text-[#314127] data-[state=open]:bg-[#f5f9ea] data-[state=open]:text-[#314127] data-[state=open]:border-[#d5e3c4] [-webkit-tap-highlight-color:transparent] touch-manipulation md:h-10 md:rounded-[1.1rem]'
 
 export const adminToolbarMonthInputClass = cn(
   adminToolbarControlClass,
@@ -74,22 +74,22 @@ export const adminPrimaryButtonClass =
   'border-[#75b84f] bg-[#8fcf62] text-white shadow-[0_10px_18px_rgba(111,174,71,0.2)] hover:bg-[#9ad670]'
 
 export const adminCompactButtonClass =
-  'h-9 rounded-[1rem] border border-[#dce8cc] bg-white/96 px-3 text-[13px] font-semibold text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]'
+  'h-9 rounded-[1rem] border border-[#dce8cc] bg-white/98 px-3 text-[13px] font-semibold text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]'
 
 export const adminCompactDangerButtonClass =
   'h-9 rounded-[1rem] border border-[#f0d4cf] bg-[#fff5f1] px-3 text-[13px] font-semibold text-[#b65046] shadow-[0_8px_14px_rgba(182,80,70,0.08)] hover:bg-[#ffede7]'
 
 export const adminCompactIconButtonClass =
-  'h-10 w-10 rounded-[1rem] border border-white/72 bg-white/88 text-[#5f7250] shadow-[0_8px_14px_rgba(121,148,84,0.1)] hover:bg-white'
+  'h-10 w-10 rounded-[1rem] border border-white/72 bg-white/96 text-[#5f7250] shadow-[0_8px_14px_rgba(121,148,84,0.1)] hover:bg-white'
 
 export const adminMobileHeaderIconButtonClass =
-  'h-9 w-9 rounded-[0.95rem] border border-white/72 bg-white/92 text-[#5f7250] shadow-[0_8px_14px_rgba(121,148,84,0.1)] hover:bg-white active:bg-[#f5f9ea] active:text-[#314127] data-[state=open]:bg-[#f5f9ea] data-[state=open]:text-[#314127] data-[state=open]:border-[#d5e3c4] [-webkit-tap-highlight-color:transparent] touch-manipulation'
+  'h-9 w-9 rounded-[0.95rem] border border-white/72 bg-white/96 text-[#5f7250] shadow-[0_8px_14px_rgba(121,148,84,0.1)] hover:bg-white active:bg-[#f5f9ea] active:text-[#314127] data-[state=open]:bg-[#f5f9ea] data-[state=open]:text-[#314127] data-[state=open]:border-[#d5e3c4] [-webkit-tap-highlight-color:transparent] touch-manipulation'
 
 export const adminDropdownContentClass =
-  'rounded-[1.25rem] border-[#dfe8d2] bg-white/98 p-1.5 shadow-[0_18px_32px_rgba(111,145,72,0.12)]'
+  'rounded-[1.25rem] border border-[#dfe8d2] bg-[linear-gradient(180deg,rgba(255,255,255,0.99)_0%,rgba(250,253,242,0.99)_100%)] p-1.5 shadow-[0_18px_32px_rgba(111,145,72,0.12)]'
 
 export const adminDropdownItemClass =
-  'gap-2 rounded-[0.95rem] px-2.5 py-2 text-[#314127] focus:bg-[#f5f9ea] focus:text-[#314127]'
+  'gap-2 rounded-[0.95rem] border border-transparent bg-white/97 px-2.5 py-2 text-[#314127] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] hover:border-[#edf1e4] hover:bg-[#fbfdf6] focus:bg-[#f5f9ea] focus:text-[#314127]'
 
 export const adminSurfaceCardClass =
   'gap-0 overflow-hidden rounded-[2rem] border border-[#e6ecda] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(254,255,250,0.98)_100%)] py-0 shadow-[0_14px_28px_rgba(111,145,72,0.08)]'
@@ -149,7 +149,7 @@ export function adminBottomNavItemClass(tone: AdminNavigationTone, active: boole
     'flex min-w-0 flex-1 items-center justify-center rounded-[1.2rem] border px-1.5 py-1.5 transition-all duration-200 active:opacity-100 [-webkit-tap-highlight-color:transparent] touch-manipulation',
     active
       ? cn(adminActiveItemToneClass[tone], 'active:border-current/20 active:brightness-[0.99]')
-      : 'border-[#ece8d9] bg-white/92 shadow-[inset_0_1px_0_rgba(255,255,255,0.74)] hover:bg-[#faf8ee] active:bg-[#f7f6ec]',
+      : 'border-[#ece8d9] bg-white/96 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)] hover:bg-[#faf8ee] active:bg-[#f7f6ec]',
   )
 }
 

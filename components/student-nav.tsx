@@ -26,6 +26,20 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SpmMascot } from '@/components/spm-mascot'
+import {
+  studentBottomTabBaseClass,
+  studentBottomTabIconIdleClass,
+  studentBottomTabIdleClass,
+  studentHeaderBackdropClass,
+  studentHeaderBadgeClass,
+  studentHeaderFallbackClass,
+  studentHeaderMenuButtonClass,
+  studentHeaderMiniFallbackClass,
+  studentHeaderSelectorClass,
+  studentHeaderShellClass,
+  studentMenuContentClass,
+  studentMenuItemClass,
+} from '@/lib/student/surface'
 
 interface StudentNavProps {
   userName: string
@@ -104,26 +118,23 @@ export function StudentNav({ userName }: StudentNavProps) {
     <>
       <header className="sticky top-0 z-50 px-3 pt-3">
         <div className="relative">
-          <div className="pointer-events-none absolute inset-x-2 bottom-[-0.2rem] top-[0.45rem] rounded-[1.8rem] border border-[#c9d7b8]/85 bg-[linear-gradient(180deg,rgba(223,236,198,0.92)_0%,rgba(204,221,172,0.86)_100%)] shadow-[0_16px_30px_rgba(91,121,47,0.16)]" />
-          <div className="relative overflow-hidden rounded-[1.9rem] border border-[#cfdcbf] bg-[linear-gradient(180deg,rgba(252,254,247,0.98)_0%,rgba(255,253,247,0.99)_100%)] px-2.5 py-2.5 shadow-[0_18px_32px_rgba(96,129,51,0.14),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-md">
+          <div className={studentHeaderBackdropClass} />
+          <div className={studentHeaderShellClass}>
             <div className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-[linear-gradient(180deg,rgba(255,255,255,0.66)_0%,rgba(255,255,255,0)_100%)]" />
             <div className="relative z-10 flex items-center gap-2">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-white/92 shadow-[0_8px_14px_rgba(116,146,78,0.1)]">
+              <div className={studentHeaderBadgeClass}>
                 <SpmMascot size="sm" className="h-7 w-7" />
               </div>
 
               {selectedSummary ? (
                 <>
                   <Select value={selectedSummary.classId} onValueChange={handleClassChange}>
-                    <SelectTrigger
-                      aria-label="수업 선택"
-                      className="h-10 min-w-0 flex-1 rounded-[1.1rem] border-[#dbe8cc] bg-white/96 px-3 text-left text-sm font-semibold text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] [&>span]:truncate"
-                    >
+                    <SelectTrigger aria-label="수업 선택" className={studentHeaderSelectorClass}>
                       <SelectValue placeholder="수업" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={studentMenuContentClass}>
                       {monthSummaries.map((summary) => (
-                        <SelectItem key={summary.classId} value={summary.classId}>
+                        <SelectItem key={summary.classId} value={summary.classId} className={studentMenuItemClass}>
                           {summary.className}
                         </SelectItem>
                       ))}
@@ -131,15 +142,12 @@ export function StudentNav({ userName }: StudentNavProps) {
                   </Select>
 
                   <Select value={selectedSummary.yearMonth} onValueChange={handleMonthChange}>
-                    <SelectTrigger
-                      aria-label="월 선택"
-                      className="h-10 w-[5.6rem] shrink-0 rounded-[1.1rem] border-[#dbe8cc] bg-white/96 px-3 text-sm font-semibold text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]"
-                    >
+                    <SelectTrigger aria-label="월 선택" className="h-10 w-[5.6rem] shrink-0 rounded-[1.1rem] border border-[#dbe8cc] bg-[#fffef8] px-3 text-sm font-semibold text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]">
                       <SelectValue placeholder="월" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className={studentMenuContentClass}>
                       {visibleYearMonths.map((yearMonth) => (
-                        <SelectItem key={yearMonth} value={yearMonth}>
+                        <SelectItem key={yearMonth} value={yearMonth} className={studentMenuItemClass}>
                           {formatCompactYearMonthLabel(yearMonth)}
                         </SelectItem>
                       ))}
@@ -148,10 +156,10 @@ export function StudentNav({ userName }: StudentNavProps) {
                 </>
               ) : (
                 <>
-                  <div className="flex h-10 min-w-0 flex-1 items-center rounded-[1.1rem] border border-[#dbe8cc] bg-white/96 px-3 text-sm font-semibold text-[#7a8470] shadow-[0_8px_14px_rgba(121,148,84,0.08)]">
+                  <div className={studentHeaderFallbackClass}>
                     수업
                   </div>
-                  <div className="flex h-10 w-[5.6rem] shrink-0 items-center justify-center rounded-[1.1rem] border border-[#dbe8cc] bg-white/96 px-3 text-sm font-semibold text-[#7a8470] shadow-[0_8px_14px_rgba(121,148,84,0.08)]">
+                  <div className={studentHeaderMiniFallbackClass}>
                     월
                   </div>
                 </>
@@ -163,29 +171,29 @@ export function StudentNav({ userName }: StudentNavProps) {
                     variant="ghost"
                     size="icon"
                     aria-label="학생 메뉴"
-                    className="h-10 w-10 shrink-0 rounded-[1rem] border border-white/72 bg-white/88 shadow-[0_8px_14px_rgba(121,148,84,0.1)]"
+                    className={studentHeaderMenuButtonClass}
                   >
-                    <Avatar className="h-8 w-8 border border-white/70">
+                    <Avatar className="h-8 w-8 border border-[#ece4c8]">
                       <AvatarFallback className="bg-[#fff6db] text-xs font-semibold text-[#866a2d]">
                         {userName.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 rounded-[1.2rem]">
+                <DropdownMenuContent align="end" className={studentMenuContentClass}>
                   <div className="px-2 py-1.5">
                     <p className="truncate text-sm font-medium">{userName}</p>
                     <p className="text-xs text-muted-foreground">학생</p>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className={studentMenuItemClass}>
                     <Link href={profileHref} className="gap-2">
                       <User className="h-4 w-4" />
                       내상태
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className={studentMenuItemClass}>
                     <Link href={homeHref} className="gap-2">
                       <Home className="h-4 w-4" />
                       학생 홈
@@ -199,7 +207,7 @@ export function StudentNav({ userName }: StudentNavProps) {
                           event.preventDefault()
                           setIsRequestDialogOpen(true)
                         }}
-                        className="gap-2"
+                        className={studentMenuItemClass}
                       >
                         <Gift className="h-4 w-4" />
                         새 수업 요청
@@ -207,7 +215,7 @@ export function StudentNav({ userName }: StudentNavProps) {
                       <DropdownMenuSeparator />
                     </>
                   ) : null}
-                  <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-destructive">
+                  <DropdownMenuItem onClick={handleSignOut} className={cn(studentMenuItemClass, 'text-destructive')}>
                     <LogOut className="h-4 w-4" />
                     로그아웃
                   </DropdownMenuItem>
@@ -219,15 +227,15 @@ export function StudentNav({ userName }: StudentNavProps) {
       </header>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-        <div className="mx-auto flex h-[4rem] max-w-[24rem] items-center gap-1.5 rounded-[1.7rem] border border-white/78 bg-white/95 px-1.5 py-1.5 shadow-[0_18px_34px_rgba(107,129,70,0.16)] backdrop-blur-md">
+        <div className="mx-auto flex h-[4rem] max-w-[24rem] items-center gap-1.5 rounded-[1.7rem] border border-[#ece4cd] bg-[#fffef8] px-1.5 py-1.5 shadow-[0_18px_34px_rgba(107,129,70,0.16)]">
           <Link
             href={homeHref}
             aria-label="학생 홈"
             className={cn(
-              'flex min-w-0 flex-1 items-center justify-center rounded-[1.2rem] border px-1.5 py-1.5 transition-all duration-200',
+              studentBottomTabBaseClass,
               isHomePage
                 ? 'border-[#f0dfaa] bg-[linear-gradient(180deg,rgba(255,250,236,0.99)_0%,rgba(255,238,204,0.98)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_18px_rgba(197,168,95,0.22)]'
-                : 'border-transparent hover:border-[#ece8d9] hover:bg-[#faf8ee]',
+                : studentBottomTabIdleClass,
             )}
           >
             <div
@@ -235,7 +243,7 @@ export function StudentNav({ userName }: StudentNavProps) {
                 'flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200',
                 isHomePage
                   ? 'border-[#f2cf82] bg-[#ffe1ad] text-[#bb8033] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(201,156,74,0.24)]'
-                  : 'border-transparent bg-[#f6f3ea] text-[#98a08d]',
+                  : studentBottomTabIconIdleClass,
               )}
             >
               <Home className="h-4.5 w-4.5" />
@@ -246,10 +254,10 @@ export function StudentNav({ userName }: StudentNavProps) {
             href={lessonsHref}
             aria-label="학생 수업"
             className={cn(
-              'flex min-w-0 flex-1 items-center justify-center rounded-[1.2rem] border px-1.5 py-1.5 transition-all duration-200',
+              studentBottomTabBaseClass,
               isLessonsPage
                 ? 'border-[#d8e9b7] bg-[linear-gradient(180deg,rgba(246,252,227,0.99)_0%,rgba(229,244,193,0.98)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_18px_rgba(143,182,98,0.22)]'
-                : 'border-transparent hover:border-[#ece8d9] hover:bg-[#faf8ee]',
+                : studentBottomTabIdleClass,
             )}
           >
             <div
@@ -257,7 +265,7 @@ export function StudentNav({ userName }: StudentNavProps) {
                 'flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200',
                 isLessonsPage
                   ? 'border-[#f5d985] bg-[#fff1b4] text-[#d79d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_8px_18px_rgba(220,177,70,0.24)]'
-                  : 'border-transparent bg-[#f6f3ea] text-[#98a08d]',
+                  : studentBottomTabIconIdleClass,
               )}
             >
               <BookOpen className="h-4.5 w-4.5" />
@@ -268,10 +276,10 @@ export function StudentNav({ userName }: StudentNavProps) {
             href={profileHref}
             aria-label="학생 내상태"
             className={cn(
-              'flex min-w-0 flex-1 items-center justify-center rounded-[1.2rem] border px-1.5 py-1.5 transition-all duration-200',
+              studentBottomTabBaseClass,
               isProfilePage
                 ? 'border-[#d7e7f6] bg-[linear-gradient(180deg,rgba(244,249,255,0.99)_0%,rgba(229,240,255,0.98)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_18px_rgba(133,162,205,0.18)]'
-                : 'border-transparent hover:border-[#ece8d9] hover:bg-[#faf8ee]',
+                : studentBottomTabIdleClass,
             )}
           >
             <div
@@ -279,7 +287,7 @@ export function StudentNav({ userName }: StudentNavProps) {
                 'flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200',
                 isProfilePage
                   ? 'border-[#cfe0f6] bg-[#eaf3ff] text-[#5d79ab] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(133,162,205,0.2)]'
-                  : 'border-transparent bg-[#f6f3ea] text-[#98a08d]',
+                  : studentBottomTabIconIdleClass,
               )}
             >
               <User className="h-4.5 w-4.5" />

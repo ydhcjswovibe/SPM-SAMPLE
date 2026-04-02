@@ -93,7 +93,7 @@ export default function StudentLessonsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[65dvh] flex-col items-center justify-center gap-4 px-4 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-[1.7rem] bg-white shadow-[0_16px_24px_rgba(111,145,72,0.12)]">
+        <div className="flex h-16 w-16 items-center justify-center rounded-[1.7rem] bg-[#fffef8] shadow-[0_16px_24px_rgba(111,145,72,0.12)]">
           <SpmMascot size="sm" className="h-10 w-10" />
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-[#5a7440]">
@@ -119,7 +119,7 @@ export default function StudentLessonsPage() {
               </div>
             </div>
             {needsLogin ? (
-              <Button asChild variant="outline" size="sm" className="rounded-full bg-white">
+              <Button asChild variant="outline" size="sm" className="rounded-full bg-[#fffef8]">
                 <Link href="/">다시 로그인하기</Link>
               </Button>
             ) : null}
@@ -132,7 +132,7 @@ export default function StudentLessonsPage() {
   if (!summaries || summaries.length === 0) {
     return (
       <div className="space-y-4 px-3 pb-28 pt-3">
-        <Card className="overflow-hidden rounded-[2.1rem] border border-[#e4ead8] bg-white py-0 shadow-[0_14px_28px_rgba(111,145,72,0.08)]">
+        <Card className="overflow-hidden rounded-[2.1rem] border border-[#e4ead8] bg-[#fffef8] py-0 shadow-[0_14px_28px_rgba(111,145,72,0.08)]">
           <CardContent className="space-y-4 px-4 py-6 text-center">
             <div className="flex flex-col items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-[1.25rem] bg-[#f2f8e8] text-[#6b9444]">
@@ -169,7 +169,7 @@ export default function StudentLessonsPage() {
   if (!selectedSummary) {
     return (
       <div className="px-3 pb-28 pt-3">
-        <Card className="overflow-hidden rounded-[2rem] border border-[#e3ead7] bg-white py-0 shadow-[0_16px_28px_rgba(111,145,72,0.08)]">
+        <Card className="overflow-hidden rounded-[2rem] border border-[#e3ead7] bg-[#fffef8] py-0 shadow-[0_16px_28px_rgba(111,145,72,0.08)]">
           <CardContent className="space-y-2 px-4 py-5 text-sm text-[#68785c]">
             <p className="font-semibold text-[#314127]">선택된 수업을 찾지 못했습니다.</p>
             <p>상단 선택기에서 수업과 월을 다시 골라 주세요.</p>
@@ -182,17 +182,17 @@ export default function StudentLessonsPage() {
   return (
     <div className="space-y-3 px-3 pb-28 pt-3">
       <section className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-[#fffef8] px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
           <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">출석</p>
           <p className="mt-0.5 text-base font-black text-[#314127]">
             {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
           </p>
         </div>
-        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-[#fffef8] px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
           <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">공개</p>
           <p className="mt-0.5 text-base font-black text-[#314127]">{selectedSummary.availableWeekCount}개</p>
         </div>
-        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-white px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+        <div className="rounded-[1.3rem] border border-[#e4ead8] bg-[#fffef8] px-2 py-2.5 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
           <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#82906f]">피드백</p>
           <p className="mt-0.5 text-base font-black text-[#314127]">{selectedSummary.feedbackCount}건</p>
         </div>
@@ -204,7 +204,7 @@ export default function StudentLessonsPage() {
         </div>
 
         {isDetailLoading ? (
-          <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-white py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">
+          <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-[#fffef8] py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">
             <CardContent className="flex items-center gap-3 px-4 py-5 text-sm text-[#6a7b5f]">
               <Loader2 className="h-4 w-4 animate-spin" />
               선택한 수업의 주차 콘텐츠를 불러오는 중입니다.
@@ -229,7 +229,7 @@ export default function StudentLessonsPage() {
             initialWeekNumber={selectedDetail.defaultWeekNumber}
           />
         ) : (
-          <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-white py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">
+          <Card className="overflow-hidden rounded-[1.8rem] border border-[#e1ead5] bg-[#fffef8] py-0 shadow-[0_12px_24px_rgba(111,145,72,0.08)]">
             <CardContent className="px-4 py-10 text-center">
               <p className="text-base font-semibold text-[#314127]">선택한 수업 정보를 찾지 못했습니다.</p>
               <p className="mt-2 text-sm leading-6 text-[#6a7b5f]">

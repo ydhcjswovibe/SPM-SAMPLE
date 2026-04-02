@@ -124,7 +124,7 @@ export default function StudentProfilePage() {
   if (isProfileLoading) {
     return (
       <div className="space-y-3 px-3 pb-28 pt-3">
-        <Card className="gap-0 rounded-[2rem] border border-[#e5e7d0] bg-white py-0 shadow-[0_14px_28px_rgba(111,145,72,0.08)]">
+        <Card className="gap-0 rounded-[2rem] border border-[#e5e7d0] bg-[#fffef8] py-0 shadow-[0_14px_28px_rgba(111,145,72,0.08)]">
           <CardContent className="flex items-center gap-3 px-4 py-4 text-sm text-[#6d7d5e]">
             <Loader2 className="h-4 w-4 animate-spin" />
             내상태 카드를 불러오는 중입니다.
@@ -145,7 +145,7 @@ export default function StudentProfilePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2 px-4 pb-4 pt-0">
-            <Button variant="outline" onClick={() => void mutate()} className="rounded-full bg-white">
+            <Button variant="outline" onClick={() => void mutate()} className="rounded-full bg-[#fffef8]">
               다시 시도
             </Button>
           </CardContent>
@@ -175,7 +175,7 @@ export default function StudentProfilePage() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-[#ebf0e2] bg-white p-4 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
+          <div className="rounded-[2rem] border border-[#ebf0e2] bg-[#fffef8] p-4 shadow-[0_10px_20px_rgba(111,145,72,0.06)]">
             <div className="flex items-center gap-3">
               <Avatar className="h-16 w-16 border-4 border-[#f7f4e7] shadow-[0_8px_14px_rgba(111,145,72,0.1)]">
                 <AvatarImage src={profile.avatar_url || undefined} />
@@ -204,7 +204,7 @@ export default function StudentProfilePage() {
           {summaryCards.map((card) => (
             <div
               key={card.label}
-              className="rounded-[1.6rem] border border-[#eef2e5] bg-white px-4 py-4 shadow-[0_8px_14px_rgba(111,145,72,0.05)]"
+              className="rounded-[1.6rem] border border-[#eef2e5] bg-[#fffef8] px-4 py-4 shadow-[0_8px_14px_rgba(111,145,72,0.05)]"
             >
               <div className={cn('inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold', card.tone)}>
                 {card.label}
@@ -215,7 +215,7 @@ export default function StudentProfilePage() {
         </div>
       </section>
 
-      <Card className="gap-0 rounded-[2rem] border border-[#e3e9d8] bg-white py-0 shadow-[0_12px_22px_rgba(111,145,72,0.06)]">
+      <Card className="gap-0 rounded-[2rem] border border-[#e3e9d8] bg-[#fffef8] py-0 shadow-[0_12px_22px_rgba(111,145,72,0.06)]">
         <CardHeader className="px-5 pb-2 pt-4">
           <CardTitle className="text-[1.2rem] font-black tracking-[-0.03em] text-[#314127]">계정 정보</CardTitle>
           <CardDescription className="text-[#6f7d60]">이름은 여기서 바로 바꿀 수 있어요.</CardDescription>

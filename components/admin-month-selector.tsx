@@ -115,7 +115,10 @@ export function AdminMonthSelector({
           <PopoverContent
             align="end"
             sideOffset={8}
-            className="w-[min(18.25rem,calc(100vw-1.5rem))] rounded-[1.55rem] border border-[#dfe8d2] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(250,253,242,0.98)_100%)] p-3 shadow-[0_20px_36px_rgba(111,145,72,0.14)]"
+            className={cn(
+              adminDropdownContentClass,
+              'w-[min(18.25rem,calc(100vw-1.5rem))] p-3 shadow-[0_20px_36px_rgba(111,145,72,0.14)]',
+            )}
           >
             <div className="flex items-center justify-between gap-2">
               <button
