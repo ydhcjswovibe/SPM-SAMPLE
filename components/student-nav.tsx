@@ -64,11 +64,11 @@ export function StudentNav({ userName }: StudentNavProps) {
     await supabase.auth.signOut()
 
     if (typeof window !== 'undefined') {
-      window.location.assign('/auth/login')
+      window.location.assign('/')
       return
     }
 
-    router.push('/auth/login')
+    router.push('/')
   }
 
   function replaceSelection(classId: string, yearMonth: string) {

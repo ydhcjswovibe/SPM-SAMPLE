@@ -21,7 +21,7 @@ export function AdminDesktopUtilityTray({ className }: AdminDesktopUtilityTrayPr
     await supabase.auth.signOut()
 
     if (typeof window !== 'undefined') {
-      window.location.assign('/auth/login')
+      window.location.assign('/')
     }
   }
 

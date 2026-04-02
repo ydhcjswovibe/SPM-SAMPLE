@@ -166,7 +166,7 @@ export default function SettingsPage() {
             <CardContent className="flex flex-wrap gap-2">
               {needsLogin ? (
                 <Button asChild>
-                  <Link href="/auth/login">다시 로그인하기</Link>
+                  <Link href="/">다시 로그인하기</Link>
                 </Button>
               ) : (
                 <Button variant="outline" onClick={() => void mutate()}>

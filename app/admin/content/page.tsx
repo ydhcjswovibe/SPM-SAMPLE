@@ -404,7 +404,7 @@ export default function ContentPage() {
               <p>{classErrorMessage}</p>
               {classErrorMessage === authRequiredMessage ? (
                 <Button asChild variant="ghost" size="sm" className={adminCompactButtonClass}>
-                  <Link href="/auth/login">다시 로그인하기</Link>
+                  <Link href="/">다시 로그인하기</Link>
                 </Button>
               ) : (
                 <Button variant="ghost" size="sm" onClick={() => void mutateClasses()} className={adminCompactButtonClass}>

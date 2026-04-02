@@ -384,13 +384,14 @@ export default function AdminDashboard() {
   const hasValidYearMonth = isValidYearMonth(selectedYearMonth)
 
   const { data: accessState, isLoading: isAccessLoading } = useSWR('admin-access', fetchAdminAccessState)
+  const canReadAdminData = !isAccessLoading && accessState?.canManage === true
   const {
     data: classes,
     error: classesError,
     isLoading: isClassesLoading,
     mutate: mutateClasses,
   } = useSWR(
-    hasValidYearMonth ? ['admin-classes', selectedYearMonth] : null,
+    hasValidYearMonth && canReadAdminData ? ['admin-classes', selectedYearMonth] : null,
     ([, yearMonth]) => fetchClasses(yearMonth),
   )
   const resolvedSelectedClass =
@@ -399,7 +400,7 @@ export default function AdminDashboard() {
       ?? classes?.[0]
       ?? null
   const { data: allClasses, isLoading: isAllClassesLoading, mutate: mutateAllClasses } = useSWR(
-    accessState?.canCreateClass ? 'admin-all-classes' : null,
+    !isAccessLoading && accessState?.canCreateClass ? 'admin-all-classes' : null,
     fetchAllClasses,
   )
 
@@ -409,7 +410,7 @@ export default function AdminDashboard() {
     isLoading: isMatrixLoading,
     mutate: mutateMatrix,
   } = useSWR(
-    resolvedSelectedClass && hasValidYearMonth
+    canReadAdminData && resolvedSelectedClass && hasValidYearMonth
       ? ['matrix', resolvedSelectedClass.id, selectedYearMonth]
       : null,
     ([, classId, yearMonth]) => fetchMatrixData(classId, yearMonth),
@@ -420,7 +421,7 @@ export default function AdminDashboard() {
     isLoading: isNotesLoading,
     mutate: mutateNotesState,
   } = useSWR(
-    resolvedSelectedClass && hasValidYearMonth
+    canReadAdminData && resolvedSelectedClass && hasValidYearMonth
       ? ['admin-weekly-notes', resolvedSelectedClass.id, selectedYearMonth]
       : null,
     ([, classId, yearMonth]) => fetchWeeklyNotesState(classId, yearMonth),
@@ -829,6 +830,78 @@ export default function AdminDashboard() {
 
   const selectorClasses = isDeleteMode ? allClasses || [] : classes || []
 
+  if (isAccessLoading) {
+    return (
+      <div className="px-4 pb-28 pt-6 md:px-6 md:pb-8 md:pt-6 lg:px-7">
+        <Card className={adminInsetCardClass}>
+          <CardContent className="flex items-center gap-3 py-4 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            관리자 권한을 확인하고 있습니다.
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!accessState?.isAuthenticated) {
+    return (
+      <div className="px-4 pb-28 pt-6 md:px-6 md:pb-8 md:pt-6 lg:px-7">
+        <Card className={adminAlertCardClass('warning')}>
+          <CardContent className="flex flex-col gap-4 py-5">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="mt-0.5 h-5 w-5 text-amber-700" />
+              <div className="space-y-1">
+                <p className="font-medium text-amber-950">관리자 세션이 확인되지 않습니다.</p>
+                <p className="text-sm text-amber-900/80">
+                  다시 로그인한 뒤 운영 화면으로 돌아와 주세요.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="ghost" size="sm" className={adminPrimaryButtonClass}>
+                <Link href="/">
+                  <LogIn className="h-4 w-4" />
+                  로그인하기
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm" className={adminCompactButtonClass}>
+                <Link href="/">처음으로</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!accessState.canManage) {
+    return (
+      <div className="px-4 pb-28 pt-6 md:px-6 md:pb-8 md:pt-6 lg:px-7">
+        <Card className={adminAlertCardClass('danger')}>
+          <CardContent className="flex flex-col gap-4 py-5">
+            <div className="space-y-1">
+              <p className="font-medium text-destructive">현재 계정에는 관리자 권한이 없습니다.</p>
+              <p className="text-sm text-muted-foreground">
+                로그인 계정: {accessState.email ?? '알 수 없음'} / 역할: {getRoleLabel(accessState.role)}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                학생 계정이면 학생 화면으로 이동하고, 운영 계정이면 다시 로그인해 주세요.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="ghost" size="sm" className={adminPrimaryButtonClass}>
+                <Link href="/student">학생 화면으로 이동</Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm" className={adminCompactButtonClass}>
+                <Link href="/">다시 로그인하기</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col">
       <AdminShellHeader
@@ -931,49 +1004,6 @@ export default function AdminDashboard() {
       />
 
       <div className="flex-1 space-y-4 px-4 pb-28 pt-3 md:space-y-4 md:px-6 md:pb-8 md:pt-3 lg:px-7 lg:pt-4">
-        {isAccessLoading ? (
-          <Card className={adminInsetCardClass}>
-            <CardContent className="flex items-center gap-3 py-4 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              관리자 권한을 확인하고 있습니다.
-            </CardContent>
-          </Card>
-        ) : !accessState?.isAuthenticated ? (
-          <Card className={adminAlertCardClass('warning')}>
-            <CardContent className="flex flex-col gap-3 py-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="mt-0.5 h-5 w-5 text-amber-700" />
-                <div className="space-y-1">
-                  <p className="font-medium text-amber-950">관리자 작업을 하려면 먼저 로그인해야 합니다.</p>
-                  <p className="text-sm text-amber-900/80">
-                    현재 이 화면은 보이지만, 수업 만들기와 수정은 실제 로그인 권한을 따릅니다.
-                  </p>
-                </div>
-              </div>
-              <div>
-                <Button asChild variant="ghost" size="sm" className={adminPrimaryButtonClass}>
-                  <Link href="/auth/login">
-                    <LogIn className="h-4 w-4" />
-                    로그인하러 가기
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : !accessState.canManage ? (
-          <Card className={adminAlertCardClass('danger')}>
-            <CardContent className="flex flex-col gap-2 py-4">
-              <p className="font-medium text-destructive">현재 계정에는 관리자 권한이 없습니다.</p>
-              <p className="text-sm text-muted-foreground">
-                로그인 계정: {accessState.email ?? '알 수 없음'} / 역할: {getRoleLabel(accessState.role)}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                관리자 또는 오너 계정으로 다시 로그인한 뒤 시도해 주세요.
-              </p>
-            </CardContent>
-          </Card>
-        ) : null}
-
         {exportError ? (
           <Card className={adminAlertCardClass('danger')}>
             <CardContent className="py-4 text-sm text-destructive">

@@ -88,7 +88,7 @@ export default function StudentDashboardPage() {
             </div>
             {needsLogin ? (
               <Button asChild variant="outline" size="sm" className="rounded-full bg-white">
-                <Link href="/auth/login">다시 로그인하기</Link>
+                <Link href="/">다시 로그인하기</Link>
               </Button>
             ) : null}
           </CardContent>

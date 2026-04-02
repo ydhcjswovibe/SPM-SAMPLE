@@ -27,7 +27,7 @@ export function AdminMobileUtilityMenu({ actionItems, className }: AdminMobileUt
     await supabase.auth.signOut()
 
     if (typeof window !== 'undefined') {
-      window.location.assign('/auth/login')
+      window.location.assign('/')
     }
   }
 

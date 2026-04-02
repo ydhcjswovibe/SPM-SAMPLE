@@ -152,13 +152,17 @@ student-facing 흐름도 중요하지만,
 - 오너의 운영 메인 헤더에는 `삭제 모드` trigger가 별도로 보여야 하고, delete mode 안에서는 삭제 대상 수업을 명시적으로 다시 고른다
 
 ### Auth / Role / Access
-- email login
-- 로그인 화면은 이메일 form submit과 Google login을 같은 화면에서 직접 제공하고, 역할 이동 설명은 짧고 직접적인 한 번의 안내로 끝낸다
+- Google-only login
+- 사용자-facing 로그인 entry route는 `/` 하나를 사용하고, 로그인 화면은 화면 중앙 rail의 단일 카드와 작은 `Social Plus` 브랜드 라벨만 사용한다
+- legacy 로그인 경로인 `/auth/login`은 compatibility alias로만 유지하고 `/`로 redirect할 수 있다
+- 로그인 화면은 self-serve 이메일 회원가입이나 이메일/비밀번호 form을 노출하지 않는다
 - configured 환경에서의 Google login
 - configured 환경에서 Google login은 Google Identity Services 기반 ID token sign-in을 우선 사용하고, 사용자-facing 기본 UX에서 Supabase-hosted OAuth redirect hop을 전면에 두지 않는다
-- GIS client 설정이 없는 환경이나 GIS 표면 로드 실패 시에는 로그인 화면이 Google login을 끊지 않고 기존 redirect 기반 flow로 compatibility fallback 할 수 있어야 한다
+- Google client 설정이 없거나 GIS 표면 로드에 실패한 환경에서는 로그인 화면이 다른 auth method로 우회하지 않고, 로그인 unavailable 안내만 명시적으로 보여 준다
 - role-based access behavior
 - role-aware page access
+- 익명 사용자가 `/admin`, `/student`에 직접 들어오면 별도 gate 대신 `/` 로그인 entry로 이동한다
+- 로그인된 사용자가 자기 권한과 다른 route에 들어오면 wrong-role gate 대신 자기 권한의 기본 화면으로 이동한다
 - access가 제한되거나 불명확할 때의 safe fallback behavior
 
 ### Account / Settings Routes

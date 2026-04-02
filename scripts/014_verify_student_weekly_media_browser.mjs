@@ -221,11 +221,12 @@ async function deleteMedia(adminJar, mediaId) {
 }
 
 async function loginWithUi(page, account) {
-  await page.goto(`${baseUrl}/auth/login`, { waitUntil: 'domcontentloaded' })
-  await page.getByLabel('이메일').fill(account.email)
-  await page.getByLabel('비밀번호').fill(getRuntimePassword())
-  await page.getByLabel('비밀번호').press('Enter')
-  await page.waitForURL((url) => !url.pathname.startsWith('/auth/login'), {
+  const roleLabel = account.role === 'OWNER' ? '오너' : account.role === 'ADMIN' ? '운영' : '학생'
+
+  await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' })
+  await page.locator('summary').filter({ hasText: '로컬 QA 원클릭 로그인' }).first().click()
+  await page.getByRole('button', { name: new RegExp(roleLabel) }).first().click()
+  await page.waitForURL((url) => url.pathname !== '/' && !url.pathname.startsWith('/auth/login'), {
     timeout: 15000,
     waitUntil: 'commit',
   })
@@ -422,7 +423,7 @@ async function main() {
     await loginWithUi(page, studentAccount)
     results.studentLogin = {
       finalUrl: page.url(),
-      submittedWithEnter: true,
+      method: 'local-qa-quick-login',
     }
     await verifyStudentDom(page, results, target)
 

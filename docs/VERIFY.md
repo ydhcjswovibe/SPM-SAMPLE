@@ -213,9 +213,10 @@ If the package is docs-only, commands are optional; say which source docs or rep
 ### Auth / Access behavior
 - login entry works
 - mobile viewport는 browser zoom을 막지 않아야 한다
-- 이메일 로그인 form은 Enter submit이 가능해야 하고, 이메일/비밀번호 input은 기본 name/autocomplete 흐름을 유지해야 한다
-- configured 환경에서는 `/auth/login`의 Google entry가 GIS button 기반으로 열리고, 성공 path는 ID token sign-in 뒤 역할 화면으로 이어져야 한다
-- Google client 설정이 없거나 GIS script load가 실패한 환경에서는 `/auth/login`이 Google entry를 끊지 않고 redirect 기반 compatibility fallback으로 이어져야 한다
+- `/`는 화면 중앙의 단일 로그인 카드와 `Social Plus` 브랜드 라벨이 먼저 읽히고, 이메일/비밀번호 form이나 회원가입 CTA를 노출하지 않아야 한다
+- `/auth/login`은 compatibility alias로만 남고 `/`로 redirect해야 한다
+- configured 환경에서는 `/`의 Google entry가 GIS button 기반으로 열리고, 성공 path는 ID token sign-in 뒤 역할 화면으로 이어져야 한다
+- Google client 설정이 없거나 GIS script load가 실패한 환경에서는 `/`가 다른 auth method로 우회하지 않고, 명시적 로그인 unavailable 안내만 보여 줘야 한다
 - logout still works
 - protected page access still behaves correctly
 - unauthorized users do not see misleading success states
@@ -228,7 +229,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - allowed-session runtime proof가 막혀 있으면 먼저 `npm run runtime:seed-auth`로 로컬 QA 계정을 맞춘다
 - local runtime login/session route는 `127.0.0.1` 또는 `localhost`에서만 써야 한다
 - local runtime login은 `@spm.local` 계정만 허용해야 한다
-- `/auth/login`은 localhost에서만 `오너 / 운영 / 학생` 원클릭 QA 로그인 표면을 보여 줄 수 있다
+- `/`는 localhost에서만 `오너 / 운영 / 학생` 원클릭 QA 로그인 표면을 추가로 보여 줄 수 있다
 - weekly media + notes allowed-session smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:weekly-media-runtime`로 재현할 수 있어야 한다
 - student weekly media browser smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:student-browser-smoke`로 재현할 수 있어야 한다
 - admin mobile browser smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:admin-mobile-browser`로 재현할 수 있어야 한다
@@ -246,9 +247,9 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 무료 운영 기준에서는 영상 파일 선택/드롭 업로드를 열지 않고, YouTube에 먼저 업로드한 뒤 링크를 붙여 넣는 흐름만 유지해야 한다
 
 ### Route guard / wrong-role rendered smoke
-- anonymous `/admin`, `/student`는 access gate를 명시적으로 렌더해야 한다
-- allowed role은 자기 route에서 gate 없이 진입해야 한다
-- wrong-role surface는 route는 보여 주되, raw role token(`role:`, `OWNER`, `STUDENT`)을 그대로 노출하지 않는다
+- anonymous `/admin`, `/student`는 access gate 대신 `/`로 redirect해야 한다
+- allowed role은 자기 route에서 redirect 없이 진입해야 한다
+- wrong-role signed-in access는 gate render 대신 자기 권한의 기본 화면으로 redirect해야 한다
 - auth/role package를 건드렸다면 local runtime이 준비된 상태에서 `verify:route-guards`를 우선 고려한다
 
 ### Student weekly media browser / manual check
