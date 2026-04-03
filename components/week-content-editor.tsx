@@ -16,6 +16,17 @@ import {
 import type { WeeklyMediaWeek } from '@/lib/weekly-media'
 import { extractYoutubeId, formatYearMonthLabel, normalizeYoutubeInput } from '@/lib/weekly-media'
 import { cn } from '@/lib/utils'
+import {
+  adminAlertCardClass,
+  adminCompactDangerButtonClass,
+  adminDashedPanelClass,
+  adminEditorSurfaceClass,
+  adminInsetCardClass,
+  adminPrimaryButtonClass,
+  adminSubtlePanelClass,
+  adminSurfaceInputClass,
+  adminDialogContentClass,
+} from '@/lib/admin/surface'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -215,11 +226,12 @@ export function WeekContentEditor({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span>{formatYearMonthLabel(yearMonth)} / {week.weekNumber}주차</span>
+        {week.sessionRangeLabel ? <span>{week.sessionRangeLabel}</span> : null}
         <span className="hidden sm:inline">영상은 YouTube 링크로만 연결합니다.</span>
       </div>
 
       {actionError ? (
-        <Card className="border-destructive/30 bg-destructive/5">
+        <Card className={adminAlertCardClass('danger')}>
           <CardContent className="flex items-start gap-2 py-3 text-sm text-destructive">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>{actionError}</p>
@@ -228,7 +240,7 @@ export function WeekContentEditor({
       ) : null}
 
       {(week.video.invalidItems.length > 0 || week.image.invalidItems.length > 0) && (
-        <Card className="border-amber-300/40 bg-amber-50/60">
+        <Card className={adminAlertCardClass('warning')}>
           <CardContent className="space-y-2 py-4 text-sm text-amber-950">
             <div className="flex items-center gap-2 font-medium">
               <AlertCircle className="h-4 w-4" />
@@ -245,7 +257,7 @@ export function WeekContentEditor({
         </Card>
       )}
 
-      <section className="space-y-3 rounded-2xl border bg-card p-4">
+      <section className={adminEditorSurfaceClass}>
         <div className="flex items-center gap-2 text-base font-semibold">
           <Youtube className="h-4 w-4 text-red-500" />
           <span>영상</span>
@@ -284,7 +296,7 @@ export function WeekContentEditor({
                       </div>
                     )}
                   </SelectedVideoPlayer>
-                  <div className="space-y-3 rounded-xl border bg-background p-3">
+                  <div className={adminSubtlePanelClass}>
                     <Input
                       value={videoDrafts[selectedVideo.mediaId] ?? selectedVideo.url}
                       onChange={(event) =>
@@ -298,12 +310,14 @@ export function WeekContentEditor({
                         normalizeVideoDraft(selectedVideo.mediaId)
                       }}
                       placeholder="YouTube 주소 또는 영상 ID"
+                      className={adminSurfaceInputClass}
                     />
                     <div className="flex flex-wrap gap-2">
                       <Button
+                        variant="surface"
                         onClick={() => void handleUpdateVideo(selectedVideo.mediaId)}
                         disabled={busyKey === `update-video-${selectedVideo.mediaId}`}
-                        className="gap-2"
+                        className={adminPrimaryButtonClass}
                       >
                         {busyKey === `update-video-${selectedVideo.mediaId}` ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -313,10 +327,10 @@ export function WeekContentEditor({
                         저장
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="surface"
                         onClick={() => void handleDeleteMedia(selectedVideo.mediaId)}
                         disabled={busyKey === `delete-media-${selectedVideo.mediaId}`}
-                        className="gap-2"
+                        className={adminCompactDangerButtonClass}
                       >
                         {busyKey === `delete-media-${selectedVideo.mediaId}` ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -340,10 +354,10 @@ export function WeekContentEditor({
                       type="button"
                       onClick={() => setSelectedVideoId(item.mediaId)}
                       className={cn(
-                        'min-w-[11rem] snap-start rounded-xl border px-3 py-3 text-left shadow-sm transition',
+                        'min-w-[11rem] snap-start rounded-[1.25rem] border px-3 py-3 text-left shadow-[0_8px_16px_rgba(111,145,72,0.06)] transition',
                         isSelected
-                          ? 'border-primary bg-primary/5'
-                          : 'bg-background hover:border-primary/40',
+                          ? 'border-[#d8e9b7] bg-[linear-gradient(180deg,#f6fce3_0%,#e5f4c1_100%)]'
+                          : 'bg-white hover:border-[#d8e9b7]',
                       )}
                     >
                       <div className="space-y-1">
@@ -351,9 +365,9 @@ export function WeekContentEditor({
                           <span className="text-sm font-medium">영상 {index + 1}</span>
                           {isSelected ? <Badge variant="secondary">현재</Badge> : null}
                         </div>
-                                    </div>
-                                  </button>
-                                )
+                      </div>
+                    </button>
+                  )
                 })}
               </div>
             </div>
@@ -361,8 +375,9 @@ export function WeekContentEditor({
 
           <div
             className={cn(
-              'space-y-2 rounded-xl border border-dashed p-3 transition-colors',
-              isVideoDropActive && 'border-red-300 bg-red-50/60',
+              adminDashedPanelClass,
+              'space-y-2 transition-colors',
+              isVideoDropActive && 'border-[#f0c0b9] bg-[#fff5f0]',
             )}
             onDragOver={(event) => {
               event.preventDefault()
@@ -390,6 +405,7 @@ export function WeekContentEditor({
                 setActionError(null)
               }}
               placeholder="YouTube 주소 또는 영상 ID"
+              className={adminSurfaceInputClass}
             />
             {newVideoPreviewId ? (
               <div className="aspect-video overflow-hidden rounded-lg bg-muted">
@@ -407,9 +423,10 @@ export function WeekContentEditor({
               {' '}영상 파일 드롭은 지원하지 않습니다.
             </p>
             <Button
+              variant="surface"
               onClick={() => void handleCreateVideo()}
               disabled={busyKey === `create-video-${week.weekNumber}` || !newVideoUrl.trim()}
-              className="gap-2"
+              className={adminPrimaryButtonClass}
             >
               {busyKey === `create-video-${week.weekNumber}` ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -422,7 +439,7 @@ export function WeekContentEditor({
         </div>
       </section>
 
-      <section className="space-y-3 rounded-2xl border bg-card p-4">
+      <section className={adminEditorSurfaceClass}>
         <div className="flex items-center gap-2 text-base font-semibold">
           <ImageIcon className="h-4 w-4 text-blue-500" />
           <span>이미지</span>
@@ -439,7 +456,7 @@ export function WeekContentEditor({
                 return (
                   <div
                     key={item.mediaId}
-                    className="min-w-[78%] snap-start space-y-3 rounded-xl border p-3 shadow-sm sm:min-w-[22rem]"
+                    className="min-w-[78%] snap-start space-y-3 rounded-[1.3rem] border border-[#e5ecd8] bg-white p-3 shadow-[0_10px_18px_rgba(111,145,72,0.06)] sm:min-w-[22rem]"
                   >
                     <button
                       type="button"
@@ -452,7 +469,7 @@ export function WeekContentEditor({
                           alt={imageAlt}
                           className="h-56 w-full object-cover transition duration-200 group-hover:scale-[1.02]"
                         />
-                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/50 px-3 py-2 text-xs text-white">
+                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-[#161d16] px-3 py-2 text-xs text-white">
                           <span>이미지 {index + 1}</span>
                           <span className="inline-flex items-center gap-1">
                             <ZoomIn className="h-3.5 w-3.5" />
@@ -468,7 +485,7 @@ export function WeekContentEditor({
                     <div className="flex flex-wrap gap-2">
                       <Label
                         htmlFor={`replace-image-${item.mediaId}`}
-                        className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
+                        className="inline-flex cursor-pointer items-center gap-2 rounded-[1rem] border border-[#dce8cc] bg-white px-3 py-2 text-sm font-medium text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]"
                       >
                         {busyKey === `upload-image-${item.mediaId}-${week.weekNumber}` ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -491,10 +508,10 @@ export function WeekContentEditor({
                         }}
                       />
                       <Button
-                        variant="outline"
+                        variant="surface"
                         onClick={() => void handleDeleteMedia(item.mediaId)}
                         disabled={busyKey === `delete-media-${item.mediaId}`}
-                        className="gap-2"
+                        className={adminCompactDangerButtonClass}
                       >
                         {busyKey === `delete-media-${item.mediaId}` ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -510,10 +527,10 @@ export function WeekContentEditor({
             </div>
           )}
 
-          <div className="space-y-2 rounded-xl border border-dashed p-3">
+          <div className={cn(adminDashedPanelClass, 'space-y-2')}>
             <Label
               htmlFor={`new-image-${week.weekNumber}`}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-[1rem] border border-[#dce8cc] bg-white px-3 py-2 text-sm font-medium text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]"
             >
               {busyKey === `upload-image-new-${week.weekNumber}` ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -543,7 +560,7 @@ export function WeekContentEditor({
       </section>
 
       {!hasAnyContent ? (
-        <Card className="border-dashed">
+        <Card className={adminInsetCardClass}>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
             아직 이 주차에 공개 중인 영상이나 이미지가 없습니다.
           </CardContent>
@@ -551,7 +568,7 @@ export function WeekContentEditor({
       ) : null}
 
       <Dialog open={selectedImage !== null} onOpenChange={(open) => (!open ? setSelectedImage(null) : null)}>
-        <DialogContent className="max-h-[90dvh] overflow-hidden p-3 sm:max-w-5xl">
+        <DialogContent className={`${adminDialogContentClass} max-h-[90dvh] overflow-hidden p-3 sm:max-w-5xl`}>
           <DialogHeader className="pr-8">
             <DialogTitle>이미지 크게 보기</DialogTitle>
             <DialogDescription>
@@ -559,7 +576,7 @@ export function WeekContentEditor({
             </DialogDescription>
           </DialogHeader>
           {selectedImage ? (
-            <div className="overflow-auto rounded-xl bg-muted/40">
+            <div className="overflow-auto rounded-xl bg-[#eef3e6]">
               <img
                 src={selectedImage.url}
                 alt={selectedImage.alt}

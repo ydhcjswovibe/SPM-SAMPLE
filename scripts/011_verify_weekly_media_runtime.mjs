@@ -42,6 +42,18 @@ async function main() {
     weekCount: statePayload.data?.weeks?.length ?? 0,
   }
 
+  const notesStateResponse = await request(
+    baseUrl,
+    `/api/admin/weekly-notes?classId=${RUNTIME_QA_CLASS_ID}&yearMonth=${RUNTIME_QA_YEAR_MONTH}`,
+    {},
+    adminJar,
+  )
+  const notesStatePayload = await readJson(notesStateResponse, 'Failed to read weekly notes state')
+  results.admin.notesRead = {
+    weekCount: notesStatePayload.data?.weeks?.length ?? 0,
+    studentCount: notesStatePayload.data?.students?.length ?? 0,
+  }
+
   const createVideoResponse = await request(
     baseUrl,
     '/api/admin/weekly-media',
@@ -120,6 +132,7 @@ async function main() {
 
   const studentSessionResponse = await request(baseUrl, '/api/dev/runtime-session', {}, studentJar)
   results.student.session = await readJson(studentSessionResponse, 'Failed to read student runtime session')
+  const studentId = results.student.session?.data?.userId
 
   const studentPageResponse = await request(
     baseUrl,
@@ -143,6 +156,43 @@ async function main() {
   results.student.adminRouteDenied = {
     status: deniedAdminRouteResponse.status,
     body: await deniedAdminRouteResponse.json().catch(() => null),
+  }
+
+  if (typeof studentId === 'string' && studentId.length > 0) {
+    const notesPatchResponse = await request(
+      baseUrl,
+      '/api/admin/weekly-notes',
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          classId: RUNTIME_QA_CLASS_ID,
+          yearMonth: RUNTIME_QA_YEAR_MONTH,
+          weekNumber: 1,
+          progressText: 'runtime-progress-note',
+          sharedFeedbackText: 'runtime-shared-feedback',
+          adminNoteText: 'runtime-admin-note',
+          memberFeedbackByStudentId: {
+            [studentId]: 'runtime-private-feedback',
+          },
+        }),
+      },
+      adminJar,
+    )
+    results.admin.notesUpdate = await readJson(notesPatchResponse, 'Failed to update weekly notes')
+  }
+
+  const deniedNotesRouteResponse = await request(
+    baseUrl,
+    `/api/admin/weekly-notes?classId=${RUNTIME_QA_CLASS_ID}&yearMonth=${RUNTIME_QA_YEAR_MONTH}`,
+    {},
+    studentJar,
+  )
+  results.student.adminNotesDenied = {
+    status: deniedNotesRouteResponse.status,
+    body: await deniedNotesRouteResponse.json().catch(() => null),
   }
 
   const deleteImageResponse = await request(

@@ -9,6 +9,7 @@ import { useTheme } from 'next-themes'
 import { createClient } from '@/lib/supabase/client'
 import { getRoleLabel } from '@/lib/auth/roles'
 import type { Profile } from '@/lib/types'
+import { AdminShellHeader } from '@/components/admin-shell-header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -68,6 +69,17 @@ export default function SettingsPage() {
 
   const savedName = profile?.full_name ?? ''
   const hasPendingNameChange = fullName.trim() !== savedName
+  const mobileControls = (
+    <div className="min-w-0 pl-1">
+      <div className="text-lg font-semibold text-[#314127]">설정</div>
+    </div>
+  )
+  const desktopLead = (
+    <div className="min-w-0">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7f8b69]">계정</div>
+      <div className="mt-1 text-[1.05rem] font-semibold text-[#314127]">설정</div>
+    </div>
+  )
 
   useEffect(() => {
     if (profile) {
@@ -118,11 +130,7 @@ export default function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col">
-        <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex h-14 items-center px-4 md:px-6">
-            <h1 className="font-semibold text-lg">설정</h1>
-          </div>
-        </header>
+        <AdminShellHeader controls={mobileControls} desktopLead={desktopLead} />
 
         <div className="flex flex-1 items-center justify-center px-4 text-center">
           <div className="space-y-3">
@@ -140,14 +148,10 @@ export default function SettingsPage() {
 
     return (
       <div className="flex flex-col">
-        <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex h-14 items-center px-4 md:px-6">
-            <h1 className="font-semibold text-lg">설정</h1>
-          </div>
-        </header>
+        <AdminShellHeader controls={mobileControls} desktopLead={desktopLead} />
 
-        <div className="flex-1 p-4 md:p-6">
-          <Card className="mx-auto max-w-lg border-destructive/30 bg-destructive/5">
+        <div className="flex-1 p-4 md:px-6 md:pb-5 md:pt-3 lg:px-7 lg:pt-4">
+          <Card className="mx-auto max-w-lg border-destructive/30 bg-card">
             <CardHeader>
               <CardTitle className="text-base text-destructive">설정을 열 수 없습니다.</CardTitle>
               <CardDescription className="text-destructive/80">
@@ -157,7 +161,7 @@ export default function SettingsPage() {
             <CardContent className="flex flex-wrap gap-2">
               {needsLogin ? (
                 <Button asChild>
-                  <Link href="/auth/login">다시 로그인하기</Link>
+                  <Link href="/">다시 로그인하기</Link>
                 </Button>
               ) : (
                 <Button variant="outline" onClick={() => void mutate()}>
@@ -173,13 +177,9 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-14 items-center px-4 md:px-6">
-          <h1 className="font-semibold text-lg">설정</h1>
-        </div>
-      </header>
+      <AdminShellHeader controls={mobileControls} desktopLead={desktopLead} />
 
-      <div className="flex-1 space-y-6 p-4 md:p-6">
+      <div className="flex-1 space-y-6 p-4 md:space-y-5 md:px-6 md:pb-5 md:pt-3 lg:px-7 lg:pt-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">내 계정</CardTitle>
@@ -201,19 +201,19 @@ export default function SettingsPage() {
             </div>
 
             {saveError ? (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-3 text-sm text-destructive">
+              <div className="rounded-2xl border border-destructive/30 bg-card px-3 py-3 text-sm text-destructive">
                 {saveError}
               </div>
             ) : null}
 
             {saved ? (
-              <div className="flex items-center gap-2 rounded-lg border border-emerald-300/40 bg-emerald-50/60 px-3 py-3 text-sm text-emerald-950">
+              <div className="flex items-center gap-2 rounded-2xl border border-emerald-300/40 bg-muted px-3 py-3 text-sm text-emerald-950">
                 <CheckCircle className="h-4 w-4" />
                 이름을 저장했습니다.
               </div>
             ) : null}
 
-            <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-3 text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-border/60 bg-card px-3 py-3 text-sm text-muted-foreground">
               현재 이 화면에서는 이름 확인 및 수정과 화면 테마 선택만 지원합니다.
             </div>
 

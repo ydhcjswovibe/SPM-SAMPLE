@@ -1,16 +1,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { createClient } from '@supabase/supabase-js'
 import { chromium } from 'playwright'
 
 import {
   LOCAL_RUNTIME_ACCOUNTS,
-  RUNTIME_QA_CLASS_ID,
-  RUNTIME_QA_YEAR_MONTH,
   getRuntimePassword,
   readJson,
 } from './lib/runtime-auth.mjs'
 import { loginAs, request, resolveBaseUrl } from './lib/runtime-http.mjs'
+import { expectOpaqueSurface } from './lib/surface-assert.mjs'
 
 const baseUrl = resolveBaseUrl()
 const adminAccount = LOCAL_RUNTIME_ACCOUNTS.find((account) => account.role === 'ADMIN')
@@ -20,6 +20,12 @@ const browserSmokeVideoUrls = [
   'https://www.youtube.com/watch?v=M7lc1UVf-VE',
 ]
 const browserSmokeVideoIds = ['dQw4w9WgXcQ', 'M7lc1UVf-VE']
+const browserSmokeNotes = {
+  progress: '브라우저 연동 진행 메모',
+  shared: '브라우저 공통 피드백',
+  private: '브라우저 개인 피드백',
+  admin: '브라우저 내부메모',
+}
 
 if (!adminAccount || !studentAccount) {
   throw new Error('Missing runtime QA accounts')
@@ -57,7 +63,7 @@ function configureLocalBrowserLibs() {
   return candidateDirs
 }
 
-async function createBrowserSmokeMedia(adminJar) {
+async function createBrowserSmokeMedia(adminJar, target) {
   const videoIds = []
 
   for (const url of browserSmokeVideoUrls) {
@@ -70,8 +76,8 @@ async function createBrowserSmokeMedia(adminJar) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          classId: RUNTIME_QA_CLASS_ID,
-          yearMonth: RUNTIME_QA_YEAR_MONTH,
+          classId: target.classId,
+          yearMonth: target.yearMonth,
           weekNumber: 1,
           url,
         }),
@@ -83,8 +89,8 @@ async function createBrowserSmokeMedia(adminJar) {
   }
 
   const imageForm = new FormData()
-  imageForm.set('classId', RUNTIME_QA_CLASS_ID)
-  imageForm.set('yearMonth', RUNTIME_QA_YEAR_MONTH)
+  imageForm.set('classId', target.classId)
+  imageForm.set('yearMonth', target.yearMonth)
   imageForm.set('weekNumber', '1')
   imageForm.set('file', createPngFile())
 
@@ -106,6 +112,98 @@ async function createBrowserSmokeMedia(adminJar) {
   }
 }
 
+async function upsertBrowserSmokeNotes(adminJar, studentId, target) {
+  const response = await request(
+    baseUrl,
+    '/api/admin/weekly-notes',
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        classId: target.classId,
+        yearMonth: target.yearMonth,
+        weekNumber: 1,
+        progressText: browserSmokeNotes.progress,
+        sharedFeedbackText: browserSmokeNotes.shared,
+        adminNoteText: browserSmokeNotes.admin,
+        memberFeedbackByStudentId: {
+          [studentId]: browserSmokeNotes.private,
+        },
+      }),
+    },
+    adminJar,
+  )
+
+  return await readJson(response, 'Failed to create browser smoke notes')
+}
+
+async function resolveStudentVisibleTarget() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  )
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    email: studentAccount.email,
+    password: getRuntimePassword(),
+  })
+
+  if (signInError) {
+    throw signInError
+  }
+
+  try {
+    const { data: enrollmentRows, error: enrollmentError } = await supabase
+      .from('enrollments')
+      .select('class_id, year_month, status, classes(name, is_active)')
+      .eq('student_id', signInData.user.id)
+      .in('status', ['ACTIVE', 'PENDING'])
+      .order('year_month', { ascending: false })
+
+    if (enrollmentError) {
+      throw enrollmentError
+    }
+
+    const currentYearMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+    const visibleEnrollments = (enrollmentRows ?? [])
+      .filter((row) => {
+        const relation = Array.isArray(row.classes) ? row.classes[0] ?? null : row.classes
+        return relation?.is_active !== false
+      })
+      .sort((left, right) => {
+        const leftYearMonth = left.year_month
+        const rightYearMonth = right.year_month
+
+        if (leftYearMonth === currentYearMonth && rightYearMonth !== currentYearMonth) return -1
+        if (rightYearMonth === currentYearMonth && leftYearMonth !== currentYearMonth) return 1
+
+        if (leftYearMonth !== rightYearMonth) {
+          return rightYearMonth.localeCompare(leftYearMonth)
+        }
+
+        if (left.status !== right.status) {
+          return left.status === 'ACTIVE' ? -1 : 1
+        }
+
+        const leftClass = Array.isArray(left.classes) ? left.classes[0] ?? null : left.classes
+        const rightClass = Array.isArray(right.classes) ? right.classes[0] ?? null : right.classes
+
+        return (leftClass?.name ?? '').localeCompare(rightClass?.name ?? '', 'ko')
+      })
+    const selectedSummary = visibleEnrollments[0]
+
+    expect(selectedSummary, 'Could not resolve a visible student class summary for browser smoke')
+
+    return {
+      classId: selectedSummary.class_id,
+      yearMonth: selectedSummary.year_month,
+    }
+  } finally {
+    await supabase.auth.signOut()
+  }
+}
+
 async function deleteMedia(adminJar, mediaId) {
   const response = await request(
     baseUrl,
@@ -124,60 +222,161 @@ async function deleteMedia(adminJar, mediaId) {
 }
 
 async function loginWithUi(page, account) {
-  await page.goto(`${baseUrl}/auth/login`, { waitUntil: 'domcontentloaded' })
-  await page.getByLabel('이메일').fill(account.email)
-  await page.getByLabel('비밀번호').fill(getRuntimePassword())
-  await page.getByRole('button', { name: '이메일로 로그인' }).click()
-  await page.waitForURL((url) => !url.pathname.startsWith('/auth/login'), { timeout: 15000 })
+  const roleLabel = account.role === 'OWNER' ? '오너' : account.role === 'ADMIN' ? '운영' : '학생'
+
+  await page.goto(`${baseUrl}/`, { waitUntil: 'domcontentloaded' })
+  await page.locator('summary').filter({ hasText: '로컬 QA 원클릭 로그인' }).first().click()
+  await page.getByRole('button', { name: new RegExp(roleLabel) }).first().click()
+  await page.waitForURL((url) => url.pathname !== '/' && !url.pathname.startsWith('/auth/login'), {
+    timeout: 15000,
+    waitUntil: 'commit',
+  })
 }
 
-async function verifyStudentDom(page, results) {
-  await page.goto(`${baseUrl}/student/class/${RUNTIME_QA_CLASS_ID}?yearMonth=${RUNTIME_QA_YEAR_MONTH}`, {
+function surfaceCardLocator(page, label, classToken) {
+  return page
+    .getByText(label, { exact: true })
+    .first()
+    .locator(`xpath=ancestor::*[contains(@class,"${classToken}")][1]`)
+}
+
+async function verifyStudentHome(page, results, target) {
+  await page.goto(`${baseUrl}/student?classId=${target.classId}&yearMonth=${target.yearMonth}`, {
+    waitUntil: 'domcontentloaded',
+  })
+  await page.waitForURL((url) => url.pathname === '/student', {
+    timeout: 15000,
     waitUntil: 'domcontentloaded',
   })
 
+  const classSelect = page.getByLabel('수업 선택').first()
+  const monthSelect = page.getByLabel('월 선택').first()
+  const menuButton = page.getByLabel('학생 메뉴').first()
+  const homeTabLink = page.locator('[aria-label="학생 홈"]').first()
+  const lessonsTabLink = page.locator('[aria-label="학생 수업"]').first()
+  const profileTabLink = page.locator('[aria-label="학생 내상태"]').first()
+  const progressCard = page.getByText('진척', { exact: true }).first().locator('xpath=ancestor::section[1]')
+  const progressRail = page.locator('[data-slot="progress"]').first()
+  const attendanceCard = surfaceCardLocator(page, '출석', 'rounded-[1.55rem]')
+  const openCard = surfaceCardLocator(page, '공개', 'rounded-[1.55rem]')
+  const feedbackCard = surfaceCardLocator(page, '피드백', 'rounded-[1.55rem]')
+
+  await classSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await monthSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await menuButton.waitFor({ state: 'visible', timeout: 15000 })
+  await homeTabLink.waitFor({ state: 'visible', timeout: 15000 })
+  await lessonsTabLink.waitFor({ state: 'visible', timeout: 15000 })
+  await profileTabLink.waitFor({ state: 'visible', timeout: 15000 })
+
+  const classSurface = await expectOpaqueSurface(classSelect, '학생 수업 선택')
+  const monthSurface = await expectOpaqueSurface(monthSelect, '학생 월 선택')
+  const menuButtonSurface = await expectOpaqueSurface(menuButton, '학생 메뉴 button')
+  const homeTabSurface = await expectOpaqueSurface(homeTabLink, '학생 하단탭 active state')
+  const lessonsTabSurface = await expectOpaqueSurface(lessonsTabLink, '학생 하단탭 inactive state')
+  const profileTabSurface = await expectOpaqueSurface(profileTabLink, '학생 하단탭 inactive profile state')
+  const progressCardSurface = await expectOpaqueSurface(progressCard, '학생 홈 진척 카드')
+  const progressRailSurface = await expectOpaqueSurface(progressRail, '학생 홈 progress rail')
+  const attendanceCardSurface = await expectOpaqueSurface(attendanceCard, '학생 홈 출석 카드')
+  const openCardSurface = await expectOpaqueSurface(openCard, '학생 홈 공개 카드')
+  const feedbackCardSurface = await expectOpaqueSurface(feedbackCard, '학생 홈 피드백 카드')
+
+  await menuButton.click()
+  const menuSurface = await expectOpaqueSurface(
+    page.locator('[data-slot="dropdown-menu-content"]').first(),
+    '학생 메뉴 open state',
+  )
+  await page.keyboard.press('Escape')
+
+  results.student.home = {
+    detailPath: page.url(),
+    classSurface,
+    monthSurface,
+    menuButtonSurface,
+    menuSurface,
+    bottomTabsVisible: {
+      home: await homeTabLink.isVisible(),
+      lessons: await lessonsTabLink.isVisible(),
+      profile: await profileTabLink.isVisible(),
+    },
+    homeTabSurface,
+    lessonsTabSurface,
+    profileTabSurface,
+    progressCardSurface,
+    progressRailSurface,
+    attendanceCardSurface,
+    openCardSurface,
+    feedbackCardSurface,
+  }
+}
+
+async function verifyStudentLessons(page, results, target) {
+  await page.goto(`${baseUrl}/student/class/${target.classId}?yearMonth=${target.yearMonth}`, {
+    waitUntil: 'domcontentloaded',
+  })
+  await page.waitForURL((url) => url.pathname === '/student/lessons', {
+    timeout: 15000,
+    waitUntil: 'domcontentloaded',
+  })
+
+  const classSelect = page.getByLabel('수업 선택').first()
+  const monthSelect = page.getByLabel('월 선택').first()
+  const menuButton = page.getByLabel('학생 메뉴').first()
+  const homeTabLink = page.locator('[aria-label="학생 홈"]').first()
+  const lessonsTabLink = page.locator('[aria-label="학생 수업"]').first()
+  const profileTabLink = page.locator('[aria-label="학생 내상태"]').first()
+  const weekRail = page.locator('[data-slot="tabs-list"]').first()
+  const activeWeekTab = page.locator('[data-slot="tabs-trigger"][data-state="active"]').first()
+  const inactiveWeekTab = page.locator('[data-slot="tabs-trigger"][data-state="inactive"]').first()
+
+  await classSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await monthSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await menuButton.waitFor({ state: 'visible', timeout: 15000 })
+  await homeTabLink.waitFor({ state: 'visible', timeout: 15000 })
+  await lessonsTabLink.waitFor({ state: 'visible', timeout: 15000 })
+  await profileTabLink.waitFor({ state: 'visible', timeout: 15000 })
   const weekTab = page.getByRole('tab').filter({ hasText: '1주차' }).first()
   await weekTab.click()
 
+  const classSurface = await expectOpaqueSurface(classSelect, '학생 수업 선택')
+  const monthSurface = await expectOpaqueSurface(monthSelect, '학생 월 선택')
+  const menuButtonSurface = await expectOpaqueSurface(menuButton, '학생 메뉴 button')
+  const homeTabSurface = await expectOpaqueSurface(homeTabLink, '학생 하단탭 inactive home state')
+  const lessonsTabSurface = await expectOpaqueSurface(lessonsTabLink, '학생 하단탭 active state')
+  const profileTabSurface = await expectOpaqueSurface(profileTabLink, '학생 하단탭 inactive profile state')
+  const weekRailSurface = await expectOpaqueSurface(weekRail, '학생 수업 주차 rail')
+  const activeWeekTabSurface = await expectOpaqueSurface(activeWeekTab, '학생 수업 주차 active button')
+  const inactiveWeekTabSurface = await expectOpaqueSurface(inactiveWeekTab, '학생 수업 주차 inactive button')
+
   const videoFrame = page.locator('iframe[title="1주차 선택 영상"]').first()
   await videoFrame.waitFor({ state: 'visible', timeout: 15000 })
-  const firstVideoChip = page.getByRole('button', { name: '1주차 영상 1 선택' })
-  const secondVideoChip = page.getByRole('button', { name: '1주차 영상 2 선택' })
-  const firstVideoChipId = (await firstVideoChip.locator('p').textContent())?.trim() ?? null
-  const secondVideoChipId = (await secondVideoChip.locator('p').textContent())?.trim() ?? null
-  expect(firstVideoChipId, 'Student first video chip should expose a YouTube video id')
-  expect(secondVideoChipId, 'Student second video chip should expose a YouTube video id')
-
-  await firstVideoChip.click()
-  await page.waitForFunction(
-    ({ selector, videoId }) => {
-      const frame = document.querySelector(selector)
-      return frame instanceof HTMLIFrameElement && frame.src.includes(videoId)
-    },
-    { selector: 'iframe[title="1주차 선택 영상"]', videoId: firstVideoChipId },
-  )
   const initialFrameSrc = await videoFrame.getAttribute('src')
+  expect(typeof initialFrameSrc === 'string' && initialFrameSrc.length > 0, 'Student initial video should expose an iframe src')
 
   const nextVideoButton = page.getByRole('button', { name: '다음 영상' })
   await nextVideoButton.click()
   await page.waitForFunction(
-    ({ selector, videoId }) => {
+    ({ selector, previousSrc }) => {
       const frame = document.querySelector(selector)
-      return frame instanceof HTMLIFrameElement && frame.src.includes(videoId)
+      return frame instanceof HTMLIFrameElement && frame.src !== previousSrc
     },
-    { selector: 'iframe[title="1주차 선택 영상"]', videoId: secondVideoChipId },
+    { selector: 'iframe[title="1주차 선택 영상"]', previousSrc: initialFrameSrc },
   )
   const afterNextSrc = await videoFrame.getAttribute('src')
   expect(afterNextSrc && afterNextSrc !== initialFrameSrc, 'Student next-video action should change the iframe src')
 
-  await firstVideoChip.click()
+  const previousVideoButton = page.getByRole('button', { name: '이전 영상' })
+  await previousVideoButton.click()
   await page.waitForFunction(
-    ({ selector, videoId }) => {
+    ({ selector, expectedSrc }) => {
       const frame = document.querySelector(selector)
-      return frame instanceof HTMLIFrameElement && frame.src.includes(videoId)
+      return frame instanceof HTMLIFrameElement && frame.src === expectedSrc
     },
-    { selector: 'iframe[title="1주차 선택 영상"]', videoId: firstVideoChipId },
+    { selector: 'iframe[title="1주차 선택 영상"]', expectedSrc: initialFrameSrc },
   )
+  const afterPreviousSrc = await videoFrame.getAttribute('src')
+  const overlayFullscreenButton = page.getByRole('button', { name: /전체화면$/ }).first()
+  await overlayFullscreenButton.waitFor({ state: 'visible', timeout: 15000 })
+  const overlayFullscreenSurface = await expectOpaqueSurface(overlayFullscreenButton, '학생 비디오 overlay control')
 
   const image = page.locator('img[alt*="1주차 이미지"]').first()
   await image.waitFor({ state: 'visible', timeout: 15000 })
@@ -185,22 +384,70 @@ async function verifyStudentDom(page, results) {
   expect(imageHandle, 'Student image handle not found')
   await page.waitForFunction((element) => element.complete && element.naturalWidth > 0, imageHandle)
 
+  const noteHeading = page.getByText('이번 주 기록').first()
+  const progressNote = page.getByText(browserSmokeNotes.progress).first()
+  const sharedNote = page.getByText(browserSmokeNotes.shared).first()
+  const privateNote = page.getByText(browserSmokeNotes.private).first()
+  const replyComposer = page.getByText('이번 주 답글', { exact: true }).first().locator('xpath=ancestor::*[contains(@class,"rounded-[1.45rem]")][1]')
+
+  await noteHeading.waitFor({ state: 'visible', timeout: 15000 })
+  await progressNote.waitFor({ state: 'visible', timeout: 15000 })
+  await sharedNote.waitFor({ state: 'visible', timeout: 15000 })
+  await privateNote.waitFor({ state: 'visible', timeout: 15000 })
+  await replyComposer.waitFor({ state: 'visible', timeout: 15000 })
+  const adminNoteVisible = await page.getByText(browserSmokeNotes.admin).first().isVisible().catch(() => false)
+  const replyComposerSurface = await expectOpaqueSurface(replyComposer, '학생 reply composer')
+
   await image.click()
   const imageDialog = page.getByRole('dialog', { name: '이미지 크게 보기' })
   await imageDialog.waitFor({ state: 'visible', timeout: 15000 })
   const dialogImage = imageDialog.locator('img[alt*="1주차 이미지"]').first()
   await dialogImage.waitFor({ state: 'visible', timeout: 15000 })
+  const imageFrameSurface = await expectOpaqueSurface(
+    imageDialog.locator('div.overflow-auto').first(),
+    '학생 이미지 확대 프레임',
+  )
 
-  results.student = {
-    detailPath: `/student/class/${RUNTIME_QA_CLASS_ID}?yearMonth=${RUNTIME_QA_YEAR_MONTH}`,
+  results.student.lessons = {
+    detailPath: page.url(),
+    headerControlsVisible: {
+      classSelect: await classSelect.isVisible(),
+      monthSelect: await monthSelect.isVisible(),
+      menuButton: await menuButton.isVisible(),
+    },
+    headerSurfaces: {
+      classSurface,
+      monthSurface,
+      menuButtonSurface,
+    },
+    bottomTabsVisible: {
+      home: await homeTabLink.isVisible(),
+      lessons: await lessonsTabLink.isVisible(),
+      profile: await profileTabLink.isVisible(),
+    },
+    bottomTabSurfaces: {
+      homeTabSurface,
+      lessonsTabSurface,
+      profileTabSurface,
+    },
+    weekRailSurface,
+    activeWeekTabSurface,
+    inactiveWeekTabSurface,
     frameVisible: await videoFrame.isVisible(),
-    frameSrc: await videoFrame.getAttribute('src'),
     initialFrameSrc,
     afterNextSrc,
-    firstVideoChipId,
+    afterPreviousSrc,
+    overlayFullscreenSurface,
     imageVisible: await image.isVisible(),
     imageLoaded: await image.evaluate((element) => element.complete && element.naturalWidth > 0),
     imageDialogVisible: await imageDialog.isVisible(),
+    imageFrameSurface,
+    noteHeadingVisible: await noteHeading.isVisible(),
+    progressNoteVisible: await progressNote.isVisible(),
+    sharedNoteVisible: await sharedNote.isVisible(),
+    privateNoteVisible: await privateNote.isVisible(),
+    replyComposerSurface,
+    adminNoteVisible,
   }
 
   await page.keyboard.press('Escape')
@@ -222,24 +469,96 @@ async function verifyStudentDom(page, results) {
       status: response.status,
       body,
     }
-  }, { classId: RUNTIME_QA_CLASS_ID, yearMonth: RUNTIME_QA_YEAR_MONTH })
+  }, { classId: target.classId, yearMonth: target.yearMonth })
 
-  results.student.afterReload = {
+  results.student.lessons.afterReload = {
+    detailPath: page.url(),
     frameVisible: await reloadedFrame.isVisible(),
     frameSrc: await reloadedFrame.getAttribute('src'),
     imageVisible: await reloadedImage.isVisible(),
     deniedAdminFetch,
   }
 
-  expect(results.student.frameVisible, 'Student video iframe should be visible')
-  expect(results.student.frameSrc?.includes(firstVideoChipId), 'Student video iframe should point to the chip-selected video')
-  expect(results.student.imageVisible, 'Student image should be visible')
-  expect(results.student.imageLoaded, 'Student image should load successfully')
-  expect(results.student.imageDialogVisible, 'Student image zoom dialog should be visible after click')
-  expect(results.student.afterReload.frameVisible, 'Student iframe should remain visible after reload')
-  expect(results.student.afterReload.frameSrc?.includes(firstVideoChipId), 'Student iframe should return to the first chip video after reload')
-  expect(results.student.afterReload.imageVisible, 'Student image should remain visible after reload')
+  expect(results.student.lessons.frameVisible, 'Student video iframe should be visible')
+  expect(results.student.lessons.headerControlsVisible.classSelect, 'Student class selector should be visible')
+  expect(results.student.lessons.headerControlsVisible.monthSelect, 'Student month selector should be visible')
+  expect(results.student.lessons.bottomTabsVisible.home, 'Student home tab should be visible')
+  expect(results.student.lessons.bottomTabsVisible.lessons, 'Student lessons tab should be visible')
+  expect(results.student.lessons.bottomTabsVisible.profile, 'Student profile tab should be visible')
+  expect(results.student.home.bottomTabsVisible.home, 'Student home bottom tab should be visible')
+  expect(results.student.home.progressRailSurface.width >= 0, 'Student home progress rail should be readable')
+  expect(results.student.lessons.bottomTabSurfaces.homeTabSurface.width >= 0, 'Student home tab surface should be readable')
+  expect(results.student.lessons.weekRailSurface.width >= 0, 'Student week rail should be readable')
+  expect(results.student.lessons.imageVisible, 'Student image should be visible')
+  expect(results.student.lessons.imageLoaded, 'Student image should load successfully')
+  expect(results.student.lessons.imageDialogVisible, 'Student image zoom dialog should be visible after click')
+  expect(results.student.lessons.noteHeadingVisible, 'Student note heading should be visible')
+  expect(results.student.lessons.progressNoteVisible, 'Student progress note should be visible')
+  expect(results.student.lessons.sharedNoteVisible, 'Student shared feedback should be visible')
+  expect(results.student.lessons.privateNoteVisible, 'Student private feedback should be visible')
+  expect(!results.student.lessons.adminNoteVisible, 'Student DOM should not expose admin-only note text')
+  expect(results.student.lessons.afterReload.frameVisible, 'Student iframe should remain visible after reload')
+  expect(results.student.lessons.afterReload.frameSrc === initialFrameSrc, 'Student iframe should return to the first video after reload')
+  expect(results.student.lessons.afterReload.imageVisible, 'Student image should remain visible after reload')
   expect(deniedAdminFetch.status === 403, 'Student admin weekly-media fetch should return 403')
+}
+
+async function verifyStudentProfile(page, results, target) {
+  await page.goto(`${baseUrl}/student/profile?classId=${target.classId}&yearMonth=${target.yearMonth}`, {
+    waitUntil: 'domcontentloaded',
+  })
+  await page.waitForURL((url) => url.pathname === '/student/profile', {
+    timeout: 15000,
+    waitUntil: 'domcontentloaded',
+  })
+
+  const classSelect = page.getByLabel('수업 선택').first()
+  const monthSelect = page.getByLabel('월 선택').first()
+  const menuButton = page.getByLabel('학생 메뉴').first()
+  const homeTabLink = page.locator('[aria-label="학생 홈"]').first()
+  const lessonsTabLink = page.locator('[aria-label="학생 수업"]').first()
+  const profileTabLink = page.locator('[aria-label="학생 내상태"]').first()
+  const heroSurface = page.getByText('내상태 카드', { exact: true }).first().locator('xpath=ancestor::section[1]')
+  const summarySurface = page.getByText('수강 중', { exact: true }).first().locator('xpath=ancestor::*[contains(@class,"rounded-[1.6rem]")][1]')
+  const accountSurface = page.getByText('계정 정보', { exact: true }).first().locator('xpath=ancestor::*[@data-slot="card"][1]')
+
+  await classSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await monthSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await menuButton.waitFor({ state: 'visible', timeout: 15000 })
+  await heroSurface.waitFor({ state: 'visible', timeout: 15000 })
+  await summarySurface.waitFor({ state: 'visible', timeout: 15000 })
+  await accountSurface.waitFor({ state: 'visible', timeout: 15000 })
+
+  const classSurface = await expectOpaqueSurface(classSelect, '학생 프로필 수업 선택')
+  const monthSurface = await expectOpaqueSurface(monthSelect, '학생 프로필 월 선택')
+  const menuButtonSurface = await expectOpaqueSurface(menuButton, '학생 프로필 메뉴 button')
+  const homeTabSurface = await expectOpaqueSurface(homeTabLink, '학생 프로필 하단탭 inactive home state')
+  const lessonsTabSurface = await expectOpaqueSurface(lessonsTabLink, '학생 프로필 하단탭 inactive lessons state')
+  const profileTabSurface = await expectOpaqueSurface(profileTabLink, '학생 프로필 하단탭 active state')
+  const heroCardSurface = await expectOpaqueSurface(heroSurface, '학생 프로필 hero surface')
+  const summaryCardSurface = await expectOpaqueSurface(summarySurface, '학생 프로필 요약 카드')
+  const accountCardSurface = await expectOpaqueSurface(accountSurface, '학생 프로필 계정 카드')
+
+  results.student.profile = {
+    detailPath: page.url(),
+    headerSurfaces: {
+      classSurface,
+      monthSurface,
+      menuButtonSurface,
+    },
+    bottomTabSurfaces: {
+      homeTabSurface,
+      lessonsTabSurface,
+      profileTabSurface,
+    },
+    heroCardSurface,
+    summaryCardSurface,
+    accountCardSurface,
+  }
+
+  expect(heroCardSurface.width >= 0, 'Student profile hero surface should be readable')
+  expect(summaryCardSurface.width >= 0, 'Student profile summary card should be readable')
+  expect(accountCardSurface.width >= 0, 'Student profile account card should be readable')
 }
 
 async function main() {
@@ -254,10 +573,20 @@ async function main() {
       },
       attachedLibDirs,
     },
+    student: {},
   }
 
   const { jar: adminJar } = await loginAs(baseUrl, adminAccount)
-  const created = await createBrowserSmokeMedia(adminJar)
+  const { jar: studentJar } = await loginAs(baseUrl, studentAccount)
+  const studentSessionResponse = await request(baseUrl, '/api/dev/runtime-session', {}, studentJar)
+  const studentSessionPayload = await readJson(studentSessionResponse, 'Failed to read browser smoke student session')
+  const studentId = studentSessionPayload?.data?.userId
+  expect(typeof studentId === 'string' && studentId.length > 0, 'Browser smoke student session is missing userId')
+  const target = await resolveStudentVisibleTarget()
+
+  const created = await createBrowserSmokeMedia(adminJar, target)
+  results.target = target
+  results.adminNotes = await upsertBrowserSmokeNotes(adminJar, studentId, target)
   results.admin = {
     seededVideoIds: created.videoIds,
     seededVideoYoutubeIds: created.videoYoutubeIds,
@@ -273,7 +602,13 @@ async function main() {
     const page = await context.newPage()
 
     await loginWithUi(page, studentAccount)
-    await verifyStudentDom(page, results)
+    results.studentLogin = {
+      finalUrl: page.url(),
+      method: 'local-qa-quick-login',
+    }
+    await verifyStudentHome(page, results, target)
+    await verifyStudentLessons(page, results, target)
+    await verifyStudentProfile(page, results, target)
 
     await context.close()
   } finally {

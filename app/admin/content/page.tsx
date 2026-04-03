@@ -1,20 +1,32 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { AlertCircle, Loader2, RefreshCcw } from 'lucide-react'
 
+import { buildAdminContentHref } from '@/lib/admin/content-selection'
+import { getCurrentYearMonth, resolveDefaultWeekNumber } from '@/lib/date-selection'
+import { resolveDefaultWeekNumberFromSessions } from '@/lib/class-schedule'
+import {
+  adminAlertCardClass,
+  adminCompactButtonClass,
+  adminDropdownItemClass,
+  adminEditorSurfaceClass,
+  adminMetricCardClass,
+} from '@/lib/admin/surface'
 import type { Class } from '@/lib/types'
 import type { WeeklyMediaWeek } from '@/lib/weekly-media'
 import { formatYearMonthLabel, getVisibleWeekCount, isValidYearMonth, normalizeClassRow } from '@/lib/weekly-media'
-import { AdminMobileUtilityMenu } from '@/components/admin-mobile-utility-menu'
-import { AdminMobileSettingsLink } from '@/components/admin-mobile-settings-link'
+import { AdminMonthSelector } from '@/components/admin-month-selector'
+import { AdminShellHeader } from '@/components/admin-shell-header'
+import { AdminHeaderActionMenu } from '@/components/admin-header-action-menu'
 import { ClassSelector } from '@/components/class-selector'
 import { WeekContentEditor } from '@/components/week-content-editor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const authRequiredMessage = '로그인이 필요합니다.'
@@ -34,12 +46,21 @@ const knownRouteMessages = new Set([
   '콘텐츠 저장에 실패했습니다.',
   '콘텐츠 삭제에 실패했습니다.',
   '이미지 업로드에 실패했습니다.',
+  '운영 메모를 불러오지 못했습니다.',
+  '운영 메모 저장에 실패했습니다.',
 ])
 
 interface AdminWeeklyMediaState {
   classInfo: Class
   yearMonth: string
   weeks: WeeklyMediaWeek[]
+}
+
+function parseRequestedWeek(value: string | null) {
+  if (!value) return null
+
+  const parsed = Number(value)
+  return Number.isInteger(parsed) ? parsed : null
 }
 
 async function fetchClasses(yearMonth: string): Promise<Class[]> {
@@ -79,6 +100,8 @@ function getFriendlyRouteError(code: string) {
       return '월 범위를 다시 확인해 주세요.'
     case 'INVALID_MEDIA_INPUT':
       return '입력값을 다시 확인해 주세요.'
+    case 'INVALID_NOTES_INPUT':
+      return '운영 메모 입력값을 다시 확인해 주세요.'
     case 'IMAGE_REQUIRED':
       return '업로드할 이미지를 선택해 주세요.'
     case 'INVALID_IMAGE_TYPE':
@@ -95,6 +118,10 @@ function getFriendlyRouteError(code: string) {
       return '콘텐츠 삭제에 실패했습니다.'
     case 'IMAGE_UPLOAD_FAILED':
       return '이미지 업로드에 실패했습니다.'
+    case 'NOTES_READ_FAILED':
+      return '운영 메모를 불러오지 못했습니다.'
+    case 'NOTES_SAVE_FAILED':
+      return '운영 메모 저장에 실패했습니다.'
     default:
       return genericRequestError
   }
@@ -133,15 +160,34 @@ async function fetchWeeklyMediaState(classId: string, yearMonth: string): Promis
   return payload.data
 }
 
-function getCurrentYearMonth(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-}
-
 export default function ContentPage() {
-  const [selectedClass, setSelectedClass] = useState<Class | null>(null)
-  const [selectedYearMonth, setSelectedYearMonth] = useState(getCurrentYearMonth())
-  const [activeWeek, setActiveWeek] = useState('1')
+  const pathname = usePathname()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentSearch = searchParams.toString()
+  const requestedClassId = searchParams.get('classId')
+  const requestedYearMonth = searchParams.get('yearMonth')
+  const requestedWeekParam = searchParams.get('week')
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(requestedClassId)
+  const [selectedYearMonth, setSelectedYearMonth] = useState(
+    requestedYearMonth && isValidYearMonth(requestedYearMonth) ? requestedYearMonth : getCurrentYearMonth(),
+  )
+  const [activeWeek, setActiveWeek] = useState<string | null>(searchParams.get('week'))
   const hasValidYearMonth = isValidYearMonth(selectedYearMonth)
+
+  useEffect(() => {
+    setSelectedClassId(requestedClassId)
+  }, [requestedClassId])
+
+  useEffect(() => {
+    setSelectedYearMonth(
+      requestedYearMonth && isValidYearMonth(requestedYearMonth) ? requestedYearMonth : getCurrentYearMonth(),
+    )
+  }, [requestedYearMonth])
+
+  useEffect(() => {
+    setActiveWeek(requestedWeekParam)
+  }, [requestedWeekParam])
 
   const {
     data: classes,
@@ -155,9 +201,10 @@ export default function ContentPage() {
   const classErrorMessage = getKnownClientMessage(classError, '클래스 목록을 다시 불러오지 못했습니다.')
 
   const resolvedSelectedClass =
-    selectedClass && classes?.some((classItem) => classItem.id === selectedClass.id)
-      ? selectedClass
-      : classes?.[0] ?? null
+    classes?.find((classItem) => classItem.id === selectedClassId)
+      ?? classes?.find((classItem) => classItem.id === requestedClassId)
+      ?? classes?.[0]
+      ?? null
 
   const {
     data: mediaState,
@@ -171,14 +218,54 @@ export default function ContentPage() {
     ([, classId, yearMonth]) => fetchWeeklyMediaState(classId, yearMonth),
   )
   const visibleWeekCount = mediaState ? getVisibleWeekCount(mediaState.weeks.length, mediaState.weeks.length) : 0
-  const normalizedActiveWeek = Number(activeWeek)
+  const resolvedVisibleWeekCount = visibleWeekCount
+  const requestedWeek = parseRequestedWeek(activeWeek)
+  const availableWeekNumbers = mediaState?.weeks.map((week) => week.weekNumber) ?? []
+  const defaultWeekNumber =
+    mediaState?.weeks.length
+      ? resolveDefaultWeekNumberFromSessions(
+          mediaState.weeks.map((week) => ({
+            weekNumber: week.weekNumber,
+            sessions: week.sessions.map((session) => ({ sessionDate: session.sessionDate })),
+          })),
+          selectedYearMonth,
+        ) ?? mediaState.weeks[0]?.weekNumber ?? null
+      : availableWeekNumbers[0] ?? null
   const resolvedActiveWeek =
-    mediaState &&
-    Number.isInteger(normalizedActiveWeek) &&
-    normalizedActiveWeek >= 1 &&
-    normalizedActiveWeek <= visibleWeekCount
-      ? activeWeek
-      : String(mediaState?.weeks[0]?.weekNumber ?? 1)
+    availableWeekNumbers.length > 0
+      ? String(
+          requestedWeek && availableWeekNumbers.includes(requestedWeek)
+            ? requestedWeek
+            : defaultWeekNumber ?? availableWeekNumbers[0],
+        )
+      : String(resolveDefaultWeekNumber())
+  const isWeeklyStateLoading = isMediaLoading && !mediaState
+
+  useEffect(() => {
+    if (!resolvedSelectedClass || !hasValidYearMonth || resolvedVisibleWeekCount === 0) {
+      return
+    }
+
+    const nextHref = buildAdminContentHref({
+      classId: resolvedSelectedClass.id,
+      yearMonth: selectedYearMonth,
+      week: resolvedActiveWeek,
+    })
+    const currentHref = currentSearch ? `${pathname}?${currentSearch}` : pathname
+
+    if (nextHref !== currentHref) {
+      router.replace(nextHref, { scroll: false })
+    }
+  }, [
+    hasValidYearMonth,
+    pathname,
+    resolvedActiveWeek,
+    resolvedSelectedClass,
+    resolvedVisibleWeekCount,
+    router,
+    currentSearch,
+    selectedYearMonth,
+  ])
 
   async function requestJson(
     input: RequestInfo,
@@ -262,51 +349,65 @@ export default function ContentPage() {
 
   return (
     <div className="flex flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex min-h-14 flex-wrap items-center gap-2 px-4 py-2 md:h-14 md:flex-nowrap md:justify-between md:px-6 md:py-0">
-          <h1 className="mr-auto font-semibold text-lg md:hidden">수업</h1>
-          <div className="order-3 flex w-full items-center gap-2 md:order-none md:w-auto">
+      <AdminShellHeader
+        controlsClassName="md:flex-nowrap"
+        mobileActionMenu={
+          <DropdownMenuItem
+            onSelect={() => void mutateMediaState()}
+            disabled={!resolvedSelectedClass || !hasValidYearMonth || isMediaLoading}
+            className={adminDropdownItemClass}
+          >
+            <RefreshCcw className="h-4 w-4" />
+            새로고침
+          </DropdownMenuItem>
+        }
+        desktopSecondaryActions={
+          <AdminHeaderActionMenu label="작업">
+            <DropdownMenuItem
+              onSelect={() => void mutateMediaState()}
+              disabled={!resolvedSelectedClass || !hasValidYearMonth || isMediaLoading}
+              className={adminDropdownItemClass}
+            >
+              <RefreshCcw className="h-4 w-4" />
+              새로고침
+            </DropdownMenuItem>
+          </AdminHeaderActionMenu>
+        }
+        controls={
+          <>
             <ClassSelector
               classes={classes ?? []}
               selectedClass={resolvedSelectedClass}
-              onSelect={setSelectedClass}
+              ariaLabel="콘텐츠 수업 선택"
+              triggerClassName="min-w-0 flex-1 max-w-none sm:min-w-0 sm:max-w-none md:min-w-[10.75rem] md:max-w-[13rem] lg:min-w-[11rem] lg:max-w-[14rem]"
+              onSelect={(classItem) => {
+                setSelectedClassId(classItem.id)
+                setActiveWeek(null)
+              }}
             />
-            <Input
-              type="month"
+            <AdminMonthSelector
               value={selectedYearMonth}
-              onChange={(event) => setSelectedYearMonth(event.target.value)}
-              className="w-[132px] sm:w-[148px]"
-              aria-label="콘텐츠 월 선택"
+              onValueChange={(value) => {
+                setSelectedYearMonth(value)
+                setActiveWeek(null)
+              }}
+              ariaLabel="콘텐츠 월 선택"
             />
-          </div>
-          <div className="ml-auto flex items-center gap-2 md:ml-0">
-            <AdminMobileSettingsLink className="ml-0" />
-            <AdminMobileUtilityMenu />
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void mutateMediaState()}
-            disabled={!resolvedSelectedClass || !hasValidYearMonth || isMediaLoading}
-            className="gap-2"
-          >
-            {isMediaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
-            새로고침
-          </Button>
-        </div>
-      </header>
+          </>
+        }
+      />
 
-      <div className="flex-1 space-y-6 p-4 md:p-6">
+      <div className="flex-1 space-y-6 p-4 md:space-y-4 md:px-6 md:pb-5 md:pt-3 lg:px-7 lg:pt-4">
         {classError ? (
-          <Card className="border-destructive/30 bg-destructive/5">
+          <Card className={adminAlertCardClass('danger')}>
             <CardContent className="space-y-3 py-4 text-sm text-destructive">
               <p>{classErrorMessage}</p>
               {classErrorMessage === authRequiredMessage ? (
-              <Button asChild variant="outline" size="sm">
-                  <Link href="/auth/login">다시 로그인하기</Link>
+                <Button asChild variant="surface" size="sm" className={adminCompactButtonClass}>
+                  <Link href="/">다시 로그인하기</Link>
                 </Button>
               ) : (
-                <Button variant="outline" size="sm" onClick={() => void mutateClasses()}>
+                <Button variant="surface" size="sm" onClick={() => void mutateClasses()} className={adminCompactButtonClass}>
                   수업 다시 불러오기
                 </Button>
               )}
@@ -314,9 +415,41 @@ export default function ContentPage() {
           </Card>
         ) : null}
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 md:p-5">
+        <div className="hidden md:grid md:grid-cols-1 md:gap-3 lg:grid-cols-[minmax(0,1.35fr)_repeat(2,minmax(0,0.7fr))]">
+          <Card className={adminMetricCardClass('mint')}>
+            <CardContent className="px-4 py-3.5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#73815f]">편집 대상</div>
+              <div className="mt-2 text-sm font-semibold text-[#314127]">
+                {resolvedSelectedClass ? resolvedSelectedClass.name : '수업 선택 필요'}
+              </div>
+              <div className="mt-1 text-sm text-[#6f7c60]">
+                {hasValidYearMonth ? formatYearMonthLabel(selectedYearMonth) : '월 다시 확인'}
+              </div>
+            </CardContent>
+          </Card>
+          <Card className={adminMetricCardClass('mint')}>
+            <CardContent className="px-4 py-3.5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#73815f]">현재 주차</div>
+              <div className="mt-2 flex items-end justify-between gap-3">
+                <span className="text-sm text-[#556449]">선택된 주차</span>
+                <span className="spm-display text-[1.35rem] text-[#314127]">{resolvedActiveWeek}주</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className={adminMetricCardClass('blue')}>
+            <CardContent className="px-4 py-3.5">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#5e74b7]">표시 주차</div>
+              <div className="mt-2 flex items-end justify-between gap-3">
+                <span className="text-sm text-[#6174a7]">노출된 분량</span>
+                <span className="spm-display text-[1.35rem] text-[#5a79c9]">{resolvedVisibleWeekCount}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <section className={adminEditorSurfaceClass}>
           <div>
-            <h2 className="font-semibold text-base">
+            <h2 className="font-semibold text-base lg:text-[1.05rem]">
               {resolvedSelectedClass
                 ? `${resolvedSelectedClass.name} / ${formatYearMonthLabel(selectedYearMonth)}`
                 : '관리할 수업을 먼저 선택해 주세요'}
@@ -338,7 +471,7 @@ export default function ContentPage() {
                 <AlertCircle className="mb-4 h-8 w-8 text-muted-foreground" />
                 <p className="font-medium">유효한 월 범위를 선택해 주세요.</p>
               </div>
-            ) : isMediaLoading && !mediaState ? (
+            ) : isWeeklyStateLoading ? (
               <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
@@ -351,45 +484,51 @@ export default function ContentPage() {
                 <p className="font-medium text-destructive">
                   {getKnownClientMessage(mediaError, '주차 콘텐츠를 다시 불러오지 못했습니다.')}
                 </p>
-                <Button variant="outline" size="sm" onClick={() => void mutateMediaState()} className="mt-3">
+                <Button variant="surface" size="sm" onClick={() => void mutateMediaState()} className={`mt-3 ${adminCompactButtonClass}`}>
                   다시 시도
                 </Button>
               </div>
             ) : mediaState ? (
-              <Tabs value={resolvedActiveWeek} onValueChange={setActiveWeek}>
-                <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto bg-transparent p-0">
+              <div className="space-y-4">
+                <Tabs value={resolvedActiveWeek} onValueChange={setActiveWeek}>
+                  <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-[1.7rem] border border-[#e2ead4] bg-card p-2 shadow-[0_12px_26px_rgba(111,145,72,0.08)]">
+                    {mediaState.weeks.map((week) => {
+                      return (
+                        <TabsTrigger
+                          key={week.weekNumber}
+                          value={String(week.weekNumber)}
+                          className="h-auto min-w-[104px] flex-shrink-0 rounded-[1.2rem] border border-[#dce8cc] bg-white px-3 py-2 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] data-[state=active]:border-[#d8e9b7] data-[state=active]:bg-muted data-[state=active]:text-[#34501f]"
+                        >
+                          <div className="flex flex-col items-start gap-0.5 text-left">
+                            <span>{week.weekNumber}주차</span>
+                            <span className="text-[11px] opacity-70">
+                              {week.sessionRangeLabel ?? getWeekStatusLabel(week)}
+                            </span>
+                          </div>
+                        </TabsTrigger>
+                      )
+                    })}
+                  </TabsList>
                   {mediaState.weeks.map((week) => {
                     return (
-                      <TabsTrigger
+                      <TabsContent
                         key={week.weekNumber}
                         value={String(week.weekNumber)}
-                        className="h-auto min-w-[104px] flex-shrink-0 rounded-xl border px-3 py-2 data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background"
+                        className="mt-3 space-y-3"
                       >
-                        <div className="flex flex-col items-start gap-0.5 text-left">
-                          <span>{week.weekNumber}주차</span>
-                          <span className="text-[11px] opacity-70">{getWeekStatusLabel(week)}</span>
-                        </div>
-                      </TabsTrigger>
+                        <WeekContentEditor
+                          week={week}
+                          yearMonth={selectedYearMonth}
+                          onCreateVideo={(url) => handleCreateVideo(week.weekNumber, url)}
+                          onUpdateVideo={handleUpdateVideo}
+                          onDeleteMedia={handleDeleteMedia}
+                          onUploadImage={(file, mediaId) => handleUploadImage(week.weekNumber, file, mediaId)}
+                        />
+                      </TabsContent>
                     )
                   })}
-                </TabsList>
-                {mediaState.weeks.map((week) => (
-                  <TabsContent
-                    key={week.weekNumber}
-                    value={String(week.weekNumber)}
-                    className="mt-3"
-                  >
-                    <WeekContentEditor
-                      week={week}
-                      yearMonth={selectedYearMonth}
-                      onCreateVideo={(url) => handleCreateVideo(week.weekNumber, url)}
-                      onUpdateVideo={handleUpdateVideo}
-                      onDeleteMedia={handleDeleteMedia}
-                      onUploadImage={(file, mediaId) => handleUploadImage(week.weekNumber, file, mediaId)}
-                    />
-                  </TabsContent>
-                ))}
-              </Tabs>
+                </Tabs>
+              </div>
             ) : null}
           </div>
         </section>

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 
+import { isLocalRuntimeHostname } from '@/lib/env/server'
 import { readServerAccessContext } from '@/lib/auth/server'
 
 function isLocalRuntimeRequest(request: Request) {
   const { hostname } = new URL(request.url)
-  return hostname === '127.0.0.1' || hostname === 'localhost'
+  return isLocalRuntimeHostname(hostname)
 }
 
 export async function GET(request: Request) {

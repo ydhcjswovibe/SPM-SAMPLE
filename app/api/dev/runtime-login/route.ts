@@ -2,6 +2,11 @@ import { createServerClient } from '@supabase/ssr'
 import type { CookieOptions } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 
+import {
+  getLocalRuntimeAuthPassword,
+  getSupabaseServerEnv,
+  isLocalRuntimeHostname,
+} from '@/lib/env/server'
 import { getDefaultRouteForRole, normalizeUserRole } from '@/lib/auth/roles'
 
 const LOCAL_RUNTIME_PRESETS = [
@@ -12,7 +17,7 @@ const LOCAL_RUNTIME_PRESETS = [
 
 function isLocalRuntimeRequest(request: Request) {
   const { hostname } = new URL(request.url)
-  return hostname === '127.0.0.1' || hostname === 'localhost'
+  return isLocalRuntimeHostname(hostname)
 }
 
 type RuntimeCookie = {
@@ -37,7 +42,8 @@ export async function POST(request: Request) {
   const preset = body?.preset
   const presetAccount = LOCAL_RUNTIME_PRESETS.find((item) => item.preset === preset)
   const email = (presetAccount?.email ?? body?.email)?.trim().toLowerCase() ?? ''
-  const password = presetAccount ? process.env.LOCAL_RUNTIME_AUTH_PASSWORD?.trim() || 'spm-local-pass-2026!' : body?.password ?? ''
+  const password = presetAccount ? getLocalRuntimeAuthPassword() : body?.password ?? ''
+  const { url, anonKey } = getSupabaseServerEnv()
 
   if (!email.endsWith('@spm.local') || !password) {
     return NextResponse.json({ error: 'INVALID_RUNTIME_LOGIN' }, { status: 400 })
@@ -46,8 +52,8 @@ export async function POST(request: Request) {
   let cookiesToSet: RuntimeCookie[] = []
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {

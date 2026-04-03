@@ -1,12 +1,15 @@
 import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
+import { assertServerEnvReady } from '@/lib/env/server'
 import './globals.css'
+
+assertServerEnvReady()
 
 export const metadata: Metadata = {
   title: 'SPM - 교육 운영 관리',
   description: '클래스, 학생, 콘텐츠를 효율적으로 관리하는 교육 운영 도구',
-  generator: 'v0.app',
+  applicationName: 'SPM',
   icons: {
     icon: [
       {

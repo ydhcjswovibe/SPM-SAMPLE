@@ -21,11 +21,27 @@ function expect(condition, message) {
   }
 }
 
+function toPathname(location) {
+  if (!location) {
+    return null
+  }
+
+  return new URL(location, baseUrl).pathname
+}
+
 async function readHtml(basePath, jar) {
   const response = await request(baseUrl, basePath, {}, jar)
   return {
     status: response.status,
     html: await response.text(),
+  }
+}
+
+async function readRedirect(basePath, jar) {
+  const response = await request(baseUrl, basePath, {}, jar)
+  return {
+    status: response.status,
+    location: toPathname(response.headers.get('location')),
   }
 }
 
@@ -65,21 +81,28 @@ async function main() {
     profile: {},
   }
 
-  const anonymousAdminPage = await readHtml('/admin', null)
-  expect(anonymousAdminPage.status === 200, 'Anonymous /admin should render access gate')
-  expect(anonymousAdminPage.html.includes('관리자 로그인이 필요합니다'), 'Anonymous /admin gate copy mismatch')
-  results.anonymous.adminPage = {
-    status: anonymousAdminPage.status,
-    containsGate: anonymousAdminPage.html.includes('관리자 로그인이 필요합니다'),
+  const anonymousRootPage = await readHtml('/', null)
+  expect(anonymousRootPage.status === 200, 'Anonymous / should render login entry')
+  expect(anonymousRootPage.html.includes('Social Plus'), 'Anonymous / login entry copy mismatch')
+  results.anonymous.rootPage = {
+    status: anonymousRootPage.status,
+    containsLoginEntry: anonymousRootPage.html.includes('Social Plus'),
   }
 
-  const anonymousStudentPage = await readHtml('/student', null)
-  expect(anonymousStudentPage.status === 200, 'Anonymous /student should render access gate')
-  expect(anonymousStudentPage.html.includes('학생 로그인이 필요합니다'), 'Anonymous /student gate copy mismatch')
-  results.anonymous.studentPage = {
-    status: anonymousStudentPage.status,
-    containsGate: anonymousStudentPage.html.includes('학생 로그인이 필요합니다'),
-  }
+  const anonymousLoginAlias = await readRedirect('/auth/login', null)
+  expect(anonymousLoginAlias.status === 307, 'Anonymous /auth/login should redirect')
+  expect(anonymousLoginAlias.location === '/', 'Anonymous /auth/login should redirect to /')
+  results.anonymous.loginAlias = anonymousLoginAlias
+
+  const anonymousAdminPage = await readRedirect('/admin', null)
+  expect(anonymousAdminPage.status === 307, 'Anonymous /admin should redirect to /')
+  expect(anonymousAdminPage.location === '/', 'Anonymous /admin redirect location mismatch')
+  results.anonymous.adminPage = anonymousAdminPage
+
+  const anonymousStudentPage = await readRedirect('/student', null)
+  expect(anonymousStudentPage.status === 307, 'Anonymous /student should redirect to /')
+  expect(anonymousStudentPage.location === '/', 'Anonymous /student redirect location mismatch')
+  results.anonymous.studentPage = anonymousStudentPage
 
   const anonymousAdminApi = await request(
     baseUrl,
@@ -112,47 +135,63 @@ async function main() {
   const { jar: adminJar } = await loginAs(baseUrl, adminAccount)
   const { jar: studentJar } = await loginAs(baseUrl, studentAccount)
 
+  const ownerRootRedirect = await readRedirect('/', ownerJar)
+  expect(ownerRootRedirect.status === 307, 'Owner / should redirect')
+  expect(ownerRootRedirect.location === '/admin', 'Owner / should redirect to /admin')
+  results.allowedRoutes.ownerRoot = ownerRootRedirect
+
+  const adminRootRedirect = await readRedirect('/', adminJar)
+  expect(adminRootRedirect.status === 307, 'Admin / should redirect')
+  expect(adminRootRedirect.location === '/admin', 'Admin / should redirect to /admin')
+  results.allowedRoutes.adminRoot = adminRootRedirect
+
+  const studentRootRedirect = await readRedirect('/', studentJar)
+  expect(studentRootRedirect.status === 307, 'Student / should redirect')
+  expect(studentRootRedirect.location === '/student', 'Student / should redirect to /student')
+  results.allowedRoutes.studentRoot = studentRootRedirect
+
+  const ownerLoginAlias = await readRedirect('/auth/login', ownerJar)
+  expect(ownerLoginAlias.status === 307, 'Owner /auth/login should redirect')
+  expect(ownerLoginAlias.location === '/', 'Owner /auth/login should redirect to /')
+  results.allowedRoutes.ownerLoginAlias = ownerLoginAlias
+
+  const adminLoginAlias = await readRedirect('/auth/login', adminJar)
+  expect(adminLoginAlias.status === 307, 'Admin /auth/login should redirect')
+  expect(adminLoginAlias.location === '/', 'Admin /auth/login should redirect to /')
+  results.allowedRoutes.adminLoginAlias = adminLoginAlias
+
+  const studentLoginAlias = await readRedirect('/auth/login', studentJar)
+  expect(studentLoginAlias.status === 307, 'Student /auth/login should redirect')
+  expect(studentLoginAlias.location === '/', 'Student /auth/login should redirect to /')
+  results.allowedRoutes.studentLoginAlias = studentLoginAlias
+
   const ownerAdminPage = await readHtml('/admin', ownerJar)
   expect(ownerAdminPage.status === 200, 'Owner /admin should render')
-  expect(!ownerAdminPage.html.includes('관리자 로그인이 필요합니다'), 'Owner /admin should not show login gate')
   results.allowedRoutes.ownerAdminPage = {
     status: ownerAdminPage.status,
-    containsGate: ownerAdminPage.html.includes('관리자 로그인이 필요합니다'),
   }
 
   const adminAdminPage = await readHtml('/admin', adminJar)
   expect(adminAdminPage.status === 200, 'Admin /admin should render')
-  expect(!adminAdminPage.html.includes('관리자 권한이 필요합니다'), 'Admin /admin should not show denied gate')
   results.allowedRoutes.adminAdminPage = {
     status: adminAdminPage.status,
-    containsDeniedGate: adminAdminPage.html.includes('관리자 권한이 필요합니다'),
   }
 
   const studentStudentPage = await readHtml('/student', studentJar)
   expect(studentStudentPage.status === 200, 'Student /student should render')
-  expect(!studentStudentPage.html.includes('학생 로그인이 필요합니다'), 'Student /student should not show login gate')
   results.allowedRoutes.studentStudentPage = {
     status: studentStudentPage.status,
-    containsGate: studentStudentPage.html.includes('학생 로그인이 필요합니다'),
   }
 
-  const adminWrongRolePage = await readHtml('/student', adminJar)
-  expect(adminWrongRolePage.html.includes('학생 전용 화면입니다'), 'Admin -> /student wrong-role copy mismatch')
-  expect(!adminWrongRolePage.html.includes('role:'), 'Admin -> /student should not expose raw role label')
-  results.wrongRoleRoutes.adminToStudent = {
-    status: adminWrongRolePage.status,
-    containsWrongRole: adminWrongRolePage.html.includes('학생 전용 화면입니다'),
-    exposesRawRole: adminWrongRolePage.html.includes('role:'),
-  }
+  const adminWrongRolePage = await readRedirect('/student', adminJar)
+  expect(adminWrongRolePage.status === 307, 'Admin -> /student should redirect')
+  expect(adminWrongRolePage.location === '/admin', 'Admin -> /student should redirect to /admin')
+  results.wrongRoleRoutes.adminToStudent = adminWrongRolePage
 
-  const studentWrongRolePage = await readHtml('/admin', studentJar)
-  expect(studentWrongRolePage.html.includes('관리자 권한이 필요합니다'), 'Student -> /admin wrong-role copy mismatch')
-  expect(!studentWrongRolePage.html.includes('role:'), 'Student -> /admin should not expose raw role label')
-  results.wrongRoleRoutes.studentToAdmin = {
-    status: studentWrongRolePage.status,
-    containsWrongRole: studentWrongRolePage.html.includes('관리자 권한이 필요합니다'),
-    exposesRawRole: studentWrongRolePage.html.includes('role:'),
-  }
+  const studentWrongRolePage = await readRedirect('/admin', studentJar)
+  expect(studentWrongRolePage.status === 307, 'Student -> /admin should redirect')
+  expect(studentWrongRolePage.location === '/student', 'Student -> /admin should redirect to /student')
+  results.wrongRoleRoutes.studentToAdmin = studentWrongRolePage
 
   const studentAdminApi = await request(
     baseUrl,

@@ -2,85 +2,60 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { LayoutGrid, Users, BookOpen, Settings, LogOut, Home } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
 
-const navItems = [
-  { href: '/admin', label: '운영', icon: LayoutGrid },
-  { href: '/admin/students', label: '학생', icon: Users },
-  { href: '/admin/content', label: '수업', icon: BookOpen },
-  { href: '/admin/settings', label: '설정', icon: Settings },
-]
+import { SpmMascot } from '@/components/spm-mascot'
+import { adminPrimaryNavItems, isAdminNavItemActive } from '@/lib/admin/navigation'
+import {
+  adminDesktopSidebarBrandClass,
+  adminDesktopSidebarPanelClass,
+  adminSidebarIconClass,
+  adminSidebarItemClass,
+} from '@/lib/admin/surface'
 
 export function DesktopSidebar() {
   const pathname = usePathname()
 
-  const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-
-    if (typeof window !== 'undefined') {
-      window.location.assign('/auth/login')
-    }
-  }
-
   return (
-    <aside className="hidden md:flex h-screen w-64 flex-col border-r bg-sidebar fixed left-0 top-0">
-      <div className="flex h-16 items-center gap-2 border-b px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
-          S
-        </div>
-        <span className="font-semibold text-sidebar-foreground">SPM 운영</span>
-      </div>
-      
-      <nav className="flex-1 overflow-y-auto p-4">
-        <ul className="flex flex-col gap-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || 
-              (item.href !== '/admin' && pathname.startsWith(item.href))
-            const Icon = item.icon
-            
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                    isActive
-                      ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
+    <aside className="hidden md:block md:w-[16rem] md:shrink-0 lg:w-[17rem]" aria-label="운영 데스크톱 사이드바">
+      <div className="md:fixed md:inset-y-0 md:left-0 md:z-30 md:w-[16rem] lg:w-[17rem]">
+        <div className="flex h-full flex-col px-2.5 pt-4 pb-4 lg:px-3 lg:pt-5 lg:pb-5">
+          <div className={adminDesktopSidebarBrandClass}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-[#e7edde] bg-white shadow-[0_8px_16px_rgba(111,145,72,0.08)] lg:h-11 lg:w-11 lg:rounded-[1.05rem]">
+                <SpmMascot size="sm" className="h-6 w-6 lg:h-7 lg:w-7" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7f8b69]">운영 셸</div>
+                <div className="mt-1 truncate text-[1.02rem] font-semibold text-[#314127]">SPM 운영</div>
+              </div>
+            </div>
+          </div>
 
-      <div className="border-t p-4">
-        <Button
-          asChild
-          variant="ghost"
-          className="mb-1 w-full justify-start gap-3 text-sidebar-foreground/70 hover:text-sidebar-foreground"
-        >
-          <Link href="/">
-            <Home className="h-4 w-4" />
-            처음으로
-          </Link>
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-sidebar-foreground/70 hover:text-sidebar-foreground"
-          onClick={handleSignOut}
-        >
-          <LogOut className="h-4 w-4" />
-          로그아웃
-        </Button>
+          <div className={`${adminDesktopSidebarPanelClass} mt-2.5`}>
+            <div className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7f8b69]">
+              이동
+            </div>
+            <nav className="min-h-0 flex-1 overflow-y-auto pr-0.5">
+              <ul className="flex flex-col gap-2">
+                {adminPrimaryNavItems.map((item) => {
+                  const isActive = isAdminNavItemActive(pathname, item.href)
+                  const Icon = item.icon
+
+                  return (
+                    <li key={item.href}>
+                      <Link href={item.href} className={adminSidebarItemClass(item.tone, isActive)}>
+                        <span className={adminSidebarIconClass(item.tone, isActive)}>
+                          <Icon className="h-4 w-4 lg:h-4.5 lg:w-4.5" />
+                        </span>
+                        <span className="text-sm font-semibold">{item.label}</span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </nav>
+          </div>
+        </div>
       </div>
     </aside>
   )

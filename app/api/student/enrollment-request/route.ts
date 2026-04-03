@@ -4,6 +4,7 @@ import { isStudentRole } from '@/lib/auth/roles'
 import { readServerAccessContext } from '@/lib/auth/server'
 import { isValidYearMonth } from '@/lib/admin/matrix'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { logApiError } from '@/lib/server/logger'
 import type { EnrollmentLifecycleStatus } from '@/lib/types'
 
 type RequestableClassRow = {
@@ -98,7 +99,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: normalized })
   } catch (error) {
-    console.error('Student requestable class read failed:', error)
+    logApiError('student.enrollment-request', 'REQUESTABLE_CLASSES_READ_FAILED', error, {
+      yearMonth,
+    })
     return NextResponse.json({ error: 'REQUESTABLE_CLASSES_READ_FAILED' }, { status: 500 })
   }
 }
@@ -222,7 +225,10 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Student enrollment request failed:', error)
+    logApiError('student.enrollment-request', 'ENROLLMENT_REQUEST_FAILED', error, {
+      classId: body.classId,
+      yearMonth: body.yearMonth,
+    })
     return NextResponse.json({ error: 'ENROLLMENT_REQUEST_FAILED' }, { status: 500 })
   }
 }
