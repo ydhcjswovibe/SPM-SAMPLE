@@ -53,9 +53,14 @@ export async function GET(request: NextRequest) {
   }
 
   const yearMonth = request.nextUrl.searchParams.get('yearMonth')
+  const includeInactive = request.nextUrl.searchParams.get('includeInactive') === '1'
 
   if (yearMonth && !isValidYearMonth(yearMonth)) {
     return NextResponse.json({ error: 'INVALID_YEAR_MONTH' }, { status: 400 })
+  }
+
+  if (includeInactive && !isOwnerRole(access.role)) {
+    return NextResponse.json({ error: 'OWNER_REQUIRED' }, { status: 403 })
   }
 
   try {
@@ -99,20 +104,37 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ data: sorted })
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('classes')
       .select('id, name, is_active')
-      .eq('is_active', true)
       .order('name', { ascending: true })
+
+    if (!includeInactive) {
+      query = query.eq('is_active', true)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       return NextResponse.json({ error: 'CLASS_LIST_READ_FAILED' }, { status: 500 })
     }
 
-    return NextResponse.json({ data: data ?? [] })
+    const sorted = [...(data ?? [])].sort((left, right) => {
+      const leftRank = left.is_active === false ? 1 : 0
+      const rightRank = right.is_active === false ? 1 : 0
+
+      if (leftRank !== rightRank) {
+        return leftRank - rightRank
+      }
+
+      return left.name.localeCompare(right.name, 'ko')
+    })
+
+    return NextResponse.json({ data: sorted })
   } catch (error) {
     logApiError('admin.classes', 'CLASS_LIST_READ_FAILED', error, {
       yearMonth,
+      includeInactive,
     })
     return NextResponse.json({ error: 'CLASS_LIST_READ_FAILED' }, { status: 500 })
   }

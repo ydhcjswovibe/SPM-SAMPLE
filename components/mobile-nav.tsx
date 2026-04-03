@@ -11,7 +11,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] md:hidden">
-      <div className="mx-auto flex h-[4rem] max-w-[24rem] items-center gap-1.5 rounded-[1.75rem] border border-white/78 bg-white/95 px-1.5 py-1.5 shadow-[0_18px_34px_rgba(107,129,70,0.16)] backdrop-blur-md">
+      <div className="mx-auto flex h-[4rem] max-w-[24rem] items-center gap-1.5 rounded-2xl border border-[#dce8cc] bg-white px-1.5 py-1.5 shadow-[0_18px_34px_rgba(107,129,70,0.16)]">
         {adminPrimaryNavItems.map((item) => {
           const isActive = isAdminNavItemActive(pathname, item.href)
           const Icon = item.icon

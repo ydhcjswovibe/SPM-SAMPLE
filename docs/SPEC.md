@@ -63,6 +63,9 @@ student-facing 흐름도 중요하지만,
 - mobile에서도 scannability와 state visibility를 우선한다
 - media 종류보다 `클래스 -> 주차 -> 콘텐츠` 흐름이 먼저 읽혀야 한다
 - 메인 표면은 불필요한 여백 때문에 핵심 상태나 action이 화면 아래로 밀리지 않도록 compact density와 정렬 일관성을 유지한다
+- primary surface의 실제 배경 fill은 `opaque color` 또는 `alpha 없는 gradient`만 허용한다
+- `transparent`, `bg-white/95` 같은 alpha fill, `rgba(..., <1)` gradient, `backdrop-blur` 의존 배경은 장식용 ambient layer에만 쓰고 실제 조작 surface에는 쓰지 않는다
+- 헤더 selector/menu, 하단 탭/item, 요약/진척 카드, 주차 rail/button, dialog frame, reply composer, admin row action 같은 primary surface는 ghost/transparent baseline으로 두지 않는다
 
 ### 현재 mobile surface baseline
 
@@ -80,6 +83,7 @@ student-facing 흐름도 중요하지만,
 - 운영 desktop에서는 student형 floating hero header를 재사용하지 않고, sidebar와 분리된 본문 툴바 기준으로 `selector/control + utility`만 남긴다
 - 운영 mobile 하단 탭은 compact shell에서 icon-first로 낮출 수 있지만, active state와 접근성 label만으로 현재 위치를 바로 식별할 수 있어야 한다
 - 운영 mobile 하단 탭은 inactive 상태에서도 투명해 보이지 않도록 기본 pill 배경과 경계를 유지해야 한다
+- 운영 mobile의 header control, menu, bottom tab, week rail, row action은 shared opaque surface token 위에서만 움직여야 한다
 - 계정/설정/로그아웃은 하단 탭이 아니라 헤더 유틸리티 메뉴 또는 보조 화면으로 둔다
 - `운영` 탭 상단 요약이 별도 home 역할을 흡수한다
 - `운영` 탭은 다음 흐름을 담는다:
@@ -110,7 +114,8 @@ student-facing 흐름도 중요하지만,
 - `내상태`는 출석 / 결제 / 진행 상태 / 피드백처럼 status-heavy 정보를 우선한다
 - `내상태`는 profile card처럼 보이는 상단 요약과 설정 카드로 구성할 수 있지만, 수정 가능한 truth는 여전히 계정 이름과 테마 선택에 한정한다
 - 학생 표면에는 출석률 / 진행률 / 참여 흐름을 부드럽게 재해석한 `light gamification` 레이어를 둘 수 있지만, 본래 상태 정보의 판독성을 가리면 안 된다
-- 학생 hero의 공기감은 허용하지만, 실제 카드 / 버튼 / 요약 surface는 배경에 묻히지 않도록 near-opaque 기준을 유지한다
+- 학생 hero의 공기감과 ambient glow는 허용하지만, 실제 카드 / 버튼 / 요약 surface의 배경 fill은 `opaque color` 또는 `alpha 없는 gradient`로만 유지한다
+- 학생 header selector/menu, 하단 탭, 홈 hero/progress/summary, 수업 주차 rail/button, reply composer, profile 요약/설정 카드는 같은 opaque surface contract를 공유한다
 - 학생용 시각 톤은 `소프트 파스텔 + 절제된 귀여움`을 기본으로 하고, 주 사용 대상이 `20대~40대`인 점을 고려해 유아용처럼 과장된 캐릭터/색감은 피한다
 - 학생 현재 표면은 visual baseline으로 고정하고, 운영 표면은 shared primitive를 다시 흔들지 말고 학생 baseline의 surface/icon language를 운영 전용 layer로 따라간다
 
@@ -293,9 +298,13 @@ student-facing 흐름도 중요하지만,
 
 ### Class Schedule / Actual Session Dates
 - 수업 생성 시에는 이름만이 아니라 기본 반복 일정(`요일 + 시작/종료 시간`)을 함께 정의해야 한다
+- owner의 새 수업 만들기 입력은 기존 수업명 preset suggestion을 먼저 보여 줄 수 있어야 하지만, 기존 이름만 강제하지 않고 직접 입력도 계속 허용해야 한다
+- owner/admin의 일정 시간 입력은 `00`/`30` 분 단위의 쉬운 선택 UI를 사용하고, browser native time input에만 의존하지 않는다
+- 시작 시간을 고를 때 종료 시간이 비어 있으면 같은 행의 종료 시간은 기본 `+2시간`으로 먼저 채워져야 한다
 - 한 수업은 주 2회 이상 반복을 가질 수 있어야 한다
 - 운영자는 월별 실제 수업 날짜를 따로 조정할 수 있어야 하며, 이 월별 세션 목록이 출석 truth가 된다
 - base repeating rule은 owner가 관리하고, 월별 실제 날짜 조정은 admin/owner가 관리할 수 있어야 한다
+- 새 수업 생성과 월별 일정 관리는 connected Supabase의 `class_schedule_rules`, `class_sessions`, `session_attendance`를 실제 storage truth로 사용해야 한다
 - week selection은 단순 `오늘 날짜 ÷ 7`이 아니라 실제 session이 속한 주차를 기준으로 잡아야 한다
 
 ### Student Enrollment Management

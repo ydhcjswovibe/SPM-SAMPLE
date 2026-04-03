@@ -2,8 +2,8 @@
 
 ## Current Status
 
-- stage: `cute redesign main surfaces`
-- focus: `로그인 메인 화면을 중앙 집중형 단일 카드로 정리하고, 이메일 로그인/redirect fallback을 제거한 Google-only auth 진입으로 맞춘다.`
+- stage: `admin class create + schedule core recovery`
+- focus: `connected Supabase schedule-core drift를 복구하고, 관리자 수업 생성/일정 시간을 preset + 30분 단위 입력으로 고정한다.`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,8 @@
 
 ## Recent Work Windows
 
+- `2026-04-03 | admin class create preset/time UX + schedule-core remote sync | start: not recorded | end: 2026-04-03 18:32 KST | status: done`
+- `2026-04-03 | primary surface opacity hardening + static guard | start: not recorded | end: 2026-04-03 17:33 KST | status: done`
 - `2026-04-02 | student/common surface visibility audit + opaque sweep | start: not recorded | end: 2026-04-02 19:46 KST | status: done`
 - `2026-04-01 | login centered card + google-only auth pass | start: not recorded | end: 2026-04-01 18:58 KST | status: done`
 - `2026-03-27 | admin attendance stronger status + memo-chip pass | start: not recorded | end: 2026-03-27 21:06 KST | status: done`
@@ -140,11 +142,16 @@
 
 ## Done Recently
 
-- 공통 `DropdownMenu / Select / Popover / Tabs / Progress` primitive와 학생 `header / bottom tab / home progress / lessons week rail / reply composer / image dialog / video overlay / profile cards`, admin `month popover / dropdown / content week rail / bottom tab`를 opaque surface contract로 정리 완료
-- `scripts/lib/surface-assert.mjs`를 추가해 admin/student browser smoke가 같은 `background alpha > 0.9 또는 backgroundImage 존재` 기준을 공유하도록 맞춤 완료
-- `npm run typecheck`, `npm run lint`, `npm run build`, `node --check scripts/014_verify_student_weekly_media_browser.mjs`, `node --check scripts/019_verify_admin_mobile_browser.mjs`, `node --check scripts/lib/surface-assert.mjs` 통과 완료
+- connected Supabase drift probe 결과 실제 remote에 `class_schedule_rules`, `class_sessions`, `session_attendance`가 비어 있음을 확인했고, `scripts/lib/remote-canonical-sync.mjs`에 `schedule-core` target과 table probe/apply를 추가 완료
+- owner `새 수업 만들기`는 기존 수업명 suggestion + 직접 입력을 같이 지원하도록 [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx), [components/admin-class-name-field.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-class-name-field.tsx)로 재구성 완료
+- create dialog와 `일정 관리` dialog의 시간 입력을 [components/admin-schedule-time-field.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-schedule-time-field.tsx) 기반 30분 단위 선택으로 통일했고, 시작 시간 변경 시 비어 있는 종료 시간에만 `+2시간`을 자동 채우도록 [components/class-schedule-editor.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/class-schedule-editor.tsx), [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx), [lib/class-schedule.ts](/home/ydhcjswo/projects/SPM-SAMPLE/lib/class-schedule.ts) 반영 완료
+- 공통 `Button(surface) / DropdownMenu / Select`와 학생 `header / bottom tab / home hero-progress-summary / lessons week rail / reply composer / profile cards`, admin `header control / menu / bottom tab / students row action / content week rail`를 shared opaque token 위로 재정리 완료
+- `components/ui/button.tsx`의 `ghost`를 primary surface 기본값에서 떼고, `scripts/020_verify_surface_contract.mjs`를 추가해 critical file의 alpha background / transparent fill / `backdrop-blur` / primary-control `variant="ghost"` 재도입을 lint 단계에서 차단 완료
+- `scripts/lib/surface-assert.mjs`는 더 이상 `backgroundImage 존재`만으로 통과시키지 않고 gradient stop alpha까지 읽도록 강화했고, `scripts/014_verify_student_weekly_media_browser.mjs`는 `/student/profile` opacity smoke와 결과 구조 버그를 함께 보정 완료
+- `npm run typecheck`, `npm run lint`, `npm run build` 통과 완료
+- 기존 `127.0.0.1:3000` runtime은 stale CSS가 보여 fresh smoke 기준에서 제외했고, `PORT=3100 npm run start`로 띄운 새 runtime에서 surface 검증을 다시 확인 완료
 - `SPM_BASE_URL=http://127.0.0.1:3100 npm run verify:admin-mobile-browser`는 opacity 체크 구간을 지난 뒤 local data에서 `출석 trigger`가 보이지 않아 runtime proof가 일부 blocked 상태로 남음
-- `SPM_BASE_URL=http://127.0.0.1:3100 npm run verify:student-browser-smoke`, `SPM_BASE_URL=http://127.0.0.1:3100 npm run verify:weekly-media-runtime`는 이번 패키지 범위 밖 기존 `NOTES_SAVE_FAILED`로 blocked 상태를 재확인함
+- `SPM_BASE_URL=http://127.0.0.1:3100 npm run verify:student-browser-smoke`는 이번 패키지 범위 밖 기존 `NOTES_SAVE_FAILED`를 다시 확인해 runtime proof가 blocked 상태로 남음
 - `npm run typecheck`, `npm run lint`, `npm run build`, `npm run runtime:seed-auth`, `SPM_BASE_URL=http://127.0.0.1:3920 npm run verify:admin-mobile-browser` 재통과 완료
 - [components/admin-matrix.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-matrix.tsx)를 `출석 토글 + 옆 메모 칩` 가로 구조로 다시 정리하고, `지난 실제 수업 주차 결석=red / 현재·미래 미체크=neutral / 출석=green` 색 규칙을 반영 완료
 - [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md), [2026-03-27-admin-attendance-stronger-status-and-memo-chip.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/reports/2026-03-27-admin-attendance-stronger-status-and-memo-chip.md)에 새 `메모 칩 + overdue red absent` truth 반영 완료

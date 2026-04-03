@@ -74,8 +74,8 @@ const paymentLabels = {
 } as const
 
 const paymentColors = {
-  unpaid: 'bg-warning/15 text-warning-foreground border-warning/30',
-  paid: 'bg-success/15 text-success border-success/30',
+  unpaid: 'bg-[#fff6dc] text-[#7d5a0e] border-[#ecdca7]',
+  paid: 'bg-[#eef8ea] text-[#38632b] border-[#bfe0c0]',
   refunded: 'bg-muted text-muted-foreground border-muted',
 } as const
 
@@ -422,7 +422,7 @@ export function AdminMatrix({
       ? 'border-[#ddd4fb] bg-[#f6f2ff] text-[#725ab8] shadow-[0_6px_12px_rgba(123,104,177,0.12)]'
       : memoReady
         ? 'border-[#d5e1f8] bg-[#eef5ff] text-[#5d7dbd] shadow-[0_6px_12px_rgba(100,136,199,0.1)]'
-        : 'border-[#e2e8d7] bg-white/96 text-[#7b886c]'
+        : 'border-[#e2e8d7] bg-white text-[#7b886c]'
     const memoLabel = replyReady
       ? `${student.studentName || '학생'} ${week.label} 답글 확인 및 메모 열기`
       : `${student.studentName || '학생'} ${week.label} 메모 열기`
@@ -437,7 +437,7 @@ export function AdminMatrix({
       >
         <Button
           type="button"
-          variant="ghost"
+          variant="surface"
           onClick={() => hasSessions && void handleWeekAttendanceToggle(attendances)}
           aria-label={`${student.studentName || '학생'} ${week.label} ${attendanceReady ? '출석 해제' : '출석 체크'}`}
           title={`${student.studentName || '학생'} ${week.label} ${attendanceReady ? '출석 해제' : '출석 체크'}`}
@@ -692,7 +692,7 @@ export function AdminMatrix({
         <SheetContent
           side={isMobile ? 'bottom' : 'right'}
           className={cn(
-            'overflow-hidden border-[#dfe6d3] bg-[linear-gradient(180deg,rgba(252,253,247,0.99)_0%,rgba(248,251,242,0.99)_100%)] p-0',
+            'overflow-hidden border-[#dfe6d3] bg-card p-0',
             isMobile ? 'max-h-[88dvh] rounded-t-[1.75rem]' : 'w-full sm:max-w-[32rem]',
           )}
         >
@@ -750,7 +750,7 @@ export function AdminMatrix({
 
               {activeDraft && activeWeek ? (
                 <div className="space-y-4">
-                  <div className="rounded-[1.3rem] border border-[#dfe6d3] bg-white/92 px-4 py-3 shadow-[0_10px_18px_rgba(113,137,82,0.06)]">
+                  <div className="rounded-[1.3rem] border border-[#dfe6d3] bg-white px-4 py-3 shadow-[0_10px_18px_rgba(113,137,82,0.06)]">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7a886d]">실제 일정</div>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {activeWeek.sessions.length > 0 ? (
@@ -822,7 +822,7 @@ export function AdminMatrix({
                           <MessageCircleReply className="h-4 w-4 text-[#7b68b1]" />
                           <span>학생 답글</span>
                         </div>
-                        <div className="rounded-[1.15rem] border border-[#e4ddf6] bg-white/96 px-3.5 py-3 text-sm leading-6 text-[#314127]">
+                        <div className="rounded-[1.15rem] border border-[#e4ddf6] bg-white px-3.5 py-3 text-sm leading-6 text-[#314127]">
                           {activeStudentReplyText ? activeStudentReplyText : '아직 답글이 없습니다.'}
                         </div>
                       </div>

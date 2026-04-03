@@ -10,6 +10,9 @@ export const WEEKDAY_OPTIONS = [
   { value: 6, label: '토' },
 ] as const
 
+export const SCHEDULE_HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, '0'))
+export const SCHEDULE_MINUTE_OPTIONS = ['00', '30'] as const
+
 export type WeekdayValue = (typeof WEEKDAY_OPTIONS)[number]['value']
 export type ClassSessionSource = 'RULE' | 'MANUAL' | 'LEGACY'
 
@@ -93,6 +96,79 @@ export function normalizeTimeValue(value: string | null | undefined) {
 
   const trimmed = value.trim()
   return isValidTimeValue(trimmed) ? trimmed : null
+}
+
+export function splitTimeValue(value: string | null | undefined) {
+  const normalized = normalizeTimeValue(value)
+
+  if (!normalized) {
+    return {
+      hour: '',
+      minute: SCHEDULE_MINUTE_OPTIONS[0],
+    }
+  }
+
+  const [hour, minute] = normalized.split(':')
+  return {
+    hour: hour ?? '',
+    minute: minute ?? SCHEDULE_MINUTE_OPTIONS[0],
+  }
+}
+
+export function buildTimeValue(hour: string | null | undefined, minute: string | null | undefined) {
+  if (!hour) {
+    return ''
+  }
+
+  const normalizedHour = SCHEDULE_HOUR_OPTIONS.includes(hour) ? hour : null
+  const normalizedMinute = SCHEDULE_MINUTE_OPTIONS.includes((minute ?? '') as (typeof SCHEDULE_MINUTE_OPTIONS)[number])
+    ? minute
+    : SCHEDULE_MINUTE_OPTIONS[0]
+
+  if (!normalizedHour || !normalizedMinute) {
+    return ''
+  }
+
+  return `${normalizedHour}:${normalizedMinute}`
+}
+
+export function getDefaultEndTimeFromStart(startTime: string | null | undefined, durationHours = 2) {
+  const normalized = normalizeTimeValue(startTime)
+
+  if (!normalized || !Number.isFinite(durationHours)) {
+    return null
+  }
+
+  const [hourText, minuteText] = normalized.split(':')
+  const startMinutes = Number(hourText) * 60 + Number(minuteText)
+
+  if (!Number.isFinite(startMinutes)) {
+    return null
+  }
+
+  const nextMinutes = Math.min(startMinutes + durationHours * 60, 23 * 60 + 30)
+  const nextHour = Math.floor(nextMinutes / 60)
+  const nextMinute = nextMinutes % 60
+
+  return buildTimeValue(String(nextHour).padStart(2, '0'), String(nextMinute).padStart(2, '0'))
+}
+
+export function applyAutoEndTime(startTime: string | null | undefined, currentEndTime: string | null | undefined) {
+  if (typeof currentEndTime === 'string' && currentEndTime.trim()) {
+    return currentEndTime
+  }
+
+  return getDefaultEndTimeFromStart(startTime) ?? ''
+}
+
+export function shouldAutoAdjustEndTime(startTime: string | null | undefined, endTime: string | null | undefined) {
+  const normalizedEnd = normalizeTimeValue(endTime)
+
+  if (!normalizedEnd) {
+    return true
+  }
+
+  return normalizedEnd === getDefaultEndTimeFromStart(startTime)
 }
 
 export function normalizeWeekdayValue(value: number) {

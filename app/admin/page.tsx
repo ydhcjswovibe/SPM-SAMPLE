@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { buildAdminDashboardHref } from '@/lib/admin/content-selection'
 import { formatYearMonthLabel, getCurrentYearMonth, isValidYearMonth } from '@/lib/admin/matrix'
 import type { AdminWeeklyNotesState } from '@/lib/admin/weekly-notes'
+import { WEEKDAY_OPTIONS, getDefaultEndTimeFromStart, shouldAutoAdjustEndTime } from '@/lib/class-schedule'
 import { cn } from '@/lib/utils'
 import {
   adminAlertCardClass,
@@ -34,6 +35,8 @@ import {
   type EditableClassSession,
   type EditableScheduleRule,
 } from '@/components/class-schedule-editor'
+import { AdminClassNameField } from '@/components/admin-class-name-field'
+import { AdminScheduleTimeField } from '@/components/admin-schedule-time-field'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -52,7 +55,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, CalendarCheck, CalendarDays, CreditCard, Download, Filter, Loader2, LogIn, Plus, Trash2, Users } from 'lucide-react'
 import type { Class, AdminMatrixData, AttendanceStatus } from '@/lib/types'
@@ -133,7 +135,7 @@ async function fetchClasses(yearMonth: string): Promise<Class[]> {
 }
 
 async function fetchAllClasses(): Promise<Class[]> {
-  const response = await fetch('/api/admin/classes', {
+  const response = await fetch('/api/admin/classes?includeInactive=1', {
     credentials: 'include',
     cache: 'no-store',
   })
@@ -200,7 +202,7 @@ function getFriendlyRouteError(code: string) {
     case 'INVALID_SCHEDULE_INPUT':
       return '반복 일정 입력값을 다시 확인해 주세요.'
     case 'SCHEDULE_FEATURE_UNAVAILABLE':
-      return '현재 환경에는 실제 일정 기능이 아직 반영되지 않았습니다.'
+      return '현재 연결된 운영 DB에 수업 일정 저장소가 없어 일정 기능을 사용할 수 없습니다.'
     case 'SCHEDULE_READ_FAILED':
       return '수업 일정을 불러오지 못했습니다.'
     case 'SCHEDULE_SAVE_FAILED':
@@ -290,8 +292,32 @@ function buildDefaultScheduleRule(): EditableScheduleRule {
     id: `new-rule-${Date.now()}`,
     weekday: 1,
     startTime: '16:00',
-    endTime: '',
+    endTime: getDefaultEndTimeFromStart('16:00') ?? '',
+    isEndTimeAuto: true,
   }
+}
+
+function updateEditableTimeRange<TItem extends { startTime: string; endTime: string; isEndTimeAuto: boolean }>(
+  item: TItem,
+  nextStartTime: string,
+) {
+  return {
+    ...item,
+    startTime: nextStartTime,
+    endTime: getDefaultEndTimeFromStart(nextStartTime) ?? '',
+  }
+}
+
+function isHandledCreateClassError(message: string) {
+  return [
+    '로그인이 필요합니다.',
+    '관리자 권한이 필요합니다.',
+    '새 수업 만들기는 오너 권한이 필요합니다.',
+    '수업 이름을 입력해 주세요.',
+    '반복 일정 입력값을 다시 확인해 주세요.',
+    '현재 연결된 운영 DB에 수업 일정 저장소가 없어 일정 기능을 사용할 수 없습니다.',
+    '수업을 만들지 못했습니다.',
+  ].includes(message)
 }
 
 async function fetchScheduleState(classId: string, yearMonth: string): Promise<ClassScheduleState> {
@@ -403,6 +429,13 @@ export default function AdminDashboard() {
     !isAccessLoading && accessState?.canCreateClass ? 'admin-all-classes' : null,
     fetchAllClasses,
   )
+  const classNameSuggestions = Array.from(
+    new Set(
+      (allClasses ?? [])
+        .map((classItem) => classItem.name.trim())
+        .filter((name) => name.length > 0),
+    ),
+  )
 
   const {
     data: matrixData,
@@ -500,6 +533,7 @@ export default function AdminDashboard() {
             weekday: rule.weekday,
             startTime: rule.startTime,
             endTime: rule.endTime ?? '',
+            isEndTimeAuto: shouldAutoAdjustEndTime(rule.startTime, rule.endTime ?? ''),
           })),
         )
         setScheduleSessions(
@@ -509,6 +543,7 @@ export default function AdminDashboard() {
             startTime: session.startTime,
             endTime: session.endTime ?? '',
             source: session.source,
+            isEndTimeAuto: shouldAutoAdjustEndTime(session.startTime, session.endTime ?? ''),
           })),
         )
         setCanEditScheduleRules(scheduleState.canEditRules)
@@ -601,7 +636,9 @@ export default function AdminDashboard() {
     } catch (error) {
       const message = getErrorMessage(error)
       setCreateError(message)
-      console.error('Failed to create class:', message, error)
+      if (!isHandledCreateClassError(message)) {
+        console.error('Failed to create class:', message, error)
+      }
     } finally {
       setIsCreating(false)
     }
@@ -858,13 +895,13 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button asChild variant="ghost" size="sm" className={adminPrimaryButtonClass}>
+              <Button asChild variant="surface" size="sm" className={adminPrimaryButtonClass}>
                 <Link href="/">
                   <LogIn className="h-4 w-4" />
                   로그인하기
                 </Link>
               </Button>
-              <Button asChild variant="ghost" size="sm" className={adminCompactButtonClass}>
+              <Button asChild variant="surface" size="sm" className={adminCompactButtonClass}>
                 <Link href="/">처음으로</Link>
               </Button>
             </div>
@@ -889,10 +926,10 @@ export default function AdminDashboard() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button asChild variant="ghost" size="sm" className={adminPrimaryButtonClass}>
+              <Button asChild variant="surface" size="sm" className={adminPrimaryButtonClass}>
                 <Link href="/student">학생 화면으로 이동</Link>
               </Button>
-              <Button asChild variant="ghost" size="sm" className={adminCompactButtonClass}>
+              <Button asChild variant="surface" size="sm" className={adminCompactButtonClass}>
                 <Link href="/">다시 로그인하기</Link>
               </Button>
             </div>
@@ -1100,7 +1137,7 @@ export default function AdminDashboard() {
               <CardTitle className="spm-display text-[1.65rem] text-foreground md:text-[1.85rem] lg:text-[1.45rem]">출석부</CardTitle>
               <div className="flex items-center gap-2">
                 <Button
-                  variant="ghost"
+                  variant="surface"
                   size="sm"
                   onClick={handleExportCSV}
                   aria-label="출석 CSV 다운로드"
@@ -1124,7 +1161,7 @@ export default function AdminDashboard() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="surface"
                       aria-label="학생 출석부 필터 열기"
                       className={cn(
                         adminCompactIconButtonClass,
@@ -1164,7 +1201,7 @@ export default function AdminDashboard() {
                 {accessState?.canCreateClass ? (
                   <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                     <Button
-                      variant="ghost"
+                      variant="surface"
                       className={adminPrimaryButtonClass}
                       onClick={() => setIsCreateDialogOpen(true)}
                       disabled={!accessState.canCreateClass}
@@ -1234,35 +1271,28 @@ export default function AdminDashboard() {
         <DialogContent className={adminDialogContentClass}>
           <DialogHeader>
             <DialogTitle>새 수업 만들기</DialogTitle>
-            <DialogDescription>
-              수업 이름과 기본 반복 일정을 함께 만듭니다. 생성 직후 현재 월 실제 수업 날짜도 바로 생성됩니다.
-            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
             {createError ? (
-              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div className="rounded-md border border-destructive/30 bg-[#fff5f0] px-3 py-2 text-sm text-destructive">
                 {createError}
               </div>
             ) : null}
             <div className="flex flex-col gap-2">
               <Label htmlFor="className">수업 이름</Label>
-              <Input
-                id="className"
+              <AdminClassNameField
                 value={newClassName}
-                onChange={(e) => {
-                  setNewClassName(e.target.value)
+                onChange={(nextValue) => {
+                  setNewClassName(nextValue)
                   setCreateError(null)
                 }}
-                placeholder="예: 2026년 3월 기초반"
-                className={adminSurfaceInputClass}
+                suggestions={classNameSuggestions}
+                disabled={isAllClassesLoading}
               />
             </div>
             <div className="space-y-3 rounded-[1.5rem] border border-[#e5ecd8] bg-[#fbfcf7] p-3">
               <div>
                 <div className="text-sm font-semibold text-[#314127]">기본 반복 일정</div>
-                <p className="mt-1 text-xs leading-5 text-[#6b7d5e]">
-                  같은 반은 여러 요일을 함께 둘 수 있습니다. 실제 날짜는 생성 후 `일정 관리`에서 월별로 조정합니다.
-                </p>
               </div>
               <div className="space-y-3">
                 {newClassScheduleRules.map((rule, index) => (
@@ -1282,51 +1312,52 @@ export default function AdminDashboard() {
                           }
                           className={`${adminSurfaceInputClass} h-11`}
                         >
-                          <option value="0">일요일</option>
-                          <option value="1">월요일</option>
-                          <option value="2">화요일</option>
-                          <option value="3">수요일</option>
-                          <option value="4">목요일</option>
-                          <option value="5">금요일</option>
-                          <option value="6">토요일</option>
+                          {WEEKDAY_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}요일
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor={`new-rule-start-${rule.id}`}>시작</Label>
-                        <input
-                          id={`new-rule-start-${rule.id}`}
-                          type="time"
+                        <Label htmlFor={`new-rule-start-${rule.id}-hour`}>시작</Label>
+                        <AdminScheduleTimeField
+                          idPrefix={`new-rule-start-${rule.id}`}
                           value={rule.startTime}
-                          onChange={(event) =>
+                          onChange={(nextStartTime) =>
                             setNewClassScheduleRules((current) =>
                               current.map((item) =>
-                                item.id === rule.id ? { ...item, startTime: event.target.value } : item,
+                                item.id === rule.id ? updateEditableTimeRange(item, nextStartTime) : item,
                               ),
                             )
                           }
-                          className={`${adminSurfaceInputClass} h-11`}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor={`new-rule-end-${rule.id}`}>종료</Label>
-                        <input
-                          id={`new-rule-end-${rule.id}`}
-                          type="time"
+                        <Label htmlFor={`new-rule-end-${rule.id}-hour`}>종료</Label>
+                        <AdminScheduleTimeField
+                          idPrefix={`new-rule-end-${rule.id}`}
                           value={rule.endTime}
-                          onChange={(event) =>
+                          onChange={(nextEndTime) =>
                             setNewClassScheduleRules((current) =>
                               current.map((item) =>
-                                item.id === rule.id ? { ...item, endTime: event.target.value } : item,
+                                item.id === rule.id
+                                  ? {
+                                      ...item,
+                                      endTime: nextEndTime,
+                                      isEndTimeAuto: nextEndTime.trim().length === 0,
+                                    }
+                                  : item,
                               ),
                             )
                           }
-                          className={`${adminSurfaceInputClass} h-11`}
+                          allowEmpty
                         />
                       </div>
                       <div className="flex items-end justify-end">
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="surface"
                           onClick={() =>
                             setNewClassScheduleRules((current) => current.filter((item) => item.id !== rule.id))
                           }
@@ -1343,7 +1374,7 @@ export default function AdminDashboard() {
                 ))}
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="surface"
                   onClick={() => setNewClassScheduleRules((current) => [...current, buildDefaultScheduleRule()])}
                   className={adminCompactButtonClass}
                 >
@@ -1352,16 +1383,13 @@ export default function AdminDashboard() {
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              이 동작은 오너 계정에서만 열립니다.
-            </p>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsCreateDialogOpen(false)} className={adminCompactButtonClass}>
+            <Button variant="surface" onClick={() => setIsCreateDialogOpen(false)} className={adminCompactButtonClass}>
               취소
             </Button>
             <Button
-              variant="ghost"
+              variant="surface"
               onClick={handleCreateClass}
               disabled={!newClassName.trim() || createSchedulePayload.length === 0 || isCreating || !accessState?.canCreateClass}
               className={adminPrimaryButtonClass}
@@ -1393,7 +1421,7 @@ export default function AdminDashboard() {
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto py-2">
             {scheduleDialogError ? (
-              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <div className="rounded-md border border-destructive/30 bg-[#fff5f0] px-3 py-2 text-sm text-destructive">
                 {scheduleDialogError}
               </div>
             ) : null}
@@ -1419,11 +1447,11 @@ export default function AdminDashboard() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsScheduleDialogOpen(false)} className={adminCompactButtonClass}>
+            <Button variant="surface" onClick={() => setIsScheduleDialogOpen(false)} className={adminCompactButtonClass}>
               닫기
             </Button>
             <Button
-              variant="ghost"
+              variant="surface"
               onClick={handleSaveSchedule}
               disabled={isScheduleLoading || isScheduleSaving || !resolvedSelectedClass}
               className={adminPrimaryButtonClass}
@@ -1454,7 +1482,7 @@ export default function AdminDashboard() {
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="ghost"
+              variant="surface"
               onClick={() => {
                 setIsDeleteDialogOpen(false)
                 setClassToDelete(null)
@@ -1464,7 +1492,7 @@ export default function AdminDashboard() {
               취소
             </Button>
             <Button
-              variant="ghost"
+              variant="surface"
               onClick={handleDeleteClass}
               disabled={!classToDelete || isDeletingClass}
               className={adminCompactDangerButtonClass}

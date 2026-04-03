@@ -54,11 +54,11 @@ export function ClassSelector({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
+          variant="surface"
           aria-label={ariaLabel}
           className={cn(
             adminToolbarControlClass,
-            'w-auto min-w-[9.75rem] max-w-[12.5rem] justify-between gap-2 rounded-[1.25rem] px-3 sm:min-w-[10.75rem] sm:max-w-[13.5rem] lg:min-w-[11rem] lg:max-w-[14.5rem] xl:max-w-[15.5rem]',
+            'w-auto min-w-[9.75rem] max-w-[12.5rem] justify-between gap-2 rounded-2xl px-3 sm:min-w-[10.75rem] sm:max-w-[13.5rem] lg:min-w-[11rem] lg:max-w-[14.5rem] xl:max-w-[15.5rem]',
             triggerClassName,
             isDeleteMode && 'border-[#f0d4cf] bg-[#fff5f1] text-[#b65046] hover:bg-[#ffede7] hover:text-[#b65046]',
           )}

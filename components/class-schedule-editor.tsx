@@ -2,7 +2,7 @@
 
 import { CalendarDays, Clock3, Plus, Repeat2, Trash2 } from 'lucide-react'
 
-import { WEEKDAY_OPTIONS } from '@/lib/class-schedule'
+import { WEEKDAY_OPTIONS, getDefaultEndTimeFromStart } from '@/lib/class-schedule'
 import {
   adminCompactButtonClass,
   adminCompactDangerButtonClass,
@@ -10,6 +10,7 @@ import {
   adminSubtlePanelClass,
   adminSurfaceInputClass,
 } from '@/lib/admin/surface'
+import { AdminScheduleTimeField } from '@/components/admin-schedule-time-field'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 
@@ -18,6 +19,7 @@ export interface EditableScheduleRule {
   weekday: number
   startTime: string
   endTime: string
+  isEndTimeAuto: boolean
 }
 
 export interface EditableClassSession {
@@ -26,6 +28,7 @@ export interface EditableClassSession {
   startTime: string
   endTime: string
   source: 'RULE' | 'MANUAL'
+  isEndTimeAuto: boolean
 }
 
 interface ClassScheduleEditorProps {
@@ -43,6 +46,17 @@ function createLocalId() {
   }
 
   return `local-${Math.random().toString(36).slice(2, 10)}`
+}
+
+function updateTimeRange<TItem extends { startTime: string; endTime: string; isEndTimeAuto: boolean }>(
+  item: TItem,
+  nextStartTime: string,
+) {
+  return {
+    ...item,
+    startTime: nextStartTime,
+    endTime: getDefaultEndTimeFromStart(nextStartTime) ?? '',
+  }
 }
 
 export function ClassScheduleEditor({
@@ -69,7 +83,7 @@ export function ClassScheduleEditor({
           {canEditRules ? (
             <Button
               type="button"
-              variant="ghost"
+              variant="surface"
               onClick={() =>
                 onRulesChange([
                   ...rules,
@@ -77,7 +91,8 @@ export function ClassScheduleEditor({
                     id: createLocalId(),
                     weekday: 1,
                     startTime: '16:00',
-                    endTime: '',
+                    endTime: getDefaultEndTimeFromStart('16:00') ?? '',
+                    isEndTimeAuto: true,
                   },
                 ])
               }
@@ -122,43 +137,42 @@ export function ClassScheduleEditor({
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`rule-start-${rule.id}`}>시작</Label>
-                  <input
-                    id={`rule-start-${rule.id}`}
-                    type="time"
+                  <Label htmlFor={`rule-start-${rule.id}-hour`}>시작</Label>
+                  <AdminScheduleTimeField
+                    idPrefix={`rule-start-${rule.id}`}
                     value={rule.startTime}
-                    onChange={(event) =>
+                    onChange={(nextStartTime) =>
                       onRulesChange(
                         rules.map((item) =>
-                          item.id === rule.id ? { ...item, startTime: event.target.value } : item,
+                          item.id === rule.id ? updateTimeRange(item, nextStartTime) : item,
                         ),
                       )
                     }
                     disabled={!canEditRules}
-                    className={`${adminSurfaceInputClass} h-11`}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`rule-end-${rule.id}`}>종료</Label>
-                  <input
-                    id={`rule-end-${rule.id}`}
-                    type="time"
+                  <Label htmlFor={`rule-end-${rule.id}-hour`}>종료</Label>
+                  <AdminScheduleTimeField
+                    idPrefix={`rule-end-${rule.id}`}
                     value={rule.endTime}
-                    onChange={(event) =>
+                    onChange={(nextEndTime) =>
                       onRulesChange(
                         rules.map((item) =>
-                          item.id === rule.id ? { ...item, endTime: event.target.value } : item,
+                          item.id === rule.id
+                            ? { ...item, endTime: nextEndTime, isEndTimeAuto: nextEndTime.trim().length === 0 }
+                            : item,
                         ),
                       )
                     }
                     disabled={!canEditRules}
-                    className={`${adminSurfaceInputClass} h-11`}
+                    allowEmpty
                   />
                 </div>
                 <div className="flex items-end justify-end">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="surface"
                     onClick={() => onRulesChange(rules.filter((item) => item.id !== rule.id))}
                     disabled={!canEditRules || rules.length <= 1}
                     className={adminCompactDangerButtonClass}
@@ -187,7 +201,7 @@ export function ClassScheduleEditor({
           </div>
           <Button
             type="button"
-            variant="ghost"
+            variant="surface"
             onClick={() =>
               onSessionsChange([
                 ...sessions,
@@ -195,8 +209,9 @@ export function ClassScheduleEditor({
                   id: createLocalId(),
                   sessionDate: `${yearMonth}-01`,
                   startTime: '16:00',
-                  endTime: '',
+                  endTime: getDefaultEndTimeFromStart('16:00') ?? '',
                   source: 'MANUAL',
+                  isEndTimeAuto: true,
                 },
               ])
             }
@@ -233,35 +248,34 @@ export function ClassScheduleEditor({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor={`session-start-${session.id}`}>시작</Label>
-                    <input
-                      id={`session-start-${session.id}`}
-                      type="time"
+                    <Label htmlFor={`session-start-${session.id}-hour`}>시작</Label>
+                    <AdminScheduleTimeField
+                      idPrefix={`session-start-${session.id}`}
                       value={session.startTime}
-                      onChange={(event) =>
+                      onChange={(nextStartTime) =>
                         onSessionsChange(
                           sessions.map((item) =>
-                            item.id === session.id ? { ...item, startTime: event.target.value } : item,
+                            item.id === session.id ? updateTimeRange(item, nextStartTime) : item,
                           ),
                         )
                       }
-                      className={`${adminSurfaceInputClass} h-11`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor={`session-end-${session.id}`}>종료</Label>
-                    <input
-                      id={`session-end-${session.id}`}
-                      type="time"
+                    <Label htmlFor={`session-end-${session.id}-hour`}>종료</Label>
+                    <AdminScheduleTimeField
+                      idPrefix={`session-end-${session.id}`}
                       value={session.endTime}
-                      onChange={(event) =>
+                      onChange={(nextEndTime) =>
                         onSessionsChange(
                           sessions.map((item) =>
-                            item.id === session.id ? { ...item, endTime: event.target.value } : item,
+                            item.id === session.id
+                              ? { ...item, endTime: nextEndTime, isEndTimeAuto: nextEndTime.trim().length === 0 }
+                              : item,
                           ),
                         )
                       }
-                      className={`${adminSurfaceInputClass} h-11`}
+                      allowEmpty
                     />
                   </div>
                   <div className="flex items-end justify-end gap-2">
@@ -271,7 +285,7 @@ export function ClassScheduleEditor({
                     </span>
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="surface"
                       onClick={() => onSessionsChange(sessions.filter((item) => item.id !== session.id))}
                       className={adminCompactDangerButtonClass}
                     >

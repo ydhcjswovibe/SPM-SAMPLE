@@ -94,11 +94,11 @@ const enrollmentStatusMeta: Record<EnrollmentLifecycleStatus, { label: string; d
 const paymentStatusMeta: Record<'paid' | 'unpaid', { label: string; buttonClassName: string }> = {
   paid: {
     label: '결제 확인',
-    buttonClassName: 'border-success/40 bg-success/10 text-success hover:bg-success/15 hover:text-success',
+    buttonClassName: 'border-[#bfe0c0] bg-muted text-[#38632b] hover:bg-muted hover:text-[#38632b]',
   },
   unpaid: {
     label: '미결제',
-    buttonClassName: 'border-warning/40 bg-warning/10 text-warning-foreground hover:bg-warning/15 hover:text-warning-foreground',
+    buttonClassName: 'border-[#ecdca7] bg-accent text-[#7d5a0e] hover:bg-accent hover:text-[#7d5a0e]',
   },
 }
 
@@ -632,7 +632,7 @@ export default function StudentsPage() {
         ) : null}
 
         {resolvedSelectedClass && isDeleteMode ? (
-          <div className="hidden rounded-[1.15rem] border border-[#f0d4cf] bg-[#fff5f1] px-4 py-3 text-sm text-[#b65046] md:block">
+          <div className="hidden rounded-2xl border border-destructive/30 bg-card px-4 py-3 text-sm text-[#b65046] md:block">
             삭제 모드입니다. 현재 월 등록을 행 단위로 정리할 수 있습니다.
           </div>
         ) : null}
@@ -693,7 +693,7 @@ export default function StudentsPage() {
                   기존 학생 계정을 바로 현재 월 등록으로 배정할 수 있습니다.
                 </p>
                 <Button
-                  variant="ghost"
+                  variant="surface"
                   onClick={() => setIsAddDialogOpen(true)}
                   className={adminPrimaryButtonClass}
                   disabled={!accessState?.canManage}
@@ -717,10 +717,10 @@ export default function StudentsPage() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          variant="ghost"
+                          variant="surface"
                           size="sm"
                           aria-label={`${enrollment.profiles.full_name || '학생'} 결제 상태`}
-                          className={`h-8 w-full justify-center rounded-[1rem] px-2 text-xs shadow-[0_6px_12px_rgba(121,148,84,0.08)] ${paymentStatusMeta[enrollment.payment_status ? 'paid' : 'unpaid'].buttonClassName}`}
+                          className={`h-8 w-full justify-center rounded-xl px-2 text-xs shadow-[0_6px_12px_rgba(121,148,84,0.08)] ${paymentStatusMeta[enrollment.payment_status ? 'paid' : 'unpaid'].buttonClassName}`}
                           disabled={isUpdatingPayment === enrollment.id || !accessState?.canManage}
                         >
                           {isUpdatingPayment === enrollment.id ? (
@@ -745,10 +745,10 @@ export default function StudentsPage() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          variant="ghost"
+                          variant="surface"
                           size="sm"
                           aria-label={`${enrollment.profiles.full_name || '학생'} 등록 상태`}
-                          className="h-8 w-full justify-center rounded-[1rem] border border-[#dce8cc] bg-white/96 px-2 text-xs text-[#314127] shadow-[0_6px_12px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]"
+                          className="h-8 w-full justify-center rounded-xl border border-[#dce8cc] bg-white px-2 text-xs text-[#314127] shadow-[0_6px_12px_rgba(121,148,84,0.08)]"
                           disabled={isUpdatingStatus === enrollment.id}
                         >
                           {isUpdatingStatus === enrollment.id ? (
@@ -774,9 +774,9 @@ export default function StudentsPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         <Button
                           asChild
-                          variant="ghost"
+                          variant="surface"
                           size="sm"
-                          className="h-8 rounded-full border border-[#dce8cc] bg-white/96 px-2.5 text-xs text-[#314127] shadow-[0_6px_12px_rgba(121,148,84,0.08)] hover:bg-[#fbfdf6]"
+                          className="h-8 rounded-full border border-[#dce8cc] bg-white px-2.5 text-xs text-[#314127] shadow-[0_6px_12px_rgba(121,148,84,0.08)]"
                         >
                           <Link
                             href={buildAdminDashboardHref({
@@ -792,9 +792,9 @@ export default function StudentsPage() {
                         </Button>
                         {isDeleteMode ? (
                           <Button
-                            variant="ghost"
+                            variant="surface"
                             size="icon"
-                            className="h-8 w-8 shrink-0 rounded-full border border-[#f0d4cf] bg-[#fff5f1] text-[#b65046] hover:bg-[#ffede7] hover:text-[#b65046]"
+                            className="h-8 w-8 shrink-0 rounded-full border border-destructive/30 bg-card text-[#b65046] hover:bg-white hover:text-[#b65046]"
                             onClick={() => handleRemoveStudent(enrollment.id)}
                             disabled={isRemoving === enrollment.id || !accessState?.isOwner}
                             aria-label={accessState?.isOwner ? '등록 삭제' : '등록 삭제는 오너 계정만 가능합니다'}
@@ -872,7 +872,7 @@ export default function StudentsPage() {
                     </div>
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant="surface"
                       onClick={() => handleEnrollStudent(student.id)}
                       disabled={isEnrolling === student.id}
                       className={adminCompactButtonClass}
@@ -891,7 +891,7 @@ export default function StudentsPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsAddDialogOpen(false)} className={adminCompactButtonClass}>
+            <Button variant="surface" onClick={() => setIsAddDialogOpen(false)} className={adminCompactButtonClass}>
               닫기
             </Button>
           </DialogFooter>

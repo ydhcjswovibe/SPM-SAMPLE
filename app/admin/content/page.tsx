@@ -403,11 +403,11 @@ export default function ContentPage() {
             <CardContent className="space-y-3 py-4 text-sm text-destructive">
               <p>{classErrorMessage}</p>
               {classErrorMessage === authRequiredMessage ? (
-                <Button asChild variant="ghost" size="sm" className={adminCompactButtonClass}>
+                <Button asChild variant="surface" size="sm" className={adminCompactButtonClass}>
                   <Link href="/">다시 로그인하기</Link>
                 </Button>
               ) : (
-                <Button variant="ghost" size="sm" onClick={() => void mutateClasses()} className={adminCompactButtonClass}>
+                <Button variant="surface" size="sm" onClick={() => void mutateClasses()} className={adminCompactButtonClass}>
                   수업 다시 불러오기
                 </Button>
               )}
@@ -484,20 +484,20 @@ export default function ContentPage() {
                 <p className="font-medium text-destructive">
                   {getKnownClientMessage(mediaError, '주차 콘텐츠를 다시 불러오지 못했습니다.')}
                 </p>
-                <Button variant="ghost" size="sm" onClick={() => void mutateMediaState()} className={`mt-3 ${adminCompactButtonClass}`}>
+                <Button variant="surface" size="sm" onClick={() => void mutateMediaState()} className={`mt-3 ${adminCompactButtonClass}`}>
                   다시 시도
                 </Button>
               </div>
             ) : mediaState ? (
               <div className="space-y-4">
                 <Tabs value={resolvedActiveWeek} onValueChange={setActiveWeek}>
-                  <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-[1.7rem] border border-[#e2ead4] bg-[linear-gradient(180deg,rgba(247,251,239,0.98)_0%,rgba(255,255,252,0.98)_100%)] p-2 shadow-[0_12px_26px_rgba(111,145,72,0.08)]">
+                  <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-[1.7rem] border border-[#e2ead4] bg-card p-2 shadow-[0_12px_26px_rgba(111,145,72,0.08)]">
                     {mediaState.weeks.map((week) => {
                       return (
                         <TabsTrigger
                           key={week.weekNumber}
                           value={String(week.weekNumber)}
-                          className="h-auto min-w-[104px] flex-shrink-0 rounded-[1.2rem] border border-[#dce8cc] bg-white/96 px-3 py-2 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] data-[state=active]:border-[#d8e9b7] data-[state=active]:bg-[linear-gradient(180deg,rgba(246,252,227,0.99)_0%,rgba(229,244,193,0.98)_100%)] data-[state=active]:text-[#34501f]"
+                          className="h-auto min-w-[104px] flex-shrink-0 rounded-[1.2rem] border border-[#dce8cc] bg-white px-3 py-2 text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)] data-[state=active]:border-[#d8e9b7] data-[state=active]:bg-muted data-[state=active]:text-[#34501f]"
                         >
                           <div className="flex flex-col items-start gap-0.5 text-left">
                             <span>{week.weekNumber}주차</span>

@@ -16,6 +16,27 @@ export function alphaFromCssColor(value) {
   return 1
 }
 
+export function hasTransparentGradientStop(value) {
+  if (!value || value === 'none') {
+    return false
+  }
+
+  if (value.includes('transparent')) {
+    return true
+  }
+
+  const rgbaMatches = value.match(/rgba\(([^)]+)\)/g) ?? []
+
+  return rgbaMatches.some((match) => {
+    const parts = match
+      .slice('rgba('.length, -1)
+      .split(',')
+      .map((part) => part.trim())
+    const alpha = Number(parts[3] ?? 1)
+    return Number.isFinite(alpha) && alpha < 0.995
+  })
+}
+
 export async function readSurface(locator) {
   return await locator.evaluate((node) => {
     const style = window.getComputedStyle(node)
@@ -39,11 +60,14 @@ export async function readSurface(locator) {
 
 export function assertOpaqueSurface(surface, label) {
   const alpha = alphaFromCssColor(surface.backgroundColor)
-  const hasOpaqueBackground = alpha > 0.9 || surface.backgroundImage !== 'none'
+  const hasBackgroundImage = surface.backgroundImage && surface.backgroundImage !== 'none'
+  const hasOpaqueBackground = hasBackgroundImage
+    ? !hasTransparentGradientStop(surface.backgroundImage)
+    : alpha > 0.99
   const opacity = Number(surface.opacity)
 
   if (!hasOpaqueBackground) {
-    throw new Error(`${label} background should not be transparent`)
+    throw new Error(`${label} background should stay opaque`)
   }
 
   if (!Number.isFinite(opacity) || opacity < 0.85) {

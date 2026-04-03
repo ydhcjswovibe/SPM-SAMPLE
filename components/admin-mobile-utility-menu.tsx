@@ -35,7 +35,7 @@ export function AdminMobileUtilityMenu({ actionItems, className }: AdminMobileUt
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
+          variant="surface"
           size="icon"
           className={cn(
             adminMobileHeaderIconButtonClass,

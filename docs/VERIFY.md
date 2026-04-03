@@ -18,6 +18,9 @@ Default commands:
 - `npm run build`
 - `npm run lint`
 
+Surface note:
+- 현재 `npm run lint`에는 `scripts/020_verify_surface_contract.mjs`가 포함되어 primary surface file에서 alpha background / transparent fill / `backdrop-blur` / primary-control `variant="ghost"` 재도입을 같이 막아야 한다
+
 Practical note:
 - if `npm run typecheck` fails only because `tsconfig.json` includes `.next/types/**/*.ts` and those files are missing, run `npm run build` once and rerun `npm run typecheck`
 - when this rerun passes, record the first failure as a build-artifact/setup issue, not as a product regression
@@ -27,6 +30,12 @@ If one check is unavailable or intentionally skipped, say so explicitly.
 If the package is docs-only, commands are optional; say which source docs or reports were consulted instead.
 
 ## Focused Checks
+
+### Primary surface opacity contract
+- primary surface는 header selector/menu, bottom nav/item, summary/progress card, week rail/button, dialog frame, reply composer, admin row action처럼 실제로 읽고 누르는 본체를 뜻한다
+- primary surface의 배경 fill은 `opaque color` 또는 `alpha 없는 gradient`여야 한다
+- glow, halo, shadow, mascot, decorative blob 같은 ambient layer는 alpha를 가질 수 있지만, surface 본체의 `transparent`, alpha utility, `rgba(..., <1)` gradient, `backdrop-blur` 의존 배경은 허용하지 않는다
+- primary surface control은 `variant="ghost"`를 기본값으로 두지 않는다
 
 ### Admin / Matrix read paths
 - page renders
@@ -49,7 +58,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - desktop shell 조정 이후에도 mobile `< md` 위치/정렬은 바뀌지 않아야 한다
 - 운영 메인 첫 진입에서는 현재 월과 해당 월 첫 수업이 기본 선택으로 열려야 하고, 월 변경 시에도 선택 수업이 활성 상태면 유지돼야 한다
 - owner class delete mode는 운영 헤더의 `삭제 모드` trigger로 진입되고, `-` 표시된 항목 선택 -> 확인 다이얼로그 -> soft delete로 이어져야 한다
-- 운영 mobile browser smoke에서는 상단 `수업 selector / 월 selector / 메뉴 / 하단탭`과 `월 popover / menu open state / content week rail / bottom nav active-inactive`가 `background alpha > 0.9` 또는 `backgroundImage` 기반 opaque surface여야 하고, matrix/card action이 viewport 안에서 눌릴 크기를 유지해야 한다
+- 운영 mobile browser smoke에서는 상단 `수업 selector / 월 selector / 메뉴 / 하단탭`과 `월 popover / menu open state / content week rail / bottom nav active-inactive`의 배경 fill이 `opaque color` 또는 `alpha 없는 gradient`여야 하고, matrix/card action이 viewport 안에서 눌릴 크기를 유지해야 한다
 - access-sensitive GET contract stays explicit:
   - anonymous -> `401 AUTH_REQUIRED`
   - signed-in non-admin -> `403 ADMIN_REQUIRED`
@@ -111,9 +120,21 @@ If the package is docs-only, commands are optional; say which source docs or rep
   - `update_enrollment_payment_status`
   - `class_logs.admin_note`
   - `upsert_weekly_class_log_notes`
+  - `class_schedule_rules`
+  - `class_sessions`
+  - `session_attendance`
 - enrollment status helper만 따로 반영할 때는 `npm run apply:enrollment-rpc`를 유지해도 된다
 - helper/column 반영 후에는 `npm run verify:remote-canonical-presence`, `npm run verify:enrollment-runtime`, `npm run verify:weekly-media-runtime`를 다시 실행한다
 - remote helper/column 반영 뒤에는 runtime 재검증이 다시 통과해야 한다
+
+### Admin class create / schedule
+- owner `새 수업 만들기`는 기존 수업명 suggestion을 보여 주되 직접 입력도 계속 허용해야 한다
+- owner `새 수업 만들기`와 admin/owner `일정 관리`는 같은 시간 입력 규칙을 써야 한다
+- 시간 선택지는 `00`/`30` 분 단위만 노출해야 한다
+- 시작 시간을 바꿀 때 같은 행의 종료 시간이 비어 있으면 `+2시간`이 자동 채워져야 한다
+- 종료 시간을 사용자가 직접 넣은 뒤에는 시작 시간을 다시 바꿔도 그 값을 덮어쓰지 않아야 한다
+- 종료 시간을 다시 비우면 다음 시작 시간 변경 때 자동 `+2시간` 채움이 다시 동작해야 한다
+- `npm run verify:remote-canonical-presence -- --target schedule-core`에서 `class_schedule_rules`, `class_sessions`, `session_attendance` 3개 table이 모두 present로 보여야 한다
 
 ### Account / Settings self-update
 - authenticated user can read current account info on the account/settings route
@@ -133,7 +154,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 실제 session이 있는 월이면 student `수업` 탭 기본 주차는 실제 수업 날짜를 따라야 하고, 없는 legacy 월만 기존 주차 fallback을 쓴다
 - 학생 상단 헤더는 전 탭에서 `캐릭터 / 수업 selector / YY.MM 월 selector / 메뉴`가 한 줄에서 바로 보여야 하고, 숨겨진 가로 스크롤에 의존하지 않아야 한다
 - 학생 상단 헤더는 뒤판 plate와 본체 bar가 구분되어 배경과 한 덩어리로 붙어 보이지 않아야 한다
-- student browser smoke는 학생 헤더 selector/menu, 하단탭 active-inactive, 홈 progress rail, 홈 summary cards, 수업 주차 rail/button, reply composer, 이미지 확대 프레임, 비디오 overlay control을 같은 opaque surface 기준으로 확인해야 한다
+- student browser smoke는 학생 헤더 selector/menu, 하단탭 active-inactive, 홈 hero/progress/summary, 수업 주차 rail/button, reply composer, 이미지 확대 프레임, 비디오 overlay control, profile 요약/설정 card를 같은 opaque surface 기준으로 확인해야 한다
 - `홈` 탭과 `수업` 탭은 역할이 겹치지 않아야 한다:
   - `홈`: 요약 / 진행 / 체크리스트 / quick action
   - `수업`: 선택 / 주차 / 콘텐츠

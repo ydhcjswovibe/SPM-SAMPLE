@@ -101,7 +101,7 @@ export function AdminMonthSelector({
         >
           <PopoverTrigger asChild>
             <Button
-              variant="ghost"
+              variant="surface"
               aria-label={ariaLabel}
               className={cn(
                 adminToolbarMonthInputClass,
@@ -129,12 +129,12 @@ export function AdminMonthSelector({
                   }
                 }}
                 disabled={!canGoPrev}
-                className="flex h-8 w-8 items-center justify-center rounded-[0.95rem] border border-[#e1e8d4] bg-white/96 text-[#647456] shadow-[0_6px_12px_rgba(121,148,84,0.08)] transition-colors hover:bg-[#fbfdf6] active:bg-[#f5f9ea] disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-[0.95rem] border border-[#e1e8d4] bg-white text-[#647456] shadow-[0_6px_12px_rgba(121,148,84,0.08)] transition-colors disabled:opacity-40"
                 aria-label="이전 연도"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <div className="rounded-full border border-[#e1e8d4] bg-white/92 px-3 py-1 text-sm font-semibold text-[#314127] shadow-[0_6px_12px_rgba(121,148,84,0.06)]">
+              <div className="rounded-full border border-[#e1e8d4] bg-white px-3 py-1 text-sm font-semibold text-[#314127] shadow-[0_6px_12px_rgba(121,148,84,0.06)]">
                 {displayYear}년
               </div>
               <button
@@ -145,7 +145,7 @@ export function AdminMonthSelector({
                   }
                 }}
                 disabled={!canGoNext}
-                className="flex h-8 w-8 items-center justify-center rounded-[0.95rem] border border-[#e1e8d4] bg-white/96 text-[#647456] shadow-[0_6px_12px_rgba(121,148,84,0.08)] transition-colors hover:bg-[#fbfdf6] active:bg-[#f5f9ea] disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-[0.95rem] border border-[#e1e8d4] bg-white text-[#647456] shadow-[0_6px_12px_rgba(121,148,84,0.08)] transition-colors disabled:opacity-40"
                 aria-label="다음 연도"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -174,9 +174,9 @@ export function AdminMonthSelector({
                     className={cn(
                       'relative flex h-12 items-center justify-center rounded-[1rem] border text-sm font-semibold transition-all [-webkit-tap-highlight-color:transparent] touch-manipulation',
                       isSelected
-                        ? 'border-[#d8e9b7] bg-[linear-gradient(180deg,rgba(246,252,227,0.99)_0%,rgba(229,244,193,0.98)_100%)] text-[#34501f] shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_18px_rgba(143,182,98,0.14)]'
+                        ? 'border-[#d8e9b7] bg-muted text-[#34501f] shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_18px_rgba(143,182,98,0.14)]'
                         : isEnabled
-                          ? 'border-[#e1e8d4] bg-white/96 text-[#526244] shadow-[0_8px_14px_rgba(121,148,84,0.06)] hover:bg-[#fbfdf6] active:bg-[#f5f9ea]'
+                          ? 'border-[#e1e8d4] bg-white text-[#526244] shadow-[0_8px_14px_rgba(121,148,84,0.06)]'
                           : 'border-[#edf1e6] bg-[#f9fbf5] text-[#a3ae95]',
                     )}
                   >

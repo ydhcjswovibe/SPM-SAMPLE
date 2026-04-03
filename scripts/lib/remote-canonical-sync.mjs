@@ -13,11 +13,13 @@ import {
 loadLocalEnv()
 
 const PROJECT_ROOT = process.cwd()
+const SCHEMA_DOC_PATH = path.join(PROJECT_ROOT, 'docs', 'db', 'SCHEMA.sql')
+const RLS_DOC_PATH = path.join(PROJECT_ROOT, 'docs', 'db', 'RLS.sql')
 const RPC_DOC_PATH = path.join(PROJECT_ROOT, 'docs', 'db', 'RPC.sql')
 const MANAGEMENT_API_BASE = 'https://api.supabase.com/v1'
 const ZERO_UUID = '00000000-0000-0000-0000-000000000000'
 
-export const REMOTE_CANONICAL_TARGETS = ['enrollment-status', 'payment', 'weekly-notes']
+export const REMOTE_CANONICAL_TARGETS = ['enrollment-status', 'payment', 'weekly-notes', 'schedule-core']
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -87,6 +89,14 @@ async function readRpcDoc() {
   return fs.readFile(RPC_DOC_PATH, 'utf8')
 }
 
+async function readSchemaDoc() {
+  return fs.readFile(SCHEMA_DOC_PATH, 'utf8')
+}
+
+async function readRlsDoc() {
+  return fs.readFile(RLS_DOC_PATH, 'utf8')
+}
+
 async function readRpcFunctionSql(name, signature) {
   const source = await readRpcDoc()
   const regex = new RegExp(
@@ -99,6 +109,44 @@ async function readRpcFunctionSql(name, signature) {
   }
 
   return match[0].trim()
+}
+
+async function readSchemaTableSql(name) {
+  const source = await readSchemaDoc()
+  const regex = new RegExp(`create table ${escapeRegExp(name)}\\s*\\([\\s\\S]*?\\);`, 'i')
+  const match = source.match(regex)
+
+  if (!match) {
+    throw new Error(`Failed to extract ${name} table from docs/db/SCHEMA.sql`)
+  }
+
+  return match[0]
+    .trim()
+    .replace(new RegExp(`create table ${escapeRegExp(name)}`, 'i'), `create table if not exists public.${name}`)
+}
+
+async function readRlsFunctionSql(name) {
+  const source = await readRlsDoc()
+  const regex = new RegExp(`create or replace function public\\.${escapeRegExp(name)}\\([\\s\\S]*?\\$\\$;`, 'i')
+  const match = source.match(regex)
+
+  if (!match) {
+    throw new Error(`Failed to extract ${name} helper from docs/db/RLS.sql`)
+  }
+
+  return match[0].trim()
+}
+
+async function readPolicySql(policyName, tableName) {
+  const source = await readRlsDoc()
+  const regex = new RegExp(`create policy "${escapeRegExp(policyName)}"[\\s\\S]*?;`, 'i')
+  const match = source.match(regex)
+
+  if (!match) {
+    throw new Error(`Failed to extract ${policyName} policy from docs/db/RLS.sql`)
+  }
+
+  return match[0].trim().replace(new RegExp(`on ${escapeRegExp(tableName)}\\b`, 'i'), `on public.${tableName}`)
 }
 
 async function readCanonicalQueriesForTarget(target) {
@@ -131,6 +179,64 @@ async function readCanonicalQueriesForTarget(target) {
           ),
         },
       ]
+    case 'schedule-core': {
+      const scheduleTables = ['class_schedule_rules', 'class_sessions', 'session_attendance']
+      const scheduleHelpers = [
+        'is_owner',
+        'is_admin_or_owner',
+        'is_class_instructor',
+        'is_student_of_class_month',
+      ]
+      const schedulePolicies = {
+        class_schedule_rules: [
+          'class_schedule_rules_select_by_role',
+          'class_schedule_rules_insert_owner_only',
+          'class_schedule_rules_update_owner_only',
+          'class_schedule_rules_delete_owner_only',
+        ],
+        class_sessions: [
+          'class_sessions_select_by_role',
+          'class_sessions_insert_admin_or_owner',
+          'class_sessions_update_admin_or_owner',
+          'class_sessions_delete_admin_or_owner',
+        ],
+        session_attendance: [
+          'session_attendance_select_by_role',
+          'session_attendance_insert_admin_or_owner',
+          'session_attendance_update_admin_or_owner',
+          'session_attendance_delete_admin_or_owner',
+        ],
+      }
+
+      return [
+        {
+          label: 'schedule-core.helpers',
+          query: (await Promise.all(scheduleHelpers.map((name) => readRlsFunctionSql(name)))).join('\n\n'),
+        },
+        ...(await Promise.all(
+          scheduleTables.map(async (tableName) => ({
+            label: `public.${tableName}`,
+            query: await readSchemaTableSql(tableName),
+          })),
+        )),
+        ...scheduleTables.map((tableName) => ({
+          label: `public.${tableName}.rls`,
+          query: `alter table public.${tableName} enable row level security;`,
+        })),
+        ...(await Promise.all(
+          Object.entries(schedulePolicies).map(async ([tableName, policyNames]) => ({
+            label: `public.${tableName}.policies`,
+            query: (
+              await Promise.all(
+                policyNames.map(async (policyName) => (
+                  `drop policy if exists "${policyName}" on public.${tableName};\n${await readPolicySql(policyName, tableName)}`
+                )),
+              )
+            ).join('\n\n'),
+          })),
+        )),
+      ]
+    }
     default:
       throw new Error(`Unhandled remote canonical target: ${target}`)
   }
@@ -218,6 +324,32 @@ async function probeColumn(columnName) {
   }
 }
 
+function isMissingTableResponse(response, payload, tableName) {
+  if (response.ok || !payload || typeof payload !== 'object') {
+    return false
+  }
+
+  const haystack = [payload.message, payload.details, payload.hint].filter(Boolean).join(' ')
+  return response.status === 404 && (haystack.includes(tableName) || haystack.includes('schema cache'))
+}
+
+async function probeTable(tableName) {
+  const response = await fetch(`${getSupabaseUrl()}/rest/v1/${tableName}?select=id&limit=1`, {
+    headers: createAdminHeaders(getSupabaseServiceRoleKey()),
+  })
+  const payload = await response.json().catch(() => null)
+  const missing = isMissingTableResponse(response, payload, tableName)
+
+  return {
+    name: `public.${tableName}`,
+    kind: 'table',
+    status: response.status,
+    present: response.ok,
+    missing,
+    body: payload,
+  }
+}
+
 export async function probeEnrollmentStatusRpc() {
   return probeRpc('update_enrollment_status', {
     p_enrollment_id: ZERO_UUID,
@@ -266,6 +398,13 @@ export async function verifyRemoteCanonicalPresence(targets) {
     if (target === 'weekly-notes') {
       checks.push(await probeAdminNoteColumn())
       checks.push(await probeWeeklyNotesRpc())
+      continue
+    }
+
+    if (target === 'schedule-core') {
+      checks.push(await probeTable('class_schedule_rules'))
+      checks.push(await probeTable('class_sessions'))
+      checks.push(await probeTable('session_attendance'))
     }
   }
 

@@ -142,7 +142,7 @@ export function StudentNav({ userName }: StudentNavProps) {
                   </Select>
 
                   <Select value={selectedSummary.yearMonth} onValueChange={handleMonthChange}>
-                    <SelectTrigger aria-label="월 선택" className="h-10 w-[5.6rem] shrink-0 rounded-[1.1rem] border border-[#dbe8cc] bg-[#fffef8] px-3 text-sm font-semibold text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]">
+                    <SelectTrigger aria-label="월 선택" className="h-10 w-[5.6rem] shrink-0 rounded-2xl border border-[#dbe8cc] bg-white px-3 text-sm font-semibold text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]">
                       <SelectValue placeholder="월" />
                     </SelectTrigger>
                     <SelectContent className={studentMenuContentClass}>
@@ -168,13 +168,13 @@ export function StudentNav({ userName }: StudentNavProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    variant="ghost"
+                    variant="surface"
                     size="icon"
                     aria-label="학생 메뉴"
                     className={studentHeaderMenuButtonClass}
                   >
                     <Avatar className="h-8 w-8 border border-[#ece4c8]">
-                      <AvatarFallback className="bg-[#fff6db] text-xs font-semibold text-[#866a2d]">
+                      <AvatarFallback className="bg-accent text-xs font-semibold text-[#866a2d]">
                         {userName.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -227,14 +227,14 @@ export function StudentNav({ userName }: StudentNavProps) {
       </header>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-        <div className="mx-auto flex h-[4rem] max-w-[24rem] items-center gap-1.5 rounded-[1.7rem] border border-[#ece4cd] bg-[#fffef8] px-1.5 py-1.5 shadow-[0_18px_34px_rgba(107,129,70,0.16)]">
+        <div className="mx-auto flex h-[4rem] max-w-[24rem] items-center gap-1.5 rounded-2xl border border-[#ece4cd] bg-white px-1.5 py-1.5 shadow-[0_18px_34px_rgba(107,129,70,0.16)]">
           <Link
             href={homeHref}
             aria-label="학생 홈"
             className={cn(
               studentBottomTabBaseClass,
               isHomePage
-                ? 'border-[#f0dfaa] bg-[linear-gradient(180deg,rgba(255,250,236,0.99)_0%,rgba(255,238,204,0.98)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_18px_rgba(197,168,95,0.22)]'
+                ? 'border-[#f0dfaa] bg-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_18px_rgba(197,168,95,0.22)]'
                 : studentBottomTabIdleClass,
             )}
           >
@@ -242,7 +242,7 @@ export function StudentNav({ userName }: StudentNavProps) {
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200',
                 isHomePage
-                  ? 'border-[#f2cf82] bg-[#ffe1ad] text-[#bb8033] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(201,156,74,0.24)]'
+                  ? 'border-[#f2cf82] bg-white text-[#bb8033] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(201,156,74,0.24)]'
                   : studentBottomTabIconIdleClass,
               )}
             >
@@ -256,7 +256,7 @@ export function StudentNav({ userName }: StudentNavProps) {
             className={cn(
               studentBottomTabBaseClass,
               isLessonsPage
-                ? 'border-[#d8e9b7] bg-[linear-gradient(180deg,rgba(246,252,227,0.99)_0%,rgba(229,244,193,0.98)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_18px_rgba(143,182,98,0.22)]'
+                ? 'border-[#d8e9b7] bg-muted shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_18px_rgba(143,182,98,0.22)]'
                 : studentBottomTabIdleClass,
             )}
           >
@@ -264,7 +264,7 @@ export function StudentNav({ userName }: StudentNavProps) {
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200',
                 isLessonsPage
-                  ? 'border-[#f5d985] bg-[#fff1b4] text-[#d79d1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_8px_18px_rgba(220,177,70,0.24)]'
+                  ? 'border-[#d8e9b7] bg-white text-[#5d8840] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_8px_18px_rgba(143,182,98,0.24)]'
                   : studentBottomTabIconIdleClass,
               )}
             >
@@ -278,7 +278,7 @@ export function StudentNav({ userName }: StudentNavProps) {
             className={cn(
               studentBottomTabBaseClass,
               isProfilePage
-                ? 'border-[#d7e7f6] bg-[linear-gradient(180deg,rgba(244,249,255,0.99)_0%,rgba(229,240,255,0.98)_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_18px_rgba(133,162,205,0.18)]'
+                ? 'border-[#d7e7f6] bg-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_18px_rgba(133,162,205,0.18)]'
                 : studentBottomTabIdleClass,
             )}
           >
@@ -286,7 +286,7 @@ export function StudentNav({ userName }: StudentNavProps) {
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200',
                 isProfilePage
-                  ? 'border-[#cfe0f6] bg-[#eaf3ff] text-[#5d79ab] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(133,162,205,0.2)]'
+                  ? 'border-[#cfe0f6] bg-white text-[#5d79ab] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_18px_rgba(133,162,205,0.2)]'
                   : studentBottomTabIconIdleClass,
               )}
             >

@@ -32,7 +32,7 @@ export function AdminMobileActionMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
+          variant="surface"
           size="icon"
           aria-label={label}
           title={label}

@@ -471,7 +471,7 @@ async function verifyStudentLessons(page, results, target) {
     }
   }, { classId: target.classId, yearMonth: target.yearMonth })
 
-  results.student.afterReload = {
+  results.student.lessons.afterReload = {
     detailPath: page.url(),
     frameVisible: await reloadedFrame.isVisible(),
     frameSrc: await reloadedFrame.getAttribute('src'),
@@ -503,6 +503,64 @@ async function verifyStudentLessons(page, results, target) {
   expect(deniedAdminFetch.status === 403, 'Student admin weekly-media fetch should return 403')
 }
 
+async function verifyStudentProfile(page, results, target) {
+  await page.goto(`${baseUrl}/student/profile?classId=${target.classId}&yearMonth=${target.yearMonth}`, {
+    waitUntil: 'domcontentloaded',
+  })
+  await page.waitForURL((url) => url.pathname === '/student/profile', {
+    timeout: 15000,
+    waitUntil: 'domcontentloaded',
+  })
+
+  const classSelect = page.getByLabel('수업 선택').first()
+  const monthSelect = page.getByLabel('월 선택').first()
+  const menuButton = page.getByLabel('학생 메뉴').first()
+  const homeTabLink = page.locator('[aria-label="학생 홈"]').first()
+  const lessonsTabLink = page.locator('[aria-label="학생 수업"]').first()
+  const profileTabLink = page.locator('[aria-label="학생 내상태"]').first()
+  const heroSurface = page.getByText('내상태 카드', { exact: true }).first().locator('xpath=ancestor::section[1]')
+  const summarySurface = page.getByText('수강 중', { exact: true }).first().locator('xpath=ancestor::*[contains(@class,"rounded-[1.6rem]")][1]')
+  const accountSurface = page.getByText('계정 정보', { exact: true }).first().locator('xpath=ancestor::*[@data-slot="card"][1]')
+
+  await classSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await monthSelect.waitFor({ state: 'visible', timeout: 15000 })
+  await menuButton.waitFor({ state: 'visible', timeout: 15000 })
+  await heroSurface.waitFor({ state: 'visible', timeout: 15000 })
+  await summarySurface.waitFor({ state: 'visible', timeout: 15000 })
+  await accountSurface.waitFor({ state: 'visible', timeout: 15000 })
+
+  const classSurface = await expectOpaqueSurface(classSelect, '학생 프로필 수업 선택')
+  const monthSurface = await expectOpaqueSurface(monthSelect, '학생 프로필 월 선택')
+  const menuButtonSurface = await expectOpaqueSurface(menuButton, '학생 프로필 메뉴 button')
+  const homeTabSurface = await expectOpaqueSurface(homeTabLink, '학생 프로필 하단탭 inactive home state')
+  const lessonsTabSurface = await expectOpaqueSurface(lessonsTabLink, '학생 프로필 하단탭 inactive lessons state')
+  const profileTabSurface = await expectOpaqueSurface(profileTabLink, '학생 프로필 하단탭 active state')
+  const heroCardSurface = await expectOpaqueSurface(heroSurface, '학생 프로필 hero surface')
+  const summaryCardSurface = await expectOpaqueSurface(summarySurface, '학생 프로필 요약 카드')
+  const accountCardSurface = await expectOpaqueSurface(accountSurface, '학생 프로필 계정 카드')
+
+  results.student.profile = {
+    detailPath: page.url(),
+    headerSurfaces: {
+      classSurface,
+      monthSurface,
+      menuButtonSurface,
+    },
+    bottomTabSurfaces: {
+      homeTabSurface,
+      lessonsTabSurface,
+      profileTabSurface,
+    },
+    heroCardSurface,
+    summaryCardSurface,
+    accountCardSurface,
+  }
+
+  expect(heroCardSurface.width >= 0, 'Student profile hero surface should be readable')
+  expect(summaryCardSurface.width >= 0, 'Student profile summary card should be readable')
+  expect(accountCardSurface.width >= 0, 'Student profile account card should be readable')
+}
+
 async function main() {
   const attachedLibDirs = configureLocalBrowserLibs()
   const results = {
@@ -515,6 +573,7 @@ async function main() {
       },
       attachedLibDirs,
     },
+    student: {},
   }
 
   const { jar: adminJar } = await loginAs(baseUrl, adminAccount)
@@ -549,6 +608,7 @@ async function main() {
     }
     await verifyStudentHome(page, results, target)
     await verifyStudentLessons(page, results, target)
+    await verifyStudentProfile(page, results, target)
 
     await context.close()
   } finally {
