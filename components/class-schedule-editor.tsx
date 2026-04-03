@@ -55,7 +55,7 @@ function updateTimeRange<TItem extends { startTime: string; endTime: string; isE
   return {
     ...item,
     startTime: nextStartTime,
-    endTime: getDefaultEndTimeFromStart(nextStartTime) ?? '',
+    endTime: item.isEndTimeAuto ? getDefaultEndTimeFromStart(nextStartTime) ?? '' : item.endTime,
   }
 }
 

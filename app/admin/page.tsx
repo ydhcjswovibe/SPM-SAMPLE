@@ -304,7 +304,7 @@ function updateEditableTimeRange<TItem extends { startTime: string; endTime: str
   return {
     ...item,
     startTime: nextStartTime,
-    endTime: getDefaultEndTimeFromStart(nextStartTime) ?? '',
+    endTime: item.isEndTimeAuto ? getDefaultEndTimeFromStart(nextStartTime) ?? '' : item.endTime,
   }
 }
 

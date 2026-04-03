@@ -314,7 +314,7 @@ export function WeekContentEditor({
                     />
                     <div className="flex flex-wrap gap-2">
                       <Button
-                        variant="ghost"
+                        variant="surface"
                         onClick={() => void handleUpdateVideo(selectedVideo.mediaId)}
                         disabled={busyKey === `update-video-${selectedVideo.mediaId}`}
                         className={adminPrimaryButtonClass}
@@ -327,7 +327,7 @@ export function WeekContentEditor({
                         저장
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="surface"
                         onClick={() => void handleDeleteMedia(selectedVideo.mediaId)}
                         disabled={busyKey === `delete-media-${selectedVideo.mediaId}`}
                         className={adminCompactDangerButtonClass}
@@ -356,8 +356,8 @@ export function WeekContentEditor({
                       className={cn(
                         'min-w-[11rem] snap-start rounded-[1.25rem] border px-3 py-3 text-left shadow-[0_8px_16px_rgba(111,145,72,0.06)] transition',
                         isSelected
-                          ? 'border-[#d8e9b7] bg-[linear-gradient(180deg,rgba(246,252,227,0.99)_0%,rgba(229,244,193,0.98)_100%)]'
-                          : 'bg-white/96 hover:border-[#d8e9b7]',
+                          ? 'border-[#d8e9b7] bg-[linear-gradient(180deg,#f6fce3_0%,#e5f4c1_100%)]'
+                          : 'bg-white hover:border-[#d8e9b7]',
                       )}
                     >
                       <div className="space-y-1">
@@ -365,9 +365,9 @@ export function WeekContentEditor({
                           <span className="text-sm font-medium">영상 {index + 1}</span>
                           {isSelected ? <Badge variant="secondary">현재</Badge> : null}
                         </div>
-                                    </div>
-                                  </button>
-                                )
+                      </div>
+                    </button>
+                  )
                 })}
               </div>
             </div>
@@ -423,7 +423,7 @@ export function WeekContentEditor({
               {' '}영상 파일 드롭은 지원하지 않습니다.
             </p>
             <Button
-              variant="ghost"
+              variant="surface"
               onClick={() => void handleCreateVideo()}
               disabled={busyKey === `create-video-${week.weekNumber}` || !newVideoUrl.trim()}
               className={adminPrimaryButtonClass}
@@ -456,7 +456,7 @@ export function WeekContentEditor({
                 return (
                   <div
                     key={item.mediaId}
-                    className="min-w-[78%] snap-start space-y-3 rounded-[1.3rem] border border-[#e5ecd8] bg-white/98 p-3 shadow-[0_10px_18px_rgba(111,145,72,0.06)] sm:min-w-[22rem]"
+                    className="min-w-[78%] snap-start space-y-3 rounded-[1.3rem] border border-[#e5ecd8] bg-white p-3 shadow-[0_10px_18px_rgba(111,145,72,0.06)] sm:min-w-[22rem]"
                   >
                     <button
                       type="button"
@@ -469,7 +469,7 @@ export function WeekContentEditor({
                           alt={imageAlt}
                           className="h-56 w-full object-cover transition duration-200 group-hover:scale-[1.02]"
                         />
-                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/50 px-3 py-2 text-xs text-white">
+                        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-[#161d16] px-3 py-2 text-xs text-white">
                           <span>이미지 {index + 1}</span>
                           <span className="inline-flex items-center gap-1">
                             <ZoomIn className="h-3.5 w-3.5" />
@@ -485,7 +485,7 @@ export function WeekContentEditor({
                     <div className="flex flex-wrap gap-2">
                       <Label
                         htmlFor={`replace-image-${item.mediaId}`}
-                        className="inline-flex cursor-pointer items-center gap-2 rounded-[1rem] border border-[#dce8cc] bg-white/96 px-3 py-2 text-sm font-medium text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]"
+                        className="inline-flex cursor-pointer items-center gap-2 rounded-[1rem] border border-[#dce8cc] bg-white px-3 py-2 text-sm font-medium text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]"
                       >
                         {busyKey === `upload-image-${item.mediaId}-${week.weekNumber}` ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -508,7 +508,7 @@ export function WeekContentEditor({
                         }}
                       />
                       <Button
-                        variant="ghost"
+                        variant="surface"
                         onClick={() => void handleDeleteMedia(item.mediaId)}
                         disabled={busyKey === `delete-media-${item.mediaId}`}
                         className={adminCompactDangerButtonClass}
@@ -530,7 +530,7 @@ export function WeekContentEditor({
           <div className={cn(adminDashedPanelClass, 'space-y-2')}>
             <Label
               htmlFor={`new-image-${week.weekNumber}`}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-[1rem] border border-[#dce8cc] bg-white/96 px-3 py-2 text-sm font-medium text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]"
+              className="inline-flex cursor-pointer items-center gap-2 rounded-[1rem] border border-[#dce8cc] bg-white px-3 py-2 text-sm font-medium text-[#314127] shadow-[0_8px_14px_rgba(121,148,84,0.08)]"
             >
               {busyKey === `upload-image-new-${week.weekNumber}` ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -576,7 +576,7 @@ export function WeekContentEditor({
             </DialogDescription>
           </DialogHeader>
           {selectedImage ? (
-            <div className="overflow-auto rounded-xl bg-muted/40">
+            <div className="overflow-auto rounded-xl bg-[#eef3e6]">
               <img
                 src={selectedImage.url}
                 alt={selectedImage.alt}

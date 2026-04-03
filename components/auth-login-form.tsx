@@ -253,7 +253,7 @@ export function AuthLoginForm() {
         <p className="text-[0.78rem] font-bold tracking-[0.3em] text-[#728068]">Social Plus</p>
       </div>
 
-      <section className="rounded-[1.5rem] border border-[#d9e3d0] bg-white/96 px-4 py-4 shadow-[0_18px_34px_rgba(88,109,66,0.1)] backdrop-blur-[2px] sm:rounded-[1.7rem] sm:px-5 sm:py-5">
+      <section className="rounded-[1.5rem] border border-[#d9e3d0] bg-white px-4 py-4 shadow-[0_18px_34px_rgba(88,109,66,0.1)] sm:rounded-[1.7rem] sm:px-5 sm:py-5">
         <div className="space-y-3.5">
           {error ? (
             <div
@@ -293,7 +293,7 @@ export function AuthLoginForm() {
                 )}
               />
               {!isGoogleScriptLoaded || isGoogleLoading ? (
-                <div className="absolute inset-2 flex items-center justify-center rounded-[1rem] bg-white/92">
+                <div className="absolute inset-2 flex items-center justify-center rounded-[1rem] bg-white">
                   {isGoogleLoading ? (
                     <div className="flex items-center gap-2 text-sm text-[#77808a]">
                       <Loader2 className="h-4 w-4 animate-spin" />

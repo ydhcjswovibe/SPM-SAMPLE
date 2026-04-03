@@ -17,6 +17,8 @@ Default commands:
 - `npm run typecheck`
 - `npm run build`
 - `npm run lint`
+- canonical local release gate: `SPM_BASE_URL=http://127.0.0.1:<port> npm run verify:release`
+  - includes `verify:route-guards`, `verify:weekly-media-runtime`, `verify:enrollment-runtime`, `verify:admin-mobile-browser`, `verify:class-schedule-browser`, `verify:remote-schedule-core`
 
 Surface note:
 - 현재 `npm run lint`에는 `scripts/020_verify_surface_contract.mjs`가 포함되어 primary surface file에서 alpha background / transparent fill / `backdrop-blur` / primary-control `variant="ghost"` 재도입을 같이 막아야 한다
@@ -120,6 +122,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
   - `update_enrollment_status`
   - `update_enrollment_payment_status`
   - `class_logs.admin_note`
+  - `class_logs.member_admin_notes`
   - `upsert_weekly_class_log_notes`
   - `class_schedule_rules`
   - `class_sessions`
@@ -258,7 +261,9 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - admin mobile browser smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:admin-mobile-browser`로 재현할 수 있어야 한다
 - auth / wrong-role / self-profile route smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:route-guards`로 재현할 수 있어야 한다
 - enrollment create/status/delete smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:enrollment-runtime`로 재현할 수 있어야 한다
-- connected Supabase helper drift는 `npm run verify:enrollment-rpc-presence`로 먼저 확인한다
+- owner class create + admin/owner schedule smoke는 `next start` 후 `SPM_BASE_URL=... npm run verify:class-schedule-browser`로 재현할 수 있어야 한다
+- local release sign-off는 `next start` 후 `SPM_BASE_URL=... npm run verify:release`가 실제로 끝까지 통과해야 한다
+- connected Supabase helper/table drift는 `npm run verify:remote-canonical-presence`로 먼저 확인하고, enrollment status helper만 좁게 볼 때만 `npm run verify:enrollment-rpc-presence`를 쓴다
 - 이 결과는 로컬 반복 검증 수단이지 운영 환경 기능이 아님을 기록한다
 
 ### Weekly media input UX

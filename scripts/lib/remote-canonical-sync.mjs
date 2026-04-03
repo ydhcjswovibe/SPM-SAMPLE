@@ -172,10 +172,15 @@ async function readCanonicalQueriesForTarget(target) {
           query: 'alter table public.class_logs add column if not exists admin_note text;',
         },
         {
+          label: 'public.class_logs.member_admin_notes',
+          query:
+            "alter table public.class_logs add column if not exists member_admin_notes jsonb default '{}'::jsonb;",
+        },
+        {
           label: 'public.upsert_weekly_class_log_notes',
           query: await readRpcFunctionSql(
             'upsert_weekly_class_log_notes',
-            'uuid, text, integer, text, text, jsonb, text',
+            'uuid, text, integer, text, text, jsonb, jsonb, text',
           ),
         },
       ]
@@ -372,12 +377,17 @@ export async function probeWeeklyNotesRpc() {
     p_progress: 'probe',
     p_reflection: 'probe',
     p_member_feedback: {},
+    p_member_admin_notes: {},
     p_admin_note: 'probe',
   })
 }
 
 export async function probeAdminNoteColumn() {
   return probeColumn('admin_note')
+}
+
+export async function probeMemberAdminNotesColumn() {
+  return probeColumn('member_admin_notes')
 }
 
 export async function verifyRemoteCanonicalPresence(targets) {
@@ -397,6 +407,7 @@ export async function verifyRemoteCanonicalPresence(targets) {
 
     if (target === 'weekly-notes') {
       checks.push(await probeAdminNoteColumn())
+      checks.push(await probeMemberAdminNotesColumn())
       checks.push(await probeWeeklyNotesRpc())
       continue
     }

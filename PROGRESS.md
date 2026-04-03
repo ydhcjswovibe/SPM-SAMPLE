@@ -2,8 +2,8 @@
 
 ## Current Status
 
-- stage: `admin class create + schedule core recovery`
-- focus: `connected Supabase schedule-core drift를 복구하고, 관리자 수업 생성/일정 시간을 preset + 30분 단위 입력으로 고정한다.`
+- stage: `release verification hardening close`
+- focus: `local release gate는 닫혔고, 남은 sign-off는 configured GIS와 deployed env/physical-device evidence다.`
 - local runtime: `ready`
 
 ## Time Tracking
@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-04-03 | release verification hardening + weekly-notes remote drift close | start: not recorded | end: 2026-04-03 21:15 KST | status: done`
 - `2026-04-03 | admin class create preset/time UX + schedule-core remote sync | start: not recorded | end: 2026-04-03 18:32 KST | status: done`
 - `2026-04-03 | primary surface opacity hardening + static guard | start: not recorded | end: 2026-04-03 17:33 KST | status: done`
 - `2026-04-02 | student/common surface visibility audit + opaque sweep | start: not recorded | end: 2026-04-02 19:46 KST | status: done`
@@ -142,6 +143,13 @@
 
 ## Done Recently
 
+- `scripts/021_verify_class_schedule_browser.mjs`를 추가해 owner `새 수업 만들기`와 admin/owner `일정 관리`의 `00/30분` 선택, `종료 +2시간` auto-fill, manual end preserve/restore, owner/admin 권한 차이, 저장 후 재조회까지 browser/runtime으로 고정 완료
+- `package.json`의 `verify:release`를 `verify:route-guards -> verify:weekly-media-runtime -> verify:enrollment-runtime -> verify:admin-mobile-browser -> verify:class-schedule-browser -> verify:remote-schedule-core` 순서의 canonical local release gate로 확장 완료
+- [scripts/010_seed_runtime_auth.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/010_seed_runtime_auth.mjs)에 QA 수업/일정/등록/기록 seed를 추가해 admin mobile, weekly media, class-schedule browser smoke가 같은 localhost auth harness 위에서 재현되도록 정리 완료
+- [scripts/lib/remote-canonical-sync.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/lib/remote-canonical-sync.mjs)의 `weekly-notes` target에 빠져 있던 `class_logs.member_admin_notes` column apply/probe를 추가했고, `npm run apply:remote-canonical-sync -- --target weekly-notes`로 connected Supabase drift를 실제 복구 완료
+- `SPM_BASE_URL=http://127.0.0.1:3930 npm run verify:weekly-media-runtime`, `verify:route-guards`, `verify:enrollment-runtime`, `verify:admin-mobile-browser`, `verify:class-schedule-browser`, `verify:release`를 재통과해 local release gate close를 확인 완료
+- [components/auth-login-form.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/auth-login-form.tsx), [components/week-content-editor.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/week-content-editor.tsx), [scripts/020_verify_surface_contract.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/020_verify_surface_contract.mjs)에서 빠져 있던 실사용 표면을 primary surface contract 대상으로 편입하고 alpha/backdrop/ghost 재도입을 차단 완료
+- owner `새 수업 만들기`와 `일정 관리`의 시작 시간 변경 시 종료 시간이 비어 있을 때만 `+2시간` 자동 채움이 동작하고, 사용자가 직접 넣은 종료 시간은 이후 시작 시간 변경에도 보존되도록 [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx), [components/class-schedule-editor.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/class-schedule-editor.tsx) 수정 완료
 - connected Supabase drift probe 결과 실제 remote에 `class_schedule_rules`, `class_sessions`, `session_attendance`가 비어 있음을 확인했고, `scripts/lib/remote-canonical-sync.mjs`에 `schedule-core` target과 table probe/apply를 추가 완료
 - 운영 메인 `삭제 모드`는 active 수업을 soft delete로 내리고, 이미 inactive인 junk 수업은 `enrollments/class_logs` 정리 후 완전 삭제하도록 [app/api/admin/classes/route.ts](/home/ydhcjswo/projects/SPM-SAMPLE/app/api/admin/classes/route.ts), [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx), [components/class-selector.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/class-selector.tsx) 반영 완료
 - owner `새 수업 만들기`는 기존 수업명 suggestion + 직접 입력을 같이 지원하도록 [app/admin/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/admin/page.tsx), [components/admin-class-name-field.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/admin-class-name-field.tsx)로 재구성 완료

@@ -13,6 +13,7 @@ const primarySurfaceFiles = [
   'app/admin/content/page.tsx',
   'app/admin/page.tsx',
   'app/admin/settings/page.tsx',
+  'components/auth-login-form.tsx',
   'components/student-nav.tsx',
   'components/student-class-detail-view.tsx',
   'components/mobile-nav.tsx',
@@ -22,6 +23,7 @@ const primarySurfaceFiles = [
   'components/admin-month-selector.tsx',
   'components/class-selector.tsx',
   'components/admin-matrix.tsx',
+  'components/week-content-editor.tsx',
   'lib/student/surface.ts',
   'lib/admin/surface.ts',
   'components/ui/select.tsx',
@@ -47,6 +49,7 @@ const ghostUsageFiles = new Set([
   'components/admin-month-selector.tsx',
   'components/class-selector.tsx',
   'components/admin-matrix.tsx',
+  'components/week-content-editor.tsx',
 ])
 
 const alphaBackgroundRules = [
