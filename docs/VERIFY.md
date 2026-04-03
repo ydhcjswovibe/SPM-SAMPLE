@@ -57,7 +57,8 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - desktop 본문 workspace는 rail 바깥의 narrower lane 안에 머물고, wide full-bleed처럼 퍼져 보이지 않아야 한다
 - desktop shell 조정 이후에도 mobile `< md` 위치/정렬은 바뀌지 않아야 한다
 - 운영 메인 첫 진입에서는 현재 월과 해당 월 첫 수업이 기본 선택으로 열려야 하고, 월 변경 시에도 선택 수업이 활성 상태면 유지돼야 한다
-- owner class delete mode는 운영 헤더의 `삭제 모드` trigger로 진입되고, `-` 표시된 항목 선택 -> 확인 다이얼로그 -> soft delete로 이어져야 한다
+- owner class delete mode는 운영 헤더의 `삭제 모드` trigger로 진입되고, `-` 표시된 항목 선택 -> 확인 다이얼로그 -> 삭제로 이어져야 한다
+- 활성 수업 삭제는 soft delete로 활성 목록에서만 빠져야 하고, 이미 비활성 수업 삭제는 연결된 등록/기록 정리 후 완전 삭제되어 selector 재진입 시 다시 보이지 않아야 한다
 - 운영 mobile browser smoke에서는 상단 `수업 selector / 월 selector / 메뉴 / 하단탭`과 `월 popover / menu open state / content week rail / bottom nav active-inactive`의 배경 fill이 `opaque color` 또는 `alpha 없는 gradient`여야 하고, matrix/card action이 viewport 안에서 눌릴 크기를 유지해야 한다
 - access-sensitive GET contract stays explicit:
   - anonymous -> `401 AUTH_REQUIRED`

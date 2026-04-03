@@ -104,7 +104,21 @@ export function ClassSelector({
                   )}
                 />
               )}
-              <span className="truncate">{classItem.name}</span>
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="truncate">{classItem.name}</span>
+                {isDeleteMode ? (
+                  <span
+                    className={cn(
+                      'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                      classItem.is_active === false
+                        ? 'bg-[#fde8e4] text-[#b65046]'
+                        : 'bg-[#eef8ea] text-[#4c7b35]',
+                    )}
+                  >
+                    {classItem.is_active === false ? '비활성' : '활성'}
+                  </span>
+                ) : null}
+              </div>
             </DropdownMenuItem>
           ))
         )}

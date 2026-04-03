@@ -194,7 +194,7 @@ function getFriendlyRouteError(code: string) {
     case 'ADMIN_REQUIRED':
       return '관리자 권한이 필요합니다.'
     case 'OWNER_REQUIRED':
-      return '새 수업 만들기는 오너 권한이 필요합니다.'
+      return '이 작업은 오너 권한이 필요합니다.'
     case 'INVALID_YEAR_MONTH':
       return '월 범위를 다시 확인해 주세요.'
     case 'CLASS_NAME_REQUIRED':
@@ -312,7 +312,7 @@ function isHandledCreateClassError(message: string) {
   return [
     '로그인이 필요합니다.',
     '관리자 권한이 필요합니다.',
-    '새 수업 만들기는 오너 권한이 필요합니다.',
+    '이 작업은 오너 권한이 필요합니다.',
     '수업 이름을 입력해 주세요.',
     '반복 일정 입력값을 다시 확인해 주세요.',
     '현재 연결된 운영 DB에 수업 일정 저장소가 없어 일정 기능을 사용할 수 없습니다.',
@@ -834,13 +834,14 @@ export default function AdminDashboard() {
     setClassActionError(null)
 
     try {
+      const targetClass = classToDelete
       const response = await fetch('/api/admin/classes', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          classId: classToDelete.id,
+          classId: targetClass.id,
         }),
       })
 
@@ -848,14 +849,23 @@ export default function AdminDashboard() {
         throw new Error(getFriendlyRouteError(await readRouteError(response)))
       }
 
-      const deletedClassName = classToDelete.name
-      setSelectedClass(null)
+      const payload = (await response.json()) as {
+        data?: Class
+        mode?: 'soft' | 'purge'
+      }
+      const deletedClassName = targetClass.name
+      const deleteMode = payload.mode ?? (targetClass.is_active === false ? 'purge' : 'soft')
+      setSelectedClass((current) => (current?.id === targetClass.id ? null : current))
       await mutateClasses()
       await mutateAllClasses()
       setIsDeleteDialogOpen(false)
       setClassToDelete(null)
       setIsDeleteMode(false)
-      setCreateSuccess(`${deletedClassName} 수업을 목록에서 제외했습니다.`)
+      setCreateSuccess(
+        deleteMode === 'purge'
+          ? `${deletedClassName} 수업을 완전히 삭제했습니다.`
+          : `${deletedClassName} 수업을 활성 목록에서 제외했습니다.`,
+      )
     } catch (error) {
       const message = getErrorMessage(error)
       setClassActionError(message)
@@ -1476,7 +1486,9 @@ export default function AdminDashboard() {
             <DialogTitle>수업 삭제</DialogTitle>
             <DialogDescription>
               {classToDelete
-                ? `${classToDelete.name} 수업을 운영 목록에서 제외합니다. 기존 데이터는 보존되고 활성 목록에서만 빠집니다.`
+                ? classToDelete.is_active === false
+                  ? `${classToDelete.name} 수업과 연결된 등록/기록 데이터를 완전히 삭제합니다.`
+                  : `${classToDelete.name} 수업을 활성 목록에서 제외합니다. 기존 데이터는 보존됩니다.`
                 : '삭제할 수업을 다시 선택해 주세요.'}
             </DialogDescription>
           </DialogHeader>

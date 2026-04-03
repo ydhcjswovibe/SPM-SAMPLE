@@ -269,24 +269,61 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const supabase = await createClient()
-    const { data, error } = await supabase
+    const { data: existingClass, error: existingClassError } = await supabase
       .from('classes')
-      .update({ is_active: false })
-      .eq('id', body.classId)
-      .eq('is_active', true)
       .select('id, name, is_active')
+      .eq('id', body.classId)
       .maybeSingle()
 
-    if (error) {
-      const mapped = mapDeleteClassError(error.message)
+    if (existingClassError) {
+      const mapped = mapDeleteClassError(existingClassError.message)
       return NextResponse.json({ error: mapped.error }, { status: mapped.status })
     }
 
-    if (!data) {
+    if (!existingClass) {
       return NextResponse.json({ error: 'CLASS_NOT_FOUND' }, { status: 404 })
     }
 
-    return NextResponse.json({ data })
+    if (existingClass.is_active !== false) {
+      const { data, error } = await supabase
+        .from('classes')
+        .update({ is_active: false })
+        .eq('id', body.classId)
+        .eq('is_active', true)
+        .select('id, name, is_active')
+        .maybeSingle()
+
+      if (error) {
+        const mapped = mapDeleteClassError(error.message)
+        return NextResponse.json({ error: mapped.error }, { status: mapped.status })
+      }
+
+      if (!data) {
+        return NextResponse.json({ error: 'CLASS_NOT_FOUND' }, { status: 404 })
+      }
+
+      return NextResponse.json({ data, mode: 'soft' as const })
+    }
+
+    const { error: deleteEnrollmentError } = await supabase.from('enrollments').delete().eq('class_id', body.classId)
+    if (deleteEnrollmentError) {
+      const mapped = mapDeleteClassError(deleteEnrollmentError.message)
+      return NextResponse.json({ error: mapped.error }, { status: mapped.status })
+    }
+
+    const { error: deleteLogError } = await supabase.from('class_logs').delete().eq('class_id', body.classId)
+    if (deleteLogError) {
+      const mapped = mapDeleteClassError(deleteLogError.message)
+      return NextResponse.json({ error: mapped.error }, { status: mapped.status })
+    }
+
+    const { error: deleteClassError } = await supabase.from('classes').delete().eq('id', body.classId)
+    if (deleteClassError) {
+      const mapped = mapDeleteClassError(deleteClassError.message)
+      return NextResponse.json({ error: mapped.error }, { status: mapped.status })
+    }
+
+    return NextResponse.json({ data: existingClass, mode: 'purge' as const })
   } catch (error) {
     logApiError('admin.classes', 'CLASS_DELETE_FAILED', error, {
       classId: body.classId,
