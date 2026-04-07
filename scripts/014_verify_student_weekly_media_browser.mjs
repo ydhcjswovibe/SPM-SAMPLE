@@ -233,11 +233,11 @@ async function loginWithUi(page, account) {
   })
 }
 
-function surfaceCardLocator(page, label, classToken) {
+function surfaceCardLocator(page, label) {
   return page
     .getByText(label, { exact: true })
     .first()
-    .locator(`xpath=ancestor::*[contains(@class,"${classToken}")][1]`)
+    .locator('xpath=ancestor::div[contains(@class,"overflow-hidden") and contains(@class,"border")][1]')
 }
 
 async function verifyStudentHome(page, results, target) {
@@ -255,11 +255,11 @@ async function verifyStudentHome(page, results, target) {
   const homeTabLink = page.locator('[aria-label="학생 홈"]').first()
   const lessonsTabLink = page.locator('[aria-label="학생 수업"]').first()
   const profileTabLink = page.locator('[aria-label="학생 내상태"]').first()
-  const progressCard = page.getByText('진척', { exact: true }).first().locator('xpath=ancestor::section[1]')
-  const progressRail = page.locator('[data-slot="progress"]').first()
-  const attendanceCard = surfaceCardLocator(page, '출석', 'rounded-[1.55rem]')
-  const openCard = surfaceCardLocator(page, '공개', 'rounded-[1.55rem]')
-  const feedbackCard = surfaceCardLocator(page, '피드백', 'rounded-[1.55rem]')
+  const progressCard = page.locator('[data-slot="student-home-progress"]').first()
+  const progressRail = progressCard.locator('[data-slot="progress"]').first()
+  const attendanceCard = surfaceCardLocator(page, '출석')
+  const openCard = surfaceCardLocator(page, '공개')
+  const feedbackCard = surfaceCardLocator(page, '피드백')
 
   await classSelect.waitFor({ state: 'visible', timeout: 15000 })
   await monthSelect.waitFor({ state: 'visible', timeout: 15000 })

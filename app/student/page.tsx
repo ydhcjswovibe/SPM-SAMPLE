@@ -7,6 +7,7 @@ import { AlertCircle, BookHeart, Loader2, MessageCircleMore, Sparkles } from 'lu
 
 import { createClient } from '@/lib/supabase/client'
 import {
+  buildStudentHomeProgressPreview,
   buildStudentSelectionHref,
   fetchStudentSummaries,
   resolveStudentSelection,
@@ -53,11 +54,6 @@ export default function StudentDashboardPage() {
     selectedSummary?.classId,
     selectedSummary?.yearMonth,
   )
-
-  const selectedProgressPercent =
-    selectedSummary && selectedSummary.attendanceTotal > 0
-      ? Math.round((selectedSummary.attendanceChecked / selectedSummary.attendanceTotal) * 100)
-      : 0
 
   if (isLoading) {
     return (
@@ -155,6 +151,7 @@ export default function StudentDashboardPage() {
     )
   }
 
+  const progressPreview = buildStudentHomeProgressPreview(selectedSummary)
   const summaryCards = [
     {
       key: 'attendance',
@@ -164,8 +161,8 @@ export default function StudentDashboardPage() {
       valueMain: `${selectedSummary.attendanceChecked}/${selectedSummary.attendanceTotal}`,
       valueUnit: '',
       surfaceClass: 'border-[#f0dfaa] bg-accent',
-      iconClass: 'bg-white text-[#bc8b20] shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_10px_18px_rgba(218,180,76,0.18)]',
-      glowClass: 'bg-white/88',
+      iconClass: 'border-[#f3e4b3] bg-white text-[#bc8b20] shadow-[0_8px_14px_rgba(218,180,76,0.16)]',
+      iconGraphicClass: 'translate-y-px',
       labelClass: 'text-[#8d6f26]',
       done: selectedSummary.attendanceTotal > 0 && selectedSummary.attendanceChecked >= selectedSummary.attendanceTotal,
     },
@@ -177,8 +174,8 @@ export default function StudentDashboardPage() {
       valueMain: `${selectedSummary.availableWeekCount}`,
       valueUnit: '개',
       surfaceClass: 'border-[#d9e8fb] bg-secondary',
-      iconClass: 'bg-white text-[#5a7ecb] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_18px_rgba(128,164,220,0.18)]',
-      glowClass: 'bg-white/88',
+      iconClass: 'border-[#dbe5f8] bg-white text-[#5a7ecb] shadow-[0_8px_14px_rgba(128,164,220,0.14)]',
+      iconGraphicClass: 'translate-x-px',
       labelClass: 'text-[#5271b7]',
       done: selectedSummary.availableWeekCount > 0,
     },
@@ -190,150 +187,125 @@ export default function StudentDashboardPage() {
       valueMain: `${selectedSummary.feedbackCount}`,
       valueUnit: '건',
       surfaceClass: 'border-[#dce8cf] bg-muted',
-      iconClass: 'bg-white text-[#cb718a] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_18px_rgba(214,128,157,0.16)]',
-      glowClass: 'bg-white/88',
+      iconClass: 'border-[#eadfdc] bg-white text-[#cb718a] shadow-[0_8px_14px_rgba(214,128,157,0.14)]',
+      iconGraphicClass: 'translate-y-px',
       labelClass: 'text-[#b85f79]',
       done: selectedSummary.feedbackCount > 0,
     },
   ]
 
-  const remainingRoutineCount = summaryCards.filter((item) => !item.done).length
-
   return (
-    <div className="space-y-4 px-3 pb-28 pt-3">
-      <section className="relative overflow-hidden rounded-2xl border border-[#dfe8d1] bg-card px-4 pb-5 pt-3 shadow-[0_16px_30px_rgba(111,145,72,0.1)]">
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-[rgba(172,207,116,0.3)]" />
-        <div className="absolute -left-6 bottom-4 h-16 w-28 rounded-full bg-[rgba(146,193,98,0.24)]" />
-        <div className="absolute left-1/2 bottom-1 h-20 w-32 -translate-x-1/2 rounded-full bg-[rgba(129,179,83,0.18)]" />
-        <div className="absolute right-0 bottom-7 h-16 w-28 rounded-full bg-[rgba(194,222,144,0.22)]" />
-        <div className="absolute left-8 top-6 h-8 w-8 rounded-full bg-white/68" />
-        <div className="absolute right-6 top-5 h-12 w-12 rounded-full bg-[rgba(255,244,207,0.5)]" />
+    <div className="space-y-3 px-3 pb-28 pt-3">
+      <section className="relative overflow-hidden rounded-2xl border border-[#dfe8d1] bg-card px-3 pb-3 pt-4 shadow-[0_16px_30px_rgba(111,145,72,0.1)]">
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-[rgba(172,207,116,0.32)]" />
+        <div className="absolute -left-6 bottom-3 h-16 w-28 rounded-full bg-[rgba(146,193,98,0.24)]" />
+        <div className="absolute left-1/2 bottom-0 h-20 w-32 -translate-x-1/2 rounded-full bg-[rgba(129,179,83,0.18)]" />
+        <div className="absolute right-0 bottom-5 h-16 w-28 rounded-full bg-[rgba(194,222,144,0.22)]" />
 
-        <div className="relative z-10 flex flex-col items-center pt-1">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-white/48 blur-md" />
-            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white">
-              <SpmMascot variant="welcome" size="lg" className="h-20 w-20" />
+        <div className="relative z-10 flex min-h-[15.5rem] flex-col">
+          <div className="flex items-start justify-start">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-[#d8bf69] bg-accent px-1.5 py-1 text-[#6e5512] shadow-[inset_0_1px_0_rgba(255,255,255,0.92),inset_0_-1px_0_rgba(191,157,62,0.18)]">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#ebdca4] bg-white text-[#b8891f] shadow-[inset_0_1px_0_rgba(255,255,255,0.96)]">
+                <Sparkles className="h-3 w-3" />
+              </span>
+              <span className="pr-1 text-[11px] font-black tracking-[-0.03em]">Lv.{progressPreview.level}</span>
             </div>
           </div>
-        </div>
 
-        <div className="relative z-10 mt-2.5 overflow-hidden rounded-2xl border border-[#e4ddb2] bg-accent px-3.5 py-3 text-[#355024] shadow-[0_14px_24px_rgba(111,145,72,0.12),inset_0_1px_0_rgba(255,255,255,0.92)]">
-          <div className="pointer-events-none absolute inset-x-3 top-0 h-8 bg-[linear-gradient(180deg,rgba(255,255,255,0.44)_0%,rgba(255,255,255,0)_100%)]" />
-          <div className="pointer-events-none absolute -right-3 top-2 h-16 w-16 rounded-full bg-[rgba(255,218,117,0.28)] blur-2xl" />
-          <div className="pointer-events-none absolute -left-3 bottom-1 h-12 w-16 rounded-full bg-[rgba(183,224,126,0.22)] blur-2xl" />
-
-          <div className="relative z-10 flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center rounded-full border border-[#f0eddc] bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6f8752] shadow-[0_6px_12px_rgba(126,153,86,0.08)]">
-                  진척
-                </span>
-                <p className="text-[11px] font-semibold text-[#60724e]">
-                  {selectedSummary.attendanceChecked}주 확인
-                </p>
-              </div>
-
-              <div className="mt-1.5 flex items-end gap-1.5 text-[#2a3a1f]">
-                <span className="text-[2rem] font-black leading-none tracking-[-0.08em]">{selectedProgressPercent}</span>
-                <span className="pb-0.5 text-[1rem] font-black tracking-[-0.03em]">%</span>
-                <span className="pb-0.5 text-[11px] font-semibold text-[#61754c]">진행 중</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <div className="rounded-2xl border border-[#ece6d3] bg-white px-2.5 py-1.5 text-center shadow-[0_8px_14px_rgba(132,160,91,0.12)]">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#83936d]">남은</p>
-                <p className="mt-0.5 text-[1.15rem] font-black leading-none tracking-[-0.05em] text-[#314127]">
-                  {remainingRoutineCount}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-[#ece6d3] bg-card px-2.5 py-1.5 text-center shadow-[0_8px_14px_rgba(196,175,102,0.12)]">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#8c7b4f]">확인</p>
-                <p className="mt-0.5 text-[0.95rem] font-black leading-none tracking-[-0.05em] text-[#314127]">
-                  {selectedSummary.attendanceChecked}/{selectedSummary.attendanceTotal}
-                </p>
+          <div className="flex flex-1 items-center justify-center pb-3 pt-2">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-white/52 blur-lg" />
+              <div className="absolute inset-x-5 bottom-2 h-4 rounded-full bg-[rgba(159,194,101,0.24)] blur-md" />
+              <div className="relative flex h-32 w-32 items-center justify-center rounded-full border border-[#edf2e2] bg-[radial-gradient(circle_at_50%_35%,#ffffff_0%,#fbfcf7_55%,#f2f5ea_100%)] shadow-[0_18px_34px_rgba(111,145,72,0.12)]">
+                <SpmMascot variant="welcome" size="lg" className="h-28 w-28" />
               </div>
             </div>
           </div>
 
-          <Progress
-            value={selectedProgressPercent}
-            className={studentProgressRailClass}
-          />
+          <div
+            data-slot="student-home-progress"
+            aria-label="학생 홈 레벨 진행"
+            className="rounded-2xl border border-[#dcc36f] bg-accent px-3.5 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_10px_16px_rgba(176,151,80,0.08)]"
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="inline-flex items-center rounded-full border border-[#ead38a] bg-white px-2.5 py-0.5 text-[9px] font-black tracking-[0.14em] text-[#8e6c14] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+                  EXP
+                </div>
+
+                <p className="shrink-0 text-[11px] font-bold tracking-[-0.02em] text-[#5b4915]">
+                  <span className="font-black text-[#3e310d]">{progressPreview.xpCurrent}</span>/{progressPreview.xpTarget} XP
+                </p>
+              </div>
+
+              <Progress
+                value={progressPreview.xpPercent}
+                className={cn(
+                  studentProgressRailClass,
+                  'mt-0 h-4 border-[#d6bf67] shadow-[inset_0_1px_0_rgba(255,255,255,0.84),inset_0_2px_4px_rgba(190,161,63,0.12)] [&>div]:shadow-[0_6px_12px_rgba(186,154,46,0.24)]',
+                )}
+              />
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#e2ecd3] bg-card p-3 shadow-[0_14px_26px_rgba(111,145,72,0.08)]">
-        <div className="rounded-2xl border border-[#edf2e5] bg-white px-3.5 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.94)]">
-          <div className="space-y-2.5">
-            {summaryCards.map((item) => {
-              const Icon = item.icon
+      <section className="space-y-2.5 rounded-2xl border border-[#e2ecd3] bg-card p-3 shadow-[0_14px_26px_rgba(111,145,72,0.08)]">
+        {summaryCards.map((item) => {
+          const Icon = item.icon
 
-              return (
-                <div
-                  key={item.key}
-                  className={cn(
-                    'relative w-full overflow-hidden rounded-2xl border px-3 py-3 shadow-[0_12px_22px_rgba(111,145,72,0.08),inset_0_1px_0_rgba(255,255,255,0.86)]',
-                    item.surfaceClass,
-                  )}
-                >
-                  <div className="pointer-events-none absolute inset-x-3 top-0 h-7 bg-[linear-gradient(180deg,rgba(255,255,255,0.42)_0%,rgba(255,255,255,0)_100%)]" />
-                  <div className={cn('pointer-events-none absolute -right-2 top-2 h-14 w-14 rounded-full blur-2xl', item.glowClass)} />
+          return (
+            <div
+              key={item.key}
+              className={cn(
+                'relative flex min-h-[5.1rem] w-full items-center gap-3 overflow-hidden rounded-2xl border px-3 py-3 shadow-[0_12px_22px_rgba(111,145,72,0.08),inset_0_1px_0_rgba(255,255,255,0.86)]',
+                item.surfaceClass,
+              )}
+            >
+              <div className="pointer-events-none absolute inset-x-3 top-0 h-7 bg-[linear-gradient(180deg,rgba(255,255,255,0.42)_0%,rgba(255,255,255,0)_100%)]" />
 
-                  <div className="relative z-10 flex items-center gap-3">
-                    <span
-                      className={cn(
-                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl',
-                        item.iconClass,
-                      )}
-                    >
-                      <Icon className="h-4.5 w-4.5" />
-                    </span>
+              <span className={cn('relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border', item.iconClass)}>
+                <Icon className={cn('h-4.5 w-4.5', item.iconGraphicClass)} />
+              </span>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p
-                            className={cn(
-                              'pt-0.5 text-[11px] font-semibold uppercase tracking-[0.14em]',
-                              item.labelClass,
-                            )}
-                          >
-                            {item.label}
-                          </p>
-                          <p className="mt-0.5 truncate text-[11px] font-medium text-[#6b7d5b]">
-                            {item.description}
-                          </p>
-                        </div>
+              <div className="relative z-10 flex min-w-0 flex-1 items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={cn(
+                      'text-[11px] font-semibold uppercase leading-none tracking-[0.14em]',
+                      item.labelClass,
+                    )}
+                  >
+                    {item.label}
+                  </p>
+                  <p className="mt-1 truncate text-[11px] font-medium leading-[1.15] text-[#6b7d5b]">
+                    {item.description}
+                  </p>
+                </div>
 
-                        <div className="flex shrink-0 flex-col items-end gap-1">
-                          <span
-                            className={cn(
-                              'inline-flex rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em]',
-                              item.done
-                                ? 'border-[#ece6d3] bg-white text-[#5c8e36]'
-                                : 'border-[#ece6d3] bg-card text-[#907d58]',
-                            )}
-                          >
-                            {item.done ? '완료' : '대기'}
-                          </span>
+                <div className="flex w-20 shrink-0 flex-col items-end text-right">
+                  <span
+                    className={cn(
+                      'mb-1 inline-flex rounded-full border px-2 py-0.5 text-[9px] font-semibold uppercase leading-none tracking-[0.12em]',
+                      item.done
+                        ? 'border-[#ece6d3] bg-white text-[#5c8e36]'
+                        : 'border-[#ece6d3] bg-card text-[#907d58]',
+                    )}
+                  >
+                    {item.done ? '완료' : '대기'}
+                  </span>
 
-                          <div className="flex items-end gap-1 text-[#26371d]">
-                            <p className="text-[1.8rem] font-black leading-none tracking-[-0.06em]">{item.valueMain}</p>
-                            {item.valueUnit ? (
-                              <p className="pb-0.5 text-[0.95rem] font-bold text-[#516642]">{item.valueUnit}</p>
-                            ) : null}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex items-end justify-end gap-1 text-[#26371d]">
+                    <p className="text-[1.8rem] font-black leading-none tracking-[-0.06em]">{item.valueMain}</p>
+                    {item.valueUnit ? (
+                      <p className="pb-0.5 text-[0.95rem] font-bold leading-none text-[#516642]">{item.valueUnit}</p>
+                    ) : null}
                   </div>
                 </div>
-              )
-            })}
-          </div>
-        </div>
+              </div>
+            </div>
+          )
+        })}
       </section>
     </div>
   )

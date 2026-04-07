@@ -5,6 +5,13 @@ import { readStudentClassSummaries, type StudentClassSummary } from '@/lib/weekl
 
 export const studentAuthRequiredMessage = '로그인이 필요합니다.'
 
+export interface StudentHomeProgressPreview {
+  level: number
+  xpCurrent: number
+  xpTarget: number
+  xpPercent: number
+}
+
 export async function fetchStudentSummaries(
   supabase: SupabaseClient,
 ): Promise<StudentClassSummary[]> {
@@ -17,6 +24,24 @@ export async function fetchStudentSummaries(
   }
 
   return readStudentClassSummaries(supabase, user.id)
+}
+
+export function buildStudentHomeProgressPreview(
+  summary: Pick<StudentClassSummary, 'attendanceChecked' | 'availableWeekCount' | 'feedbackCount'>,
+): StudentHomeProgressPreview {
+  const activityUnits = summary.attendanceChecked + summary.availableWeekCount + summary.feedbackCount
+  const xpTarget = 100
+  const xpCurrent = Math.min(
+    xpTarget,
+    summary.attendanceChecked * 12 + summary.availableWeekCount * 10 + summary.feedbackCount * 8,
+  )
+
+  return {
+    level: Math.min(9, Math.max(1, 1 + Math.floor(activityUnits / 2))),
+    xpCurrent,
+    xpTarget,
+    xpPercent: Math.round((xpCurrent / xpTarget) * 100),
+  }
 }
 
 export function getFeaturedSummary(summaries: StudentClassSummary[]) {

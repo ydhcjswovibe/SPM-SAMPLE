@@ -182,6 +182,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - student `수업` 탭 본문은 주차 제목/상태 badge/helper를 반복하지 않고, ready media 뒤에 `개별 피드백`만 이어서 보여 줘야 한다
 - 피드백이 있는 주차에서는 학생이 `reply slot`을 저장/수정/비우기 할 수 있어야 하고, 다른 학생 reply나 운영 내부메모는 노출되면 안 된다
 - 학생 홈 상황판과 내상태 요약 카드는 불필요한 세로 부피 없이 한 화면에서 핵심 상태를 빠르게 읽을 수 있어야 한다
+- 학생 홈 진척 카드는 큰 캐릭터 성장 카드 안에서 좌상단 `Lv.` 배지와 하단 `EXP` 바가 함께 읽혀야 하고, `진척/남은/확인/%` 같은 이전 출석형 정보는 남아 있으면 안 된다
 - 학생 하단 탭은 icon-only로 낮아져도 active tab이 색/배경만으로 즉시 구분되고, touch target과 safe area 여백이 유지돼야 한다
 - CTA labels match the real action:
   - tab move

@@ -14,6 +14,9 @@
 
 ## Recent Work Windows
 
+- `2026-04-07 | student home medal level badge + gold exp rail pass | start: not recorded | end: 2026-04-07 21:18 KST | status: done`
+- `2026-04-07 | student home larger gamified hero card | start: not recorded | end: 2026-04-07 20:57 KST | status: done`
+- `2026-04-07 | student home thin level-xp preview dock | start: not recorded | end: 2026-04-07 20:49 KST | status: done`
 - `2026-04-03 | release verification hardening + weekly-notes remote drift close | start: not recorded | end: 2026-04-03 21:15 KST | status: done`
 - `2026-04-03 | admin class create preset/time UX + schedule-core remote sync | start: not recorded | end: 2026-04-03 18:32 KST | status: done`
 - `2026-04-03 | primary surface opacity hardening + static guard | start: not recorded | end: 2026-04-03 17:33 KST | status: done`
@@ -143,6 +146,10 @@
 
 ## Done Recently
 
+- 학생 홈 `[app/student/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)`의 `Lv.` 배지를 외부 번짐 없는 골드 메달형으로 다시 만들고, 하단 `EXP` 영역을 긴 골드 경험치 레일로 강화해 `Lv -> 캐릭터 -> EXP` 흐름을 더 또렷하게 정리 완료
+- 학생 홈 `[app/student/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)`의 캐릭터 진척 영역을 더 큰 hero 카드로 키우고, 좌상단 `Lv.` 배지 + 하단 `EXP` bar 구조로 재정렬해 따뜻한 RPG 톤을 강화 완료
+- 학생 홈 `[app/student/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)`의 진척 카드를 큰 캐릭터 카드 안의 얇은 `Lv. + XP rail + x/100 XP` preview dock로 재정리했고, `[lib/student-lessons.ts](/home/ydhcjswo/projects/SPM-SAMPLE/lib/student-lessons.ts)`에 현재 출석/공개/피드백 신호 기반 preview helper를 추가 완료
+- `[scripts/014_verify_student_weekly_media_browser.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/014_verify_student_weekly_media_browser.mjs)`, `[docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md)`, `[docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md)`를 새 `student-home-progress` selector와 `얇은 레벨/XP preview dock` truth 기준으로 sync 완료
 - `scripts/021_verify_class_schedule_browser.mjs`를 추가해 owner `새 수업 만들기`와 admin/owner `일정 관리`의 `00/30분` 선택, `종료 +2시간` auto-fill, manual end preserve/restore, owner/admin 권한 차이, 저장 후 재조회까지 browser/runtime으로 고정 완료
 - `package.json`의 `verify:release`를 `verify:route-guards -> verify:weekly-media-runtime -> verify:enrollment-runtime -> verify:admin-mobile-browser -> verify:class-schedule-browser -> verify:remote-schedule-core` 순서의 canonical local release gate로 확장 완료
 - [scripts/010_seed_runtime_auth.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/010_seed_runtime_auth.mjs)에 QA 수업/일정/등록/기록 seed를 추가해 admin mobile, weekly media, class-schedule browser smoke가 같은 localhost auth harness 위에서 재현되도록 정리 완료
