@@ -48,7 +48,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 운영 탭 class selector는 활성 수업 전체를 보여 주되, 해당 월 등록이 있는 수업이 먼저 와야 한다
 - 학생 `수업` 탭 class selector는 해당 학생의 `ACTIVE`/`PENDING` 등록만 보여 주고, soft delete된 inactive 수업은 숨겨야 한다
 - 운영 탭과 학생 `수업` 탭 헤더 control은 수업 selector가 월 input보다 먼저 보여야 한다
-- 학생은 `홈` 탭의 `수업 신청` quick action 다이얼로그에서 활성 수업과 월을 골라 승인 요청을 보낼 수 있어야 한다
+- 학생은 수업이 없거나 추가 요청이 필요할 때 `홈` empty state의 `수업 탭에서 요청하기` CTA로 `수업` 탭 이동을 시작할 수 있어야 한다
 - 학생의 중복 요청은 `이미 수강 중` 또는 `이미 승인 요청`처럼 구분된 결과로 보여야 한다
 - 오너가 `PENDING -> ACTIVE` 승인한 뒤 학생 수업 상세는 같은 `class + month` 키여도 stale status에 머물지 않고 다시 읽혀야 한다
 - 학생 수업 상황판과 빈 상태 문구는 `등록 예정`과 `수강 중`을 서로 다르게 직접 읽을 수 있어야 한다
@@ -148,7 +148,7 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - profile read failure must not fabricate local demo data
 
 ### Student read flow / weekly content consume UI
-- `/student` 첫 진입에서는 `홈` 탭의 대시보드가 먼저 보여야 하고, 요약/체크리스트/quick action이 과도한 세로 스크롤 없이 읽혀야 한다
+- `/student` 첫 진입에서는 `홈` 탭의 대시보드가 먼저 보여야 하고, hero/레벨-EXP/상태 요약이 과도한 세로 스크롤 없이 읽혀야 한다
 - `/student/lessons`는 `수업` 탭 destination으로 열리고, 기본 선택된 월별 수업 상세가 바로 보여야 한다
 - query selection이 없으면 current month enrollment가 우선 선택되고, 없을 때만 기존 대표 수업 fallback으로 내려가야 한다
 - `/student/profile`는 `내상태` 탭 destination으로 열리고, 계정/상태 카드가 직접 보여야 한다
@@ -158,13 +158,12 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 실제 session이 있는 월이면 student `수업` 탭 기본 주차는 실제 수업 날짜를 따라야 하고, 없는 legacy 월만 기존 주차 fallback을 쓴다
 - 학생 상단 헤더는 전 탭에서 `캐릭터 / 수업 selector / YY.MM 월 selector / 메뉴`가 한 줄에서 바로 보여야 하고, 숨겨진 가로 스크롤에 의존하지 않아야 한다
 - 학생 상단 헤더는 뒤판 plate와 본체 bar가 구분되어 배경과 한 덩어리로 붙어 보이지 않아야 한다
-- student browser smoke는 학생 헤더 selector/menu, 하단탭 active-inactive, 홈 hero/progress/summary, 수업 주차 rail/button, reply composer, 이미지 확대 프레임, 비디오 overlay control, profile 요약/설정 card를 같은 opaque surface 기준으로 확인해야 한다
+- student browser smoke는 학생 헤더 selector/menu, 하단탭 active-inactive, 홈 hero/mini-pet/progress/summary, 수업 주차 rail/button, reply composer, 이미지 확대 프레임, 비디오 overlay control, profile 요약/설정 card를 같은 opaque surface 기준으로 확인해야 한다
 - `홈` 탭과 `수업` 탭은 역할이 겹치지 않아야 한다:
-  - `홈`: 요약 / 진행 / 체크리스트 / quick action
+  - `홈`: hero / 레벨-EXP / 상태 요약 / empty-state 이동
   - `수업`: 선택 / 주차 / 콘텐츠
-- `홈` 탭의 `주차 열기`, `콘텐츠 보기`, `피드백 보기` CTA는 page-internal scroll이 아니라 `수업` 탭 이동으로 동작해야 한다
-- `수업 신청` quick action은 `홈` 탭에만 있고, `수업`/`내상태`에서 중복 노출하지 않아야 한다
-- `수업` 탭은 `홈`의 체크리스트/quick action을 반복하지 않아야 한다
+- `홈` 탭은 page-internal scroll CTA를 늘리지 않고, 수업 요청이 필요할 때만 empty-state 이동 CTA를 보여야 한다
+- `수업` 탭은 `홈`의 hero/레벨/상태 요약을 반복하지 않아야 한다
 - `수업` 탭 상단 본문은 `출석 / 공개 / 피드백` 요약 카드만 남고, hero/helper/status card를 반복하지 않아야 한다
 - empty ownership은 다음처럼 나뉘어야 한다:
   - `홈`: 수업 없음 / 신청 필요 / 승인 대기 / 대표 수업 요약
@@ -183,10 +182,12 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 피드백이 있는 주차에서는 학생이 `reply slot`을 저장/수정/비우기 할 수 있어야 하고, 다른 학생 reply나 운영 내부메모는 노출되면 안 된다
 - 학생 홈 상황판과 내상태 요약 카드는 불필요한 세로 부피 없이 한 화면에서 핵심 상태를 빠르게 읽을 수 있어야 한다
 - 학생 홈 진척 카드는 큰 캐릭터 성장 카드 안에서 좌상단 `Lv.` 배지와 하단 `EXP` 바가 함께 읽혀야 하고, `진척/남은/확인/%` 같은 이전 출석형 정보는 남아 있으면 안 된다
+- 학생 홈 mini pet을 탭하면 짧은 포즈 변화와 1줄 말풍선이 나타나야 하고, 그 반응이 `Lv.` 배지나 `EXP` 바를 가리거나 hero 높이를 흔들면 안 된다
+- `/student/lessons`, `/student/profile`, admin/header/sidebar의 공용 마스코트는 이번 패키지에서 정적 상태를 유지해야 한다
 - 학생 하단 탭은 icon-only로 낮아져도 active tab이 색/배경만으로 즉시 구분되고, touch target과 safe area 여백이 유지돼야 한다
 - CTA labels match the real action:
   - tab move
-  - request quick action
+  - request-entry move
   - class or week selection
   - read-state refetch
   - logout

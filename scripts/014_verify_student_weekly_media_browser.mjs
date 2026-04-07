@@ -255,6 +255,8 @@ async function verifyStudentHome(page, results, target) {
   const homeTabLink = page.locator('[aria-label="학생 홈"]').first()
   const lessonsTabLink = page.locator('[aria-label="학생 수업"]').first()
   const profileTabLink = page.locator('[aria-label="학생 내상태"]').first()
+  const heroCard = page.locator('[data-slot="student-home-hero"]').first()
+  const mascotTrigger = page.locator('[data-slot="student-home-mascot"]').first()
   const progressCard = page.locator('[data-slot="student-home-progress"]').first()
   const progressRail = progressCard.locator('[data-slot="progress"]').first()
   const attendanceCard = surfaceCardLocator(page, '출석')
@@ -267,6 +269,8 @@ async function verifyStudentHome(page, results, target) {
   await homeTabLink.waitFor({ state: 'visible', timeout: 15000 })
   await lessonsTabLink.waitFor({ state: 'visible', timeout: 15000 })
   await profileTabLink.waitFor({ state: 'visible', timeout: 15000 })
+  await heroCard.waitFor({ state: 'visible', timeout: 15000 })
+  await mascotTrigger.waitFor({ state: 'visible', timeout: 15000 })
 
   const classSurface = await expectOpaqueSurface(classSelect, '학생 수업 선택')
   const monthSurface = await expectOpaqueSurface(monthSelect, '학생 월 선택')
@@ -274,11 +278,18 @@ async function verifyStudentHome(page, results, target) {
   const homeTabSurface = await expectOpaqueSurface(homeTabLink, '학생 하단탭 active state')
   const lessonsTabSurface = await expectOpaqueSurface(lessonsTabLink, '학생 하단탭 inactive state')
   const profileTabSurface = await expectOpaqueSurface(profileTabLink, '학생 하단탭 inactive profile state')
+  const heroCardSurface = await expectOpaqueSurface(heroCard, '학생 홈 hero')
+  const mascotTriggerSurface = await expectOpaqueSurface(mascotTrigger, '학생 홈 미니펫 trigger')
   const progressCardSurface = await expectOpaqueSurface(progressCard, '학생 홈 진척 카드')
   const progressRailSurface = await expectOpaqueSurface(progressRail, '학생 홈 progress rail')
   const attendanceCardSurface = await expectOpaqueSurface(attendanceCard, '학생 홈 출석 카드')
   const openCardSurface = await expectOpaqueSurface(openCard, '학생 홈 공개 카드')
   const feedbackCardSurface = await expectOpaqueSurface(feedbackCard, '학생 홈 피드백 카드')
+
+  await mascotTrigger.click()
+  const mascotBubble = page.locator('[data-slot="student-home-mascot-bubble"]').first()
+  await mascotBubble.waitFor({ state: 'visible', timeout: 15000 })
+  const mascotBubbleSurface = await expectOpaqueSurface(mascotBubble, '학생 홈 미니펫 말풍선')
 
   await menuButton.click()
   const menuSurface = await expectOpaqueSurface(
@@ -301,6 +312,9 @@ async function verifyStudentHome(page, results, target) {
     homeTabSurface,
     lessonsTabSurface,
     profileTabSurface,
+    heroCardSurface,
+    mascotTriggerSurface,
+    mascotBubbleSurface,
     progressCardSurface,
     progressRailSurface,
     attendanceCardSurface,

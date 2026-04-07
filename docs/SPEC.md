@@ -105,15 +105,16 @@ student-facing 흐름도 중요하지만,
   - `수업`
   - `내상태`
 - 현재 compact student shell에서는 하단 탭 라벨을 숨기고 icon-only로 낮게 유지할 수 있다
-- `홈` 탭은 student dashboard 역할을 맡고, 현재 선택 또는 대표 수업의 `캐릭터 hero + 진행 카드 + 오늘의 체크리스트 + 빠른 action` 흐름을 사용한다
+- `홈` 탭은 student dashboard 역할을 맡고, 현재 선택 또는 대표 수업의 `캐릭터 hero + 레벨/XP 진행 + 상태 요약 카드` 흐름을 사용한다
 - `수업` 탭은 기존 최상단 헤더 바의 수업/월 선택 control과 선택된 월별 수업 상세를 보여 주며, `클래스 -> 주차 -> 콘텐츠` 소비에 집중한다
 - 프로필/로그아웃은 하단 탭이 아니라 헤더 유틸리티 메뉴 또는 보조 화면으로 둔다
-- `홈` 탭은 요약과 빠른 action만 두고, 주차 상세나 긴 콘텐츠 목록을 함께 쌓아 스크롤을 과도하게 늘리지 않는다
+- `홈` 탭은 hero와 상태 요약 카드만 두고, 주차 상세나 긴 콘텐츠 목록을 함께 쌓아 스크롤을 과도하게 늘리지 않는다
 - `수업` 탭은 step UI보다 자연스러운 `클래스 -> 주차 -> 콘텐츠` 소비 흐름을 우선한다
 - 영상/이미지는 최상위 분리 탭이 아니라 주차 콘텐츠 안에서 함께 본다
 - `내상태`는 출석 / 결제 / 진행 상태 / 피드백처럼 status-heavy 정보를 우선한다
 - `내상태`는 profile card처럼 보이는 상단 요약과 설정 카드로 구성할 수 있지만, 수정 가능한 truth는 여전히 계정 이름과 테마 선택에 한정한다
 - 학생 표면에는 출석률 / 진행률 / 참여 흐름을 부드럽게 재해석한 `light gamification` 레이어를 둘 수 있지만, 본래 상태 정보의 판독성을 가리면 안 된다
+- 학생 홈 hero의 캐릭터는 home-only `mini pet`처럼 가볍게 반응할 수 있지만, 다른 학생 표면과 운영 표면의 공용 마스코트 primitive를 같은 강도로 움직일 필요는 없다
 - 학생 hero의 공기감과 ambient glow는 허용하지만, 실제 카드 / 버튼 / 요약 surface의 배경 fill은 `opaque color` 또는 `alpha 없는 gradient`로만 유지한다
 - 학생 header selector/menu, 하단 탭, 홈 hero/progress/summary, 수업 주차 rail/button, reply composer, profile 요약/설정 카드는 같은 opaque surface contract를 공유한다
 - 학생용 시각 톤은 `소프트 파스텔 + 절제된 귀여움`을 기본으로 하고, 주 사용 대상이 `20대~40대`인 점을 고려해 유아용처럼 과장된 캐릭터/색감은 피한다
@@ -178,7 +179,7 @@ student-facing 흐름도 중요하지만,
 - 이메일은 읽기 전용으로만 보여 준다
 - 계정 정보를 불러오지 못하면 local demo 데이터를 대신 보여주지 않고 명시적 오류/재시도로 처리한다
 - `/student/profile`은 전체 상태 요약과 계정 관리에 집중하고, 학생 primary tab 바깥에서 수업 선택/신청 action을 다시 늘리지 않는다
-- 학생 수업 신청 quick action은 `홈` 탭에, 수업 선택과 콘텐츠 소비는 `수업` 탭에 둔다
+- 학생 수업 요청 entry는 `홈` empty state의 CTA로 시작하고, 실제 수업 선택과 콘텐츠 소비는 `수업` 탭에 둔다
 
 ### Student Surface
 - 학생용 기본 화면
@@ -196,20 +197,20 @@ student-facing 흐름도 중요하지만,
 - 학생 헤더 selector는 해당 학생의 `ACTIVE`/`PENDING` 등록만 보여 주고, soft delete된 inactive 수업은 숨긴다
 - 학생 상단 헤더는 전 탭에서 mobile 기준 한 줄 compact bar를 사용하고, `캐릭터 / 수업 selector / YY.MM 월 selector / 메뉴` 순서를 유지한다
 - 학생 상단 헤더는 배경과 섞이지 않도록 별도 받침 plate와 떠 있는 본체 바의 2층 인상으로 분리할 수 있다
-- 학생 `홈` 탭은 현재 선택 또는 대표 수업 기준 요약, 진행도, 체크리스트, 빠른 action을 먼저 보여 주고, 긴 주차 상세는 이 탭에 함께 쌓지 않는다
+- 학생 `홈` 탭은 현재 선택 또는 대표 수업 기준 `캐릭터 hero + 레벨/XP + 상태 요약 카드`를 먼저 보여 주고, 긴 주차 상세는 이 탭에 함께 쌓지 않는다
 - 학생 `수업` 탭은 상단 1줄 헤더 아래에 `출석 / 공개 / 피드백` 요약 카드만 남기고, 바로 `콘텐츠` 영역으로 이어진다
 - 학생 `수업` 탭의 기본 주차는 현재 날짜 기준 `월의 n주차`를 사용하고, 유효 범위를 벗어나면 현재 보이는 주차 안에서 clamp한다
-- 학생은 수업이 없거나 추가 요청이 필요할 때 `홈` 탭의 `수업 신청` quick action 다이얼로그에서 활성 수업과 월을 고르고 승인 요청을 보낼 수 있다
+- 학생은 수업이 없거나 추가 요청이 필요할 때 `홈` empty state의 `수업 탭에서 요청하기` CTA로 `수업` 탭 이동을 시작할 수 있다
 - 학생 수업 신청은 새 계정 생성이 아니라 자기 `enrollments`를 `PENDING`으로 생성하거나, 취소된 같은 달 요청을 `PENDING`으로 다시 여는 흐름이다
-- 학생 `홈` 탭의 `주차 열기`, `콘텐츠 보기`, `피드백 보기` 같은 CTA는 page-internal scroll 대신 `수업` 탭으로 이동하고 현재 selection을 유지한다
-- 학생 `홈` 탭에 둔 `수업 신청` quick action은 `수업` 탭과 `내상태`에서 중복 노출하지 않는다
-- 학생 `홈` 탭의 요약 카드와 quick action은 핵심 상태만 직접 보여 주고, 같은 의미를 범례/상태칩/보조 helper로 반복 설명하지 않는다
+- 학생 `홈` 탭은 page-internal scroll CTA를 새로 늘리지 않고, hero와 상태 요약 카드만 먼저 읽히게 유지한다
+- 학생 `홈` 탭의 hero와 상태 요약 카드는 핵심 상태만 직접 보여 주고, 같은 의미를 범례/상태칩/보조 helper로 반복 설명하지 않는다
 - 학생 `수업` 탭은 상단 상태 chip을 반복하지 않고, 승인 전/승인 후의 빈 상태 문구만 서로 다르게 읽히면 된다
 - 학생 empty ownership은 다음처럼 나눈다:
   - `홈`: 수업 없음 / 신청 필요 / 승인 대기 / 대표 수업 요약
   - `수업`: 선택 필요 / 주차 없음 / 콘텐츠 없음 / 상세 refetch
   - `내상태`: 계정/상태 read와 저장 결과
 - 학생 `홈`과 `내상태`의 핵심 요약 카드는 가능한 한 낮은 높이로 유지하고, 같은 row 안 control 폭이 들쭉날쭉 흔들리지 않게 정렬한다
+- 학생 홈 hero 안의 mini pet 반응은 `짧은 포즈 변화 + 1줄 말풍선` 수준으로 머물고, `Lv.` 배지나 `EXP` 바 정렬을 밀어내면 안 된다
 - `PENDING` 월은 `등록 예정` 또는 이에 준하는 상태 라벨로 명확히 구분한다
 - `CANCELLED` 월은 학생 수업 목록에 노출하지 않는다
 - legacy deep link인 `/student/class/[classId]`는 `yearMonth`와 함께 `수업` route contract로 정규화해 redirect할 수 있어야 한다
@@ -220,7 +221,7 @@ student-facing 흐름도 중요하지만,
 - `/student`는 `홈 / 수업 / 내상태` mobile tab baseline을 가진다
 - `홈` 탭은 student dashboard, `수업` 탭은 콘텐츠 소비, `내상태`는 상태/계정 관리 역할로 나눈다
 - 학생 하단 탭은 현재 active compact pass에서 icon-only navigation으로 낮게 유지한다
-- student home 성격의 요약과 체크리스트는 `홈` 탭에 두고, 선택된 수업의 주차 상세는 `수업` 탭으로 분리한다
+- student home 성격의 hero와 상태 요약은 `홈` 탭에 두고, 선택된 수업의 주차 상세는 `수업` 탭으로 분리한다
 - `홈 -> 수업` 이동은 현재 selection을 유지하고, `수업` 탭에서 다시 같은 class/month를 바로 연다
 - account utility와 logout은 primary tab이 아니라 header utility로 두고, profile/status는 `내상태` tab destination으로 둔다
 - 이 구조는 현재 active scope에서 `keep`으로 잠긴 baseline이며, 다음 slice는 이 위에서 좁게 열린다
@@ -359,6 +360,7 @@ student-facing 흐름도 중요하지만,
 - 학생은 출석률, 출석 streak, 공개된 콘텐츠 소비 같은 현재 앱에서 이미 읽을 수 있는 신호를 바탕으로 `경험치`, `레벨`, `다음 보상까지 진행률`을 이해할 수 있어야 한다
 - 학생 홈의 진척 카드는 큰 캐릭터 성장 카드로 읽히되, 좌상단 `Lv.` 배지와 하단 `EXP` 바가 한 세트로 붙어 보여야 한다
 - 현재 학생 홈의 `레벨/XP`는 기존 출석/공개/피드백 신호를 재해석한 light-gamification preview로 시작할 수 있고, 별도 저장 규칙이나 운영 로직은 추후에 확정한다
+- 학생 홈 hero의 캐릭터는 home-only mini pet으로 가볍게 반응할 수 있지만, `/student/lessons`, `/student/profile`, admin/header/sidebar의 공용 마스코트는 정적 primitive로 유지할 수 있다
 - 보상은 작은 디지털 보상에 한정한다:
   - 캐릭터 표정/소품 해금
   - 축하 카드/배지

@@ -14,6 +14,7 @@ import {
   studentAuthRequiredMessage,
 } from '@/lib/student-lessons'
 import { SpmMascot } from '@/components/spm-mascot'
+import { StudentHomeMascot } from '@/components/student-home-mascot'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -196,7 +197,10 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="space-y-3 px-3 pb-28 pt-3">
-      <section className="relative overflow-hidden rounded-2xl border border-[#dfe8d1] bg-card px-3 pb-3 pt-4 shadow-[0_16px_30px_rgba(111,145,72,0.1)]">
+      <section
+        data-slot="student-home-hero"
+        className="relative overflow-hidden rounded-2xl border border-[#dfe8d1] bg-card px-3 pb-3 pt-4 shadow-[0_16px_30px_rgba(111,145,72,0.1)]"
+      >
         <div className="absolute inset-x-0 bottom-0 h-24 bg-[rgba(172,207,116,0.32)]" />
         <div className="absolute -left-6 bottom-3 h-16 w-28 rounded-full bg-[rgba(146,193,98,0.24)]" />
         <div className="absolute left-1/2 bottom-0 h-20 w-32 -translate-x-1/2 rounded-full bg-[rgba(129,179,83,0.18)]" />
@@ -213,13 +217,7 @@ export default function StudentDashboardPage() {
           </div>
 
           <div className="flex flex-1 items-center justify-center pb-3 pt-2">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-white/52 blur-lg" />
-              <div className="absolute inset-x-5 bottom-2 h-4 rounded-full bg-[rgba(159,194,101,0.24)] blur-md" />
-              <div className="relative flex h-32 w-32 items-center justify-center rounded-full border border-[#edf2e2] bg-[radial-gradient(circle_at_50%_35%,#ffffff_0%,#fbfcf7_55%,#f2f5ea_100%)] shadow-[0_18px_34px_rgba(111,145,72,0.12)]">
-                <SpmMascot variant="welcome" size="lg" className="h-28 w-28" />
-              </div>
-            </div>
+            <StudentHomeMascot />
           </div>
 
           <div
