@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-04-12 | student home mascot bubble 9-slice + two-line wrap | start: not recorded | end: 2026-04-12 16:46 KST | status: done`
 - `2026-04-12 | student home mascot bubble containment + hello-wave mobile fix | start: not recorded | end: 2026-04-12 16:25 KST | status: done`
 - `2026-04-12 | student home mascot bubble dance-coach copy swap | start: not recorded | end: 2026-04-12 16:23 KST | status: done`
 - `2026-04-10 | student home hello-wave 14-percent raise timing sync follow-up | start: not recorded | end: 2026-04-10 18:45 KST | status: done`
@@ -185,7 +186,9 @@
 
 ## Done Recently
 
-- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx)에서 말풍선 shell을 실제 텍스트 높이에 맞춰 다시 재계산하고 bubble을 캐릭터 뒤 레이어로 내렸으며, `hello-wave` duration 적용 방식을 고정값/커스텀 속성 기반으로 바꿔 모바일에서도 오른팔 인사가 실제로 재생되도록 보정 완료
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`public/mascots/student-home/Union.svg`](/home/ydhcjswo/projects/SPM-SAMPLE/public/mascots/student-home/Union.svg)을 기준으로 말풍선 앞 별표를 제거했고, 문구가 길면 2줄 clamp로 감싸지도록 바꿨으며, shell도 `Union.svg` 기반 9-slice `border-image`로 교체해 가변 폭/높이에서 원본 실루엣을 유지하도록 정리 완료
+- [`scripts/lib/surface-assert.mjs`](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/lib/surface-assert.mjs)에 `border-image` surface도 opaque bubble로 인식하도록 보강 완료
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx)에서 말풍선 shell을 실제 텍스트 높이에 맞춰 다시 재계산하고 bubble을 캐릭터 뒤 레이어로 내렸으며, `hello-wave` duration 적용 방식을 고정값/커스텀 속성 기반으로 바꿔 모바일에서도 오른팔 인사가 실제로 재생되도록 보정 완료
 - [`scripts/014_verify_student_weekly_media_browser.mjs`](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/014_verify_student_weekly_media_browser.mjs)에 학생 홈 말풍선 텍스트 containment와 `hello-wave` 오른팔 transform 확인을 추가해, 문구 overflow나 인사 motion 누락이 다시 들어오면 smoke에서 잡히도록 보강 완료
 - 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 말풍선 문구를 `오늘 출빠 하나요? / 수업 출석 했나요? / 쉐잇킷 쉐잇킷 / 원투쓰리~파이브식세븐~ / 왼오왼 오왼오 / 라이트턴~ / 저랑 홀딩해요 / 홀딩 100번 했나요?` 순환 세트로 교체 완료
 - `hello-wave` 손 올리기 완료 시점을 `14%`로 더 낮추고, 손 흔들기 cadence도 `14%` 기준으로 같이 앞당겼다. wave 포인트는 `22/28/32/42/46/56/60/70/74/84/88/92%`로 재배치했고, reduced-motion raise도 `14%`로 동기화했다.

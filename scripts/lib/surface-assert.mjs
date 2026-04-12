@@ -52,6 +52,7 @@ export async function readSurface(locator) {
     return {
       backgroundColor: style.backgroundColor,
       backgroundImage: style.backgroundImage,
+      borderImageSource: style.borderImageSource,
       borderColor: style.borderColor,
       boxShadow: style.boxShadow,
       opacity: style.opacity,
@@ -72,6 +73,7 @@ export function assertOpaqueSurface(surface, label) {
   const alpha = alphaFromCssColor(surface.backgroundColor)
   const svgFillAlpha = alphaFromCssColor(surface.svgFill)
   const hasBackgroundImage = surface.backgroundImage && surface.backgroundImage !== 'none'
+  const hasBorderImage = surface.borderImageSource && surface.borderImageSource !== 'none'
   const hasOpaqueBackground = hasBackgroundImage
     ? !hasTransparentGradientStop(surface.backgroundImage)
     : alpha > 0.99
@@ -79,7 +81,7 @@ export function assertOpaqueSurface(surface, label) {
     svgFillAlpha > 0.99 && surface.svgWidthRatio >= 0.95 && surface.svgHeightRatio >= 0.95
   const opacity = Number(surface.opacity)
 
-  if (!hasOpaqueBackground && !hasOpaqueSvgSurface) {
+  if (!hasOpaqueBackground && !hasOpaqueSvgSurface && !hasBorderImage) {
     throw new Error(`${label} background should stay opaque`)
   }
 

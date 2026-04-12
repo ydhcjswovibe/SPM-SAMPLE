@@ -7,7 +7,6 @@ import {
     useState,
     type CSSProperties,
 } from "react";
-import { Sparkles } from "lucide-react";
 
 import {
     StudentHomeCuteBear,
@@ -50,27 +49,24 @@ const reactionReducedDurationsMs: Record<StudentHomeCuteBearReaction, number> = 
 const bubbleDurationMs = 2600;
 const bubbleEnterDurationMs = 220;
 const bubbleExitDurationMs = 180;
+const bubbleNineSliceSource = "/mascots/student-home/Union.svg";
 const bubbleRightGutterPx = 12;
 const bubbleShellMinWidthPx = 112;
-const bubbleShellBaseHeightPx = 41;
-const bubbleShellTwoLineMinHeightPx = 58;
-const bubbleTextGapPx = 6;
-const bubbleIconWidthPx = 12;
-const bubbleIconHeightPx = 12;
-const bubbleSingleLinePaddingLeftPx = 14.72;
-const bubbleSingleLinePaddingRightPx = 11.2;
-const bubbleSingleLinePaddingTopPx = 3.84;
-const bubbleSingleLinePaddingBottomPx = 8.32;
-const bubbleTwoLinePaddingLeftPx = 14.72;
-const bubbleTwoLinePaddingRightPx = 11.84;
-const bubbleTwoLinePaddingTopPx = 4.48;
-const bubbleTwoLinePaddingBottomPx = 8.96;
-const bubbleTextRightSafetyPx = 10;
-const bubbleSvgBaseWidth = 680;
-const bubbleSvgHeight = 252;
-const bubbleSvgRightInnerX = 629.987;
-const bubbleSvgRightControlX = 657.602;
-const bubbleSvgRightEdgeX = 679.987;
+const bubbleShellPreferredSingleLineMaxWidthPx = 118;
+const bubbleShellSingleLineHeightPx = 41;
+const bubbleShellTwoLineHeightPx = 58;
+const bubbleSingleLinePaddingLeftPx = 18;
+const bubbleSingleLinePaddingRightPx = 16;
+const bubbleTwoLinePaddingLeftPx = 18;
+const bubbleTwoLinePaddingRightPx = 16;
+const bubbleBorderTopPx = 8;
+const bubbleBorderRightPx = 8;
+const bubbleBorderBottomPx = 12;
+const bubbleBorderLeftPx = 15;
+const bubbleSliceTopPx = 50;
+const bubbleSliceRightPx = 50;
+const bubbleSliceBottomPx = 73;
+const bubbleSliceLeftPx = 94;
 
 type DanceState = "idle" | "dancing" | "reduced";
 type BubblePhase = "hidden" | "entering" | "visible" | "exiting";
@@ -80,24 +76,6 @@ type AudioWindow = Window &
     typeof globalThis & {
         webkitAudioContext?: typeof AudioContext;
     };
-
-function getBubbleViewBoxWidth(displayWidthPx: number) {
-    const widthDeltaPx = displayWidthPx - bubbleShellMinWidthPx;
-    return (
-        bubbleSvgBaseWidth +
-        (Math.max(widthDeltaPx, 0) * bubbleSvgHeight) /
-            bubbleShellBaseHeightPx
-    );
-}
-
-function getUnionBubblePath(viewBoxWidth: number) {
-    const extraWidth = viewBoxWidth - bubbleSvgBaseWidth;
-    const rightInnerX = bubbleSvgRightInnerX + extraWidth;
-    const rightControlX = bubbleSvgRightControlX + extraWidth;
-    const rightEdgeX = bubbleSvgRightEdgeX + extraWidth;
-
-    return `M${rightInnerX} 0C${rightControlX} 0 ${rightEdgeX} 22.3858 ${rightEdgeX} 50V179C${rightEdgeX} 206.614 ${rightControlX} 229 ${rightInnerX} 229H93.9814L0 251.318L27.9873 157.278V50C27.9873 22.3858 50.3731 0 77.9873 0H${rightInnerX}Z`;
-}
 
 function getAudioContextConstructor() {
     if (typeof window === "undefined") {
@@ -211,7 +189,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
     const [bubbleShellWidthPx, setBubbleShellWidthPx] =
         useState(bubbleShellMinWidthPx);
     const [bubbleShellHeightPx, setBubbleShellHeightPx] = useState(
-        bubbleShellBaseHeightPx,
+        bubbleShellSingleLineHeightPx,
     );
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
     const [isDancing, setIsDancing] = useState(false);
@@ -338,7 +316,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         setBubbleMessageText(nextBubbleMessage);
         setBubbleWrapMode("single-line");
         setBubbleShellWidthPx(bubbleShellMinWidthPx);
-        setBubbleShellHeightPx(bubbleShellBaseHeightPx);
+        setBubbleShellHeightPx(bubbleShellSingleLineHeightPx);
         setBubblePhase(prefersReducedMotion ? "visible" : "entering");
         setIsPoseActive(true);
         setIsDancing(!prefersReducedMotion);
@@ -415,7 +393,9 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
             );
             const previousTextStyle = bubbleText.getAttribute("style");
 
-            bubbleText.style.setProperty("display", "block");
+            bubbleText.style.setProperty("display", "inline-block");
+            bubbleText.style.setProperty("width", "auto");
+            bubbleText.style.setProperty("max-width", "none");
             bubbleText.style.setProperty("white-space", "nowrap");
             bubbleText.style.setProperty("overflow", "visible");
             bubbleText.style.removeProperty("-webkit-line-clamp");
@@ -434,14 +414,18 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                 bubbleShellMinWidthPx,
                 Math.ceil(
                     singleLineTextWidthPx +
-                        bubbleIconWidthPx +
-                        bubbleTextGapPx +
                         bubbleSingleLinePaddingLeftPx +
-                        bubbleSingleLinePaddingRightPx +
-                        bubbleTextRightSafetyPx,
+                        bubbleSingleLinePaddingRightPx,
                 ),
             );
-            const shouldWrap = naturalShellWidthPx > availableWidthPx;
+            const singleLineMaxWidthPx = Math.max(
+                bubbleShellMinWidthPx,
+                Math.min(
+                    Math.floor(availableWidthPx),
+                    bubbleShellPreferredSingleLineMaxWidthPx,
+                ),
+            );
+            const shouldWrap = naturalShellWidthPx > singleLineMaxWidthPx;
 
             if (!shouldWrap) {
                 setBubbleWrapMode((current) =>
@@ -453,35 +437,19 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                         : naturalShellWidthPx,
                 );
                 setBubbleShellHeightPx((current) =>
-                    current === bubbleShellBaseHeightPx
+                    current === bubbleShellSingleLineHeightPx
                         ? current
-                        : bubbleShellBaseHeightPx,
+                        : bubbleShellSingleLineHeightPx,
                 );
                 return;
             }
 
             const nextWidth = Math.max(
                 bubbleShellMinWidthPx,
-                Math.floor(availableWidthPx),
-            );
-            const twoLineTextWidthPx = Math.max(
-                40,
-                nextWidth -
-                    bubbleIconWidthPx -
-                    bubbleTextGapPx -
-                    bubbleTwoLinePaddingLeftPx -
-                    bubbleTwoLinePaddingRightPx -
-                    bubbleTextRightSafetyPx,
-            );
-
-            bubbleText.style.setProperty("display", "block");
-            bubbleText.style.setProperty("width", `${twoLineTextWidthPx}px`);
-            bubbleText.style.setProperty("white-space", "normal");
-            bubbleText.style.setProperty("overflow", "visible");
-            bubbleText.style.setProperty("word-break", "keep-all");
-
-            const twoLineTextHeightPx = Math.ceil(
-                bubbleText.getBoundingClientRect().height,
+                Math.min(
+                    Math.floor(availableWidthPx),
+                    bubbleShellPreferredSingleLineMaxWidthPx,
+                ),
             );
 
             if (previousTextStyle === null) {
@@ -497,14 +465,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                 return current === nextWidth ? current : nextWidth;
             });
             setBubbleShellHeightPx((current) => {
-                const nextHeight = Math.max(
-                    bubbleShellTwoLineMinHeightPx,
-                    Math.ceil(
-                        Math.max(twoLineTextHeightPx, bubbleIconHeightPx) +
-                            bubbleTwoLinePaddingTopPx +
-                            bubbleTwoLinePaddingBottomPx,
-                    ),
-                );
+                const nextHeight = bubbleShellTwoLineHeightPx;
                 return current === nextHeight ? current : nextHeight;
             });
         };
@@ -517,8 +478,6 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         };
     }, [bubbleMessageText, isBubbleVisible]);
 
-    const bubbleViewBoxWidth = getBubbleViewBoxWidth(bubbleShellWidthPx);
-    const bubbleShellPath = getUnionBubblePath(bubbleViewBoxWidth);
     const mascotStyle = {
         width: "10.25rem",
         height: "9rem",
@@ -533,6 +492,20 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         `${currentReactionReducedDurationMs}ms`;
     mascotStyle["--student-home-sparkle-dance-duration"] =
         `${currentReactionMotionDurationMs}ms`;
+    const bubbleShellStyle = {
+        width: `${bubbleShellWidthPx / 16}rem`,
+        height: `${bubbleShellHeightPx / 16}rem`,
+        filter: "drop-shadow(0 4px 8px rgba(34, 28, 18, 0.05))",
+        boxSizing: "border-box",
+        backgroundColor: "#ffffff",
+        borderStyle: "solid",
+        borderColor: "transparent",
+        borderWidth: `${bubbleBorderTopPx}px ${bubbleBorderRightPx}px ${bubbleBorderBottomPx}px ${bubbleBorderLeftPx}px`,
+        borderImageSource: `url("${bubbleNineSliceSource}")`,
+        borderImageSlice: `${bubbleSliceTopPx} ${bubbleSliceRightPx} ${bubbleSliceBottomPx} ${bubbleSliceLeftPx} fill`,
+        borderImageWidth: `${bubbleBorderTopPx}px ${bubbleBorderRightPx}px ${bubbleBorderBottomPx}px ${bubbleBorderLeftPx}px`,
+        borderImageRepeat: "stretch",
+    } as CSSProperties;
 
     return (
         <div
@@ -584,54 +557,21 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                             aria-live="polite"
                             aria-atomic="true"
                             className="relative block overflow-visible"
-                            style={{
-                                width: `${bubbleShellWidthPx / 16}rem`,
-                                height: `${bubbleShellHeightPx / 16}rem`,
-                                filter: "drop-shadow(0 4px 8px rgba(34, 28, 18, 0.05))",
-                            }}
+                            style={bubbleShellStyle}
                         >
-                            <svg
-                                aria-hidden="true"
-                                className="pointer-events-none absolute inset-0 h-full w-full select-none"
-                                viewBox={`0 0 ${bubbleViewBoxWidth} ${bubbleSvgHeight}`}
-                                preserveAspectRatio="none"
-                            >
-                                <path d={bubbleShellPath} fill="#ffffff" />
-                                <path
-                                    d={bubbleShellPath}
-                                    fill="none"
-                                    stroke="#000000"
-                                    strokeWidth="5"
-                                    strokeLinejoin="round"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
                             <div
-                                className={cn(
-                                    "absolute inset-0 flex gap-1.5 text-[11px] font-semibold text-[#151515]",
-                                    bubbleWrapMode === "two-line"
-                                        ? "items-start"
-                                        : "items-center",
-                                )}
+                                className="absolute inset-0 text-[11px] font-semibold text-[#151515]"
                                 style={{
                                     padding:
                                         bubbleWrapMode === "two-line"
-                                            ? "0.28rem 0.74rem 0.56rem 0.92rem"
-                                            : "0.24rem 0.7rem 0.52rem 0.92rem",
+                                            ? `${5 / 16}rem ${bubbleTwoLinePaddingRightPx / 16}rem ${9 / 16}rem ${bubbleTwoLinePaddingLeftPx / 16}rem`
+                                            : `${4 / 16}rem ${bubbleSingleLinePaddingRightPx / 16}rem ${8 / 16}rem ${bubbleSingleLinePaddingLeftPx / 16}rem`,
                                 }}
                             >
-                                <Sparkles
-                                    className={cn(
-                                        "h-3 w-3 shrink-0 text-[#151515]",
-                                        bubbleWrapMode === "two-line"
-                                            ? "mt-[0.06rem]"
-                                            : "mt-0",
-                                    )}
-                                />
                                 <span
                                     ref={bubbleTextRef}
                                     data-slot="student-home-mascot-bubble-text"
-                                    className="min-w-0 break-keep leading-[0.95rem] text-[#151515]"
+                                    className="block min-w-0 break-keep leading-[0.95rem] text-[#151515]"
                                     style={{
                                         display:
                                             bubbleWrapMode === "two-line"
@@ -653,6 +593,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                                             bubbleWrapMode === "two-line"
                                                 ? "normal"
                                                 : "nowrap",
+                                        wordBreak: "keep-all",
                                     }}
                                 >
                                     {bubbleMessageText}
