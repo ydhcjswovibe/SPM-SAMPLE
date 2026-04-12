@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+    type CSSProperties,
+} from "react";
 import { Sparkles } from "lucide-react";
 
 import {
@@ -46,13 +52,20 @@ const bubbleEnterDurationMs = 220;
 const bubbleExitDurationMs = 180;
 const bubbleRightGutterPx = 12;
 const bubbleShellMinWidthPx = 112;
-const bubbleShellHeightPx = 41;
+const bubbleShellBaseHeightPx = 41;
+const bubbleShellTwoLineMinHeightPx = 58;
 const bubbleTextGapPx = 6;
 const bubbleIconWidthPx = 12;
+const bubbleIconHeightPx = 12;
 const bubbleSingleLinePaddingLeftPx = 14.72;
 const bubbleSingleLinePaddingRightPx = 11.2;
+const bubbleSingleLinePaddingTopPx = 3.84;
+const bubbleSingleLinePaddingBottomPx = 8.32;
 const bubbleTwoLinePaddingLeftPx = 14.72;
 const bubbleTwoLinePaddingRightPx = 11.84;
+const bubbleTwoLinePaddingTopPx = 4.48;
+const bubbleTwoLinePaddingBottomPx = 8.96;
+const bubbleTextRightSafetyPx = 10;
 const bubbleSvgBaseWidth = 680;
 const bubbleSvgHeight = 252;
 const bubbleSvgRightInnerX = 629.987;
@@ -72,7 +85,8 @@ function getBubbleViewBoxWidth(displayWidthPx: number) {
     const widthDeltaPx = displayWidthPx - bubbleShellMinWidthPx;
     return (
         bubbleSvgBaseWidth +
-        (Math.max(widthDeltaPx, 0) * bubbleSvgHeight) / bubbleShellHeightPx
+        (Math.max(widthDeltaPx, 0) * bubbleSvgHeight) /
+            bubbleShellBaseHeightPx
     );
 }
 
@@ -196,6 +210,9 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         useState<BubbleWrapMode>("single-line");
     const [bubbleShellWidthPx, setBubbleShellWidthPx] =
         useState(bubbleShellMinWidthPx);
+    const [bubbleShellHeightPx, setBubbleShellHeightPx] = useState(
+        bubbleShellBaseHeightPx,
+    );
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
     const [isDancing, setIsDancing] = useState(false);
     const [isPoseActive, setIsPoseActive] = useState(false);
@@ -321,6 +338,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         setBubbleMessageText(nextBubbleMessage);
         setBubbleWrapMode("single-line");
         setBubbleShellWidthPx(bubbleShellMinWidthPx);
+        setBubbleShellHeightPx(bubbleShellBaseHeightPx);
         setBubblePhase(prefersReducedMotion ? "visible" : "entering");
         setIsPoseActive(true);
         setIsDancing(!prefersReducedMotion);
@@ -419,7 +437,8 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                         bubbleIconWidthPx +
                         bubbleTextGapPx +
                         bubbleSingleLinePaddingLeftPx +
-                        bubbleSingleLinePaddingRightPx,
+                        bubbleSingleLinePaddingRightPx +
+                        bubbleTextRightSafetyPx,
                 ),
             );
             const shouldWrap = naturalShellWidthPx > availableWidthPx;
@@ -433,18 +452,60 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                         ? current
                         : naturalShellWidthPx,
                 );
+                setBubbleShellHeightPx((current) =>
+                    current === bubbleShellBaseHeightPx
+                        ? current
+                        : bubbleShellBaseHeightPx,
+                );
                 return;
+            }
+
+            const nextWidth = Math.max(
+                bubbleShellMinWidthPx,
+                Math.floor(availableWidthPx),
+            );
+            const twoLineTextWidthPx = Math.max(
+                40,
+                nextWidth -
+                    bubbleIconWidthPx -
+                    bubbleTextGapPx -
+                    bubbleTwoLinePaddingLeftPx -
+                    bubbleTwoLinePaddingRightPx -
+                    bubbleTextRightSafetyPx,
+            );
+
+            bubbleText.style.setProperty("display", "block");
+            bubbleText.style.setProperty("width", `${twoLineTextWidthPx}px`);
+            bubbleText.style.setProperty("white-space", "normal");
+            bubbleText.style.setProperty("overflow", "visible");
+            bubbleText.style.setProperty("word-break", "keep-all");
+
+            const twoLineTextHeightPx = Math.ceil(
+                bubbleText.getBoundingClientRect().height,
+            );
+
+            if (previousTextStyle === null) {
+                bubbleText.removeAttribute("style");
+            } else {
+                bubbleText.setAttribute("style", previousTextStyle);
             }
 
             setBubbleWrapMode((current) =>
                 current === "two-line" ? current : "two-line",
             );
             setBubbleShellWidthPx((current) => {
-                const nextWidth = Math.max(
-                    bubbleShellMinWidthPx,
-                    Math.floor(availableWidthPx),
-                );
                 return current === nextWidth ? current : nextWidth;
+            });
+            setBubbleShellHeightPx((current) => {
+                const nextHeight = Math.max(
+                    bubbleShellTwoLineMinHeightPx,
+                    Math.ceil(
+                        Math.max(twoLineTextHeightPx, bubbleIconHeightPx) +
+                            bubbleTwoLinePaddingTopPx +
+                            bubbleTwoLinePaddingBottomPx,
+                    ),
+                );
+                return current === nextHeight ? current : nextHeight;
             });
         };
 
@@ -458,6 +519,20 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
 
     const bubbleViewBoxWidth = getBubbleViewBoxWidth(bubbleShellWidthPx);
     const bubbleShellPath = getUnionBubblePath(bubbleViewBoxWidth);
+    const mascotStyle = {
+        width: "10.25rem",
+        height: "9rem",
+    } as CSSProperties & Record<string, string>;
+    mascotStyle["--student-home-bubble-enter-duration"] =
+        `${bubbleEnterDurationMs}ms`;
+    mascotStyle["--student-home-bubble-exit-duration"] =
+        `${bubbleExitDurationMs}ms`;
+    mascotStyle["--student-home-stage-duration"] =
+        `${currentReactionMotionDurationMs}ms`;
+    mascotStyle["--student-home-stage-reduced-duration"] =
+        `${currentReactionReducedDurationMs}ms`;
+    mascotStyle["--student-home-sparkle-dance-duration"] =
+        `${currentReactionMotionDurationMs}ms`;
 
     return (
         <div
@@ -465,10 +540,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                 "relative flex max-w-full items-end justify-start",
                 className,
             )}
-            style={{
-                width: "10.25rem",
-                height: "9rem",
-            }}
+            style={mascotStyle}
         >
             <div
                 className="absolute bottom-1 rounded-full bg-[rgba(183,211,138,0.22)] blur-[8px]"
@@ -494,9 +566,9 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
             {isBubbleVisible ? (
                 <div
                     ref={bubbleAnchorRef}
-                    style={{ left: "calc(50% + 2.5rem)", top: "0.35rem" }}
+                    style={{ left: "calc(50% + 2.6rem)", top: "0.05rem" }}
                     className={cn(
-                        "pointer-events-none absolute z-20",
+                        "pointer-events-none absolute z-0",
                         !prefersReducedMotion &&
                             bubblePhase === "entering" &&
                             "student-home-mascot__bubble-shell--enter",
@@ -558,6 +630,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                                 />
                                 <span
                                     ref={bubbleTextRef}
+                                    data-slot="student-home-mascot-bubble-text"
                                     className="min-w-0 break-keep leading-[0.95rem] text-[#151515]"
                                     style={{
                                         display:
@@ -598,7 +671,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                 data-reaction-key={reactionKey ?? "idle"}
                 aria-label="미니펫 상호작용"
                 aria-pressed={danceState !== "idle"}
-                className="group absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end justify-center overflow-visible rounded-[1.9rem] bg-transparent transition-transform duration-200 active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0c766] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="group absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 items-end justify-center overflow-visible rounded-[1.9rem] bg-transparent transition-transform duration-200 active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0c766] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 style={{ width: "10.12rem", height: "12.76rem" }}
             >
                 <span
@@ -652,24 +725,24 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                 .student-home-mascot__bubble-shell--enter {
                     transform-origin: 18% 88%;
                     animation: student-home-bubble-enter
-                        ${bubbleEnterDurationMs}ms ease-out both;
+                        var(--student-home-bubble-enter-duration) ease-out both;
                 }
 
                 .student-home-mascot__bubble-shell--exit {
                     transform-origin: 18% 88%;
                     animation: student-home-bubble-exit
-                        ${bubbleExitDurationMs}ms ease-in both;
+                        var(--student-home-bubble-exit-duration) ease-in both;
                 }
 
                 .student-home-mascot__stage--active {
                     animation: student-home-stage-glow
-                        ${currentReactionMotionDurationMs}ms
+                        var(--student-home-stage-duration)
                         cubic-bezier(0.22, 1, 0.36, 1);
                 }
 
                 .student-home-mascot__stage--reduced {
                     animation: student-home-stage-reduced
-                        ${currentReactionReducedDurationMs}ms
+                        var(--student-home-stage-reduced-duration)
                         cubic-bezier(0.25, 1, 0.5, 1);
                 }
 
@@ -679,7 +752,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
 
                 .student-home-mascot__sparkle--dancing {
                     animation: student-home-sparkle-dance
-                        ${currentReactionMotionDurationMs}ms ease-out;
+                        var(--student-home-sparkle-dance-duration) ease-out;
                 }
 
                 @media (prefers-reduced-motion: reduce) {

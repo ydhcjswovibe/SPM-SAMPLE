@@ -17,8 +17,6 @@ interface StudentHomeCuteBearProps {
 const furFill = "#FFFCF7";
 const furStroke = "#DDD1B7";
 const limbStroke = "#D7C7A7";
-const helloWaveDurationMs = 4200;
-const helloWaveReducedDurationMs = 1080;
 
 export function StudentHomeCuteBear({
     className,
@@ -370,13 +368,13 @@ export function StudentHomeCuteBear({
                     .student-home-cute-bear__arm--right {
                     transform-origin: 167.639px 153.707px;
                     animation: student-home-cute-bear-hello-arm-right
-                        ${helloWaveDurationMs}ms linear;
+                        4.2s linear both;
                 }
 
                 .student-home-cute-bear--dancing.student-home-cute-bear--hello-wave
                     .student-home-cute-bear__arm-wave--right {
                     animation: student-home-cute-bear-hello-arm-right-wave
-                        ${helloWaveDurationMs}ms linear;
+                        4.2s linear both;
                 }
 
                 .student-home-cute-bear--dancing.student-home-cute-bear--hello-wave
@@ -480,8 +478,7 @@ export function StudentHomeCuteBear({
                     .student-home-cute-bear__arm--right {
                     transform-origin: 167.639px 153.707px;
                     animation: student-home-cute-bear-hello-reduced-arm-right
-                        ${helloWaveReducedDurationMs}ms
-                        cubic-bezier(0.25, 1, 0.5, 1);
+                        1.08s cubic-bezier(0.25, 1, 0.5, 1) both;
                 }
 
                 .student-home-cute-bear--reduced.student-home-cute-bear--hello-wave

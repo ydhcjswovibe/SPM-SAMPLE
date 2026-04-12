@@ -260,6 +260,25 @@ function expectStableBounds(before, after, label) {
   }
 }
 
+async function readComputedTransform(locator, label) {
+  const transform = await locator.evaluate((node) => window.getComputedStyle(node).transform)
+  expect(typeof transform === 'string', `${label} transform is missing`)
+  return transform
+}
+
+function expectBoundsContained(outer, inner, label) {
+  const allowedBleed = 2
+  const exceedsOuter =
+    inner.x < outer.x - allowedBleed ||
+    inner.y < outer.y - allowedBleed ||
+    inner.x + inner.width > outer.x + outer.width + allowedBleed ||
+    inner.y + inner.height > outer.y + outer.height + allowedBleed
+
+  if (exceedsOuter) {
+    throw new Error(`${label} should stay contained inside the mascot speech bubble`)
+  }
+}
+
 async function verifyStudentHome(page, results, target) {
   await page.goto(`${baseUrl}/student?classId=${target.classId}&yearMonth=${target.yearMonth}`, {
     waitUntil: 'domcontentloaded',
@@ -356,6 +375,18 @@ async function verifyStudentHome(page, results, target) {
     await mascotBubble.waitFor({ state: 'visible', timeout: 15000 })
     if (!mascotBubbleSurface) {
       mascotBubbleSurface = await expectOpaqueSurface(mascotBubble, '학생 홈 미니펫 말풍선')
+    }
+    const mascotBubbleText = page.locator('[data-slot="student-home-mascot-bubble-text"]').first()
+    await mascotBubbleText.waitFor({ state: 'visible', timeout: 15000 })
+    const mascotBubbleBounds = await readBoundingBox(mascotBubble, '학생 홈 미니펫 말풍선')
+    const mascotBubbleTextBounds = await readBoundingBox(mascotBubbleText, '학생 홈 미니펫 말풍선 텍스트')
+    expectBoundsContained(mascotBubbleBounds, mascotBubbleTextBounds, '학생 홈 미니펫 말풍선 텍스트')
+
+    if (mascotReactionKey === 'hello-wave') {
+      await page.waitForTimeout(700)
+      const helloWaveArm = page.locator('.student-home-cute-bear__arm--right').first()
+      const helloWaveArmTransform = await readComputedTransform(helloWaveArm, '학생 홈 hello-wave arm')
+      expect(helloWaveArmTransform !== 'none', 'Student home hello-wave should visibly raise the right arm')
     }
 
     await page.waitForFunction(
