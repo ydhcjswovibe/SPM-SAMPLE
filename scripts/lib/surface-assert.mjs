@@ -41,6 +41,13 @@ export async function readSurface(locator) {
   return await locator.evaluate((node) => {
     const style = window.getComputedStyle(node)
     const rect = node.getBoundingClientRect()
+    const svg = node.querySelector('svg')
+    const svgRect = svg?.getBoundingClientRect() ?? null
+    const filledSvgPath =
+      svg?.querySelector('path[fill]:not([fill="none"])') ??
+      svg?.querySelector('rect[fill]:not([fill="none"])') ??
+      null
+    const filledSvgStyle = filledSvgPath ? window.getComputedStyle(filledSvgPath) : null
 
     return {
       backgroundColor: style.backgroundColor,
@@ -54,19 +61,25 @@ export async function readSurface(locator) {
       right: rect.right,
       top: rect.top,
       bottom: rect.bottom,
+      svgFill: filledSvgStyle?.fill ?? null,
+      svgWidthRatio: svgRect && rect.width > 0 ? svgRect.width / rect.width : 0,
+      svgHeightRatio: svgRect && rect.height > 0 ? svgRect.height / rect.height : 0,
     }
   })
 }
 
 export function assertOpaqueSurface(surface, label) {
   const alpha = alphaFromCssColor(surface.backgroundColor)
+  const svgFillAlpha = alphaFromCssColor(surface.svgFill)
   const hasBackgroundImage = surface.backgroundImage && surface.backgroundImage !== 'none'
   const hasOpaqueBackground = hasBackgroundImage
     ? !hasTransparentGradientStop(surface.backgroundImage)
     : alpha > 0.99
+  const hasOpaqueSvgSurface =
+    svgFillAlpha > 0.99 && surface.svgWidthRatio >= 0.95 && surface.svgHeightRatio >= 0.95
   const opacity = Number(surface.opacity)
 
-  if (!hasOpaqueBackground) {
+  if (!hasOpaqueBackground && !hasOpaqueSvgSurface) {
     throw new Error(`${label} background should stay opaque`)
   }
 

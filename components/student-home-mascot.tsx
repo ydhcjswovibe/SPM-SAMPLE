@@ -1,261 +1,763 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Sparkles } from "lucide-react";
 
-import { SpmMascot } from '@/components/spm-mascot'
-import { cn } from '@/lib/utils'
+import {
+    StudentHomeCuteBear,
+    type StudentHomeCuteBearReaction,
+} from "@/components/student-home-cute-bear";
+import { cn } from "@/lib/utils";
 
 interface StudentHomeMascotProps {
-  className?: string
+    className?: string;
 }
 
-const tapMessages = [
-  '좋아요, 한 스텝 더',
-  '리듬이 차오르고 있어요',
-  '오늘도 잘하고 있어요',
-  '가볍게 한 번 더',
-  '진행감이 쌓이고 있어요',
-]
+const reactionKeys = [
+    "salsa-step",
+    "hello-wave",
+    "happy-bob",
+] as const satisfies readonly StudentHomeCuteBearReaction[];
+const defaultReactionKey = reactionKeys[0];
+const reactionMessages: Record<StudentHomeCuteBearReaction, string> = {
+    "salsa-step": "발끝이 먼저 움직여요",
+    "hello-wave": "손끝으로 먼저 인사해요",
+    "happy-bob": "어깨가 리듬을 타고 있어요",
+};
 
-const tapDurationMs = 720
-const bubbleDurationMs = 1400
+const reactionMotionDurationsMs: Record<StudentHomeCuteBearReaction, number> = {
+    "salsa-step": 2400,
+    "hello-wave": 4200,
+    "happy-bob": 2400,
+};
+const reactionReducedDurationsMs: Record<StudentHomeCuteBearReaction, number> = {
+    "salsa-step": 420,
+    "hello-wave": 1080,
+    "happy-bob": 420,
+};
+const bubbleDurationMs = 2600;
+const bubbleEnterDurationMs = 220;
+const bubbleExitDurationMs = 180;
+const bubbleRightGutterPx = 12;
+const bubbleShellMinWidthPx = 112;
+const bubbleShellHeightPx = 41;
+const bubbleTextGapPx = 6;
+const bubbleIconWidthPx = 12;
+const bubbleSingleLinePaddingLeftPx = 14.72;
+const bubbleSingleLinePaddingRightPx = 11.2;
+const bubbleTwoLinePaddingLeftPx = 14.72;
+const bubbleTwoLinePaddingRightPx = 11.84;
+const bubbleSvgBaseWidth = 680;
+const bubbleSvgHeight = 252;
+const bubbleSvgRightInnerX = 629.987;
+const bubbleSvgRightControlX = 657.602;
+const bubbleSvgRightEdgeX = 679.987;
+
+type DanceState = "idle" | "dancing" | "reduced";
+type BubblePhase = "hidden" | "entering" | "visible" | "exiting";
+type BubbleWrapMode = "single-line" | "two-line";
+
+type AudioWindow = Window &
+    typeof globalThis & {
+        webkitAudioContext?: typeof AudioContext;
+    };
+
+function getBubbleViewBoxWidth(displayWidthPx: number) {
+    const widthDeltaPx = displayWidthPx - bubbleShellMinWidthPx;
+    return (
+        bubbleSvgBaseWidth +
+        (Math.max(widthDeltaPx, 0) * bubbleSvgHeight) / bubbleShellHeightPx
+    );
+}
+
+function getUnionBubblePath(viewBoxWidth: number) {
+    const extraWidth = viewBoxWidth - bubbleSvgBaseWidth;
+    const rightInnerX = bubbleSvgRightInnerX + extraWidth;
+    const rightControlX = bubbleSvgRightControlX + extraWidth;
+    const rightEdgeX = bubbleSvgRightEdgeX + extraWidth;
+
+    return `M${rightInnerX} 0C${rightControlX} 0 ${rightEdgeX} 22.3858 ${rightEdgeX} 50V179C${rightEdgeX} 206.614 ${rightControlX} 229 ${rightInnerX} 229H93.9814L0 251.318L27.9873 157.278V50C27.9873 22.3858 50.3731 0 77.9873 0H${rightInnerX}Z`;
+}
+
+function getAudioContextConstructor() {
+    if (typeof window === "undefined") {
+        return null;
+    }
+
+    return (
+        window.AudioContext ??
+        (window as AudioWindow).webkitAudioContext ??
+        null
+    );
+}
+
+function playSalsaAccent(audioContext: AudioContext) {
+    const pulses = [
+        { at: 0, frequency: 420, gain: 0.035 },
+        { at: 0.12, frequency: 560, gain: 0.028 },
+        { at: 0.24, frequency: 710, gain: 0.024 },
+    ];
+
+    const startAt = audioContext.currentTime + 0.01;
+
+    pulses.forEach((pulse, index) => {
+        const oscillator = audioContext.createOscillator();
+        const filter = audioContext.createBiquadFilter();
+        const gainNode = audioContext.createGain();
+        const pulseStart = startAt + pulse.at;
+
+        oscillator.type = index === 1 ? "triangle" : "square";
+        oscillator.frequency.setValueAtTime(pulse.frequency, pulseStart);
+        oscillator.frequency.exponentialRampToValueAtTime(
+            pulse.frequency * 1.28,
+            pulseStart + 0.045,
+        );
+
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(pulse.frequency * 1.4, pulseStart);
+        filter.Q.setValueAtTime(1.2, pulseStart);
+
+        gainNode.gain.setValueAtTime(0.0001, pulseStart);
+        gainNode.gain.exponentialRampToValueAtTime(
+            pulse.gain,
+            pulseStart + 0.012,
+        );
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, pulseStart + 0.11);
+
+        oscillator.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start(pulseStart);
+        oscillator.stop(pulseStart + 0.12);
+    });
+}
+
+function getBubbleVisibleDurationMs(
+    reactionKey: StudentHomeCuteBearReaction,
+    prefersReducedMotion: boolean,
+) {
+    if (prefersReducedMotion) {
+        return Math.max(
+            1200,
+            reactionReducedDurationsMs[reactionKey] + bubbleExitDurationMs + 80,
+        );
+    }
+
+    return Math.max(
+        bubbleDurationMs,
+        reactionMotionDurationsMs[reactionKey] + bubbleExitDurationMs + 80,
+    );
+}
+
+function shuffleReactionKeys(keys: readonly StudentHomeCuteBearReaction[]) {
+    const nextKeys = [...keys];
+
+    for (let index = nextKeys.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [nextKeys[index], nextKeys[randomIndex]] = [
+            nextKeys[randomIndex],
+            nextKeys[index],
+        ];
+    }
+
+    return nextKeys;
+}
+
+function buildReactionQueue(
+    previousReactionKey: StudentHomeCuteBearReaction | null,
+) {
+    const nextQueue = shuffleReactionKeys(reactionKeys);
+
+    if (
+        previousReactionKey &&
+        nextQueue.length > 1 &&
+        nextQueue[0] === previousReactionKey
+    ) {
+        [nextQueue[0], nextQueue[1]] = [nextQueue[1], nextQueue[0]];
+    }
+
+    return nextQueue;
+}
 
 export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
-  const [messageIndex, setMessageIndex] = useState(-1)
-  const [isTapped, setIsTapped] = useState(false)
-  const [isBubbleVisible, setIsBubbleVisible] = useState(false)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  const tapTimeoutRef = useRef<number | null>(null)
-  const bubbleTimeoutRef = useRef<number | null>(null)
+    const [reactionKey, setReactionKey] =
+        useState<StudentHomeCuteBearReaction | null>(null);
+    const [bubblePhase, setBubblePhase] = useState<BubblePhase>("hidden");
+    const [bubbleWrapMode, setBubbleWrapMode] =
+        useState<BubbleWrapMode>("single-line");
+    const [bubbleShellWidthPx, setBubbleShellWidthPx] =
+        useState(bubbleShellMinWidthPx);
+    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+    const [isDancing, setIsDancing] = useState(false);
+    const [isPoseActive, setIsPoseActive] = useState(false);
+    const danceTimeoutRef = useRef<number | null>(null);
+    const bubbleEnterTimeoutRef = useRef<number | null>(null);
+    const bubbleExitTimeoutRef = useRef<number | null>(null);
+    const bubbleHideTimeoutRef = useRef<number | null>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const bubbleAnchorRef = useRef<HTMLDivElement | null>(null);
+    const bubbleTextRef = useRef<HTMLSpanElement | null>(null);
+    const reactionQueueRef = useRef<StudentHomeCuteBearReaction[]>([]);
 
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const handleChange = (event?: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event ? event.matches : media.matches)
+    function clearBubbleTimers() {
+        if (bubbleEnterTimeoutRef.current !== null) {
+            window.clearTimeout(bubbleEnterTimeoutRef.current);
+            bubbleEnterTimeoutRef.current = null;
+        }
+        if (bubbleExitTimeoutRef.current !== null) {
+            window.clearTimeout(bubbleExitTimeoutRef.current);
+            bubbleExitTimeoutRef.current = null;
+        }
+        if (bubbleHideTimeoutRef.current !== null) {
+            window.clearTimeout(bubbleHideTimeoutRef.current);
+            bubbleHideTimeoutRef.current = null;
+        }
     }
 
-    handleChange()
+    useEffect(() => {
+        const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const handleChange = (event?: MediaQueryListEvent) => {
+            setPrefersReducedMotion(event ? event.matches : media.matches);
+        };
 
-    if (typeof media.addEventListener === 'function') {
-      media.addEventListener('change', handleChange)
-    } else {
-      media.addListener(handleChange)
+        handleChange();
+
+        if (typeof media.addEventListener === "function") {
+            media.addEventListener("change", handleChange);
+        } else {
+            media.addListener(handleChange);
+        }
+
+        return () => {
+            if (danceTimeoutRef.current !== null) {
+                window.clearTimeout(danceTimeoutRef.current);
+            }
+            clearBubbleTimers();
+            if (audioContextRef.current) {
+                void audioContextRef.current.close();
+            }
+
+            if (typeof media.removeEventListener === "function") {
+                media.removeEventListener("change", handleChange);
+            } else {
+                media.removeListener(handleChange);
+            }
+        };
+    }, []);
+
+    function clearTimers() {
+        if (danceTimeoutRef.current !== null) {
+            window.clearTimeout(danceTimeoutRef.current);
+            danceTimeoutRef.current = null;
+        }
+        clearBubbleTimers();
     }
 
-    return () => {
-      if (tapTimeoutRef.current !== null) {
-        window.clearTimeout(tapTimeoutRef.current)
-      }
-      if (bubbleTimeoutRef.current !== null) {
-        window.clearTimeout(bubbleTimeoutRef.current)
-      }
+    function pickNextReactionKey() {
+        if (reactionQueueRef.current.length === 0) {
+            reactionQueueRef.current = buildReactionQueue(reactionKey);
+        }
 
-      if (typeof media.removeEventListener === 'function') {
-        media.removeEventListener('change', handleChange)
-      } else {
-        media.removeListener(handleChange)
-      }
-    }
-  }, [])
-
-  function handleTap() {
-    setMessageIndex((current) => (current + 1 + tapMessages.length) % tapMessages.length)
-    setIsTapped(true)
-    setIsBubbleVisible(true)
-
-    if (tapTimeoutRef.current !== null) {
-      window.clearTimeout(tapTimeoutRef.current)
-    }
-    if (bubbleTimeoutRef.current !== null) {
-      window.clearTimeout(bubbleTimeoutRef.current)
+        return reactionQueueRef.current.shift() ?? defaultReactionKey;
     }
 
-    tapTimeoutRef.current = window.setTimeout(() => {
-      setIsTapped(false)
-      tapTimeoutRef.current = null
-    }, prefersReducedMotion ? 180 : tapDurationMs)
+    async function playTapSound() {
+        const AudioContextCtor = getAudioContextConstructor();
 
-    bubbleTimeoutRef.current = window.setTimeout(() => {
-      setIsBubbleVisible(false)
-      bubbleTimeoutRef.current = null
-    }, bubbleDurationMs)
-  }
+        if (!AudioContextCtor) {
+            return;
+        }
 
-  const bubbleMessage = messageIndex >= 0 ? tapMessages[messageIndex] : tapMessages[0]
+        const audioContext = audioContextRef.current ?? new AudioContextCtor();
+        audioContextRef.current = audioContext;
 
-  return (
-    <div className={cn('relative flex h-36 w-[13.5rem] max-w-full items-center justify-center', className)}>
-      <div className="absolute inset-x-7 bottom-3 h-4 rounded-full bg-[rgba(159,194,101,0.24)] blur-md" aria-hidden="true" />
+        if (audioContext.state === "suspended") {
+            await audioContext.resume();
+        }
 
-      {isBubbleVisible ? (
+        playSalsaAccent(audioContext);
+    }
+
+    function handleTap() {
+        if (isDancing || isPoseActive) {
+            return;
+        }
+
+        clearTimers();
+
+        const nextReactionKey = pickNextReactionKey();
+        const nextReactionMotionDurationMs =
+            reactionMotionDurationsMs[nextReactionKey];
+        const nextReactionReducedDurationMs =
+            reactionReducedDurationsMs[nextReactionKey];
+        const nextBubbleDurationMs = getBubbleVisibleDurationMs(
+            nextReactionKey,
+            prefersReducedMotion,
+        );
+
+        setReactionKey(nextReactionKey);
+        setBubbleWrapMode("single-line");
+        setBubbleShellWidthPx(bubbleShellMinWidthPx);
+        setBubblePhase(prefersReducedMotion ? "visible" : "entering");
+        setIsPoseActive(true);
+        setIsDancing(!prefersReducedMotion);
+
+        if (!prefersReducedMotion) {
+            void playTapSound();
+        }
+
+        if (!prefersReducedMotion) {
+            bubbleEnterTimeoutRef.current = window.setTimeout(() => {
+                setBubblePhase((current) =>
+                    current === "entering" ? "visible" : current,
+                );
+                bubbleEnterTimeoutRef.current = null;
+            }, bubbleEnterDurationMs);
+
+            bubbleExitTimeoutRef.current = window.setTimeout(() => {
+                setBubblePhase((current) =>
+                    current === "hidden" ? "hidden" : "exiting",
+                );
+                bubbleExitTimeoutRef.current = null;
+            }, nextBubbleDurationMs - bubbleExitDurationMs);
+        }
+
+        bubbleHideTimeoutRef.current = window.setTimeout(() => {
+            setBubblePhase("hidden");
+            bubbleHideTimeoutRef.current = null;
+        }, nextBubbleDurationMs);
+
+        danceTimeoutRef.current = window.setTimeout(
+            () => {
+                setIsDancing(false);
+                setIsPoseActive(false);
+                danceTimeoutRef.current = null;
+            },
+            prefersReducedMotion
+                ? nextReactionReducedDurationMs
+                : nextReactionMotionDurationMs,
+        );
+    }
+
+    const bubbleMessage = reactionMessages[reactionKey ?? defaultReactionKey];
+    const activeReactionKey = reactionKey ?? defaultReactionKey;
+    const currentReactionMotionDurationMs =
+        reactionMotionDurationsMs[activeReactionKey];
+    const currentReactionReducedDurationMs =
+        reactionReducedDurationsMs[activeReactionKey];
+    const danceState: DanceState = prefersReducedMotion
+        ? isPoseActive
+            ? "reduced"
+            : "idle"
+        : isDancing
+          ? "dancing"
+          : "idle";
+    const isBubbleVisible = bubblePhase !== "hidden";
+
+    useLayoutEffect(() => {
+        if (!isBubbleVisible) {
+            return;
+        }
+
+        const bubbleAnchor = bubbleAnchorRef.current;
+        const bubbleText = bubbleTextRef.current;
+
+        if (!bubbleAnchor || !bubbleText) {
+            return;
+        }
+
+        const updateBubbleWrap = () => {
+            const availableWidthPx = Math.max(
+                window.innerWidth -
+                    bubbleAnchor.getBoundingClientRect().left -
+                    bubbleRightGutterPx,
+                0,
+            );
+            const previousTextStyle = bubbleText.getAttribute("style");
+
+            bubbleText.style.setProperty("display", "block");
+            bubbleText.style.setProperty("white-space", "nowrap");
+            bubbleText.style.setProperty("overflow", "visible");
+            bubbleText.style.removeProperty("-webkit-line-clamp");
+            bubbleText.style.removeProperty("-webkit-box-orient");
+
+            const singleLineTextWidthPx =
+                bubbleText.getBoundingClientRect().width;
+
+            if (previousTextStyle === null) {
+                bubbleText.removeAttribute("style");
+            } else {
+                bubbleText.setAttribute("style", previousTextStyle);
+            }
+
+            const naturalShellWidthPx = Math.max(
+                bubbleShellMinWidthPx,
+                Math.ceil(
+                    singleLineTextWidthPx +
+                        bubbleIconWidthPx +
+                        bubbleTextGapPx +
+                        bubbleSingleLinePaddingLeftPx +
+                        bubbleSingleLinePaddingRightPx,
+                ),
+            );
+            const shouldWrap = naturalShellWidthPx > availableWidthPx;
+
+            if (!shouldWrap) {
+                setBubbleWrapMode((current) =>
+                    current === "single-line" ? current : "single-line",
+                );
+                setBubbleShellWidthPx((current) =>
+                    current === naturalShellWidthPx
+                        ? current
+                        : naturalShellWidthPx,
+                );
+                return;
+            }
+
+            setBubbleWrapMode((current) =>
+                current === "two-line" ? current : "two-line",
+            );
+            setBubbleShellWidthPx((current) => {
+                const nextWidth = Math.max(
+                    bubbleShellMinWidthPx,
+                    Math.floor(availableWidthPx),
+                );
+                return current === nextWidth ? current : nextWidth;
+            });
+        };
+
+        updateBubbleWrap();
+        window.addEventListener("resize", updateBubbleWrap);
+
+        return () => {
+            window.removeEventListener("resize", updateBubbleWrap);
+        };
+    }, [bubbleMessage, isBubbleVisible]);
+
+    const bubbleViewBoxWidth = getBubbleViewBoxWidth(bubbleShellWidthPx);
+    const bubbleShellPath = getUnionBubblePath(bubbleViewBoxWidth);
+
+    return (
         <div
-          data-slot="student-home-mascot-bubble"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-          className={cn(
-            'pointer-events-none absolute right-0 top-0 z-20 max-w-[9.25rem] rounded-2xl border border-[#ead9bf] bg-card px-3 py-2 text-[11px] font-semibold leading-4 text-[#6a5630] shadow-[0_12px_22px_rgba(154,124,53,0.12)]',
-            !prefersReducedMotion && 'student-home-mascot__bubble',
-            isTapped && !prefersReducedMotion && 'student-home-mascot__bubble--tapped',
-          )}
+            className={cn(
+                "relative flex max-w-full items-end justify-start",
+                className,
+            )}
+            style={{
+                width: "10.25rem",
+                height: "9rem",
+            }}
         >
-          <span className="absolute bottom-3 left-3 h-2.5 w-2.5 rotate-45 border-b border-r border-[#ead9bf] bg-card" />
-          <span className="relative flex items-start gap-1.5">
-            <Sparkles className="mt-0.5 h-3 w-3 shrink-0 text-[#c49a2f]" />
-            <span>{bubbleMessage}</span>
-          </span>
+            <div
+                className="absolute bottom-1 rounded-full bg-[rgba(183,211,138,0.22)] blur-[8px]"
+                style={{
+                    left: "50%",
+                    width: "7.4rem",
+                    height: "1rem",
+                    transform: "translateX(-50%)",
+                }}
+                aria-hidden="true"
+            />
+            <div
+                className="absolute bottom-2 rounded-full bg-[rgba(255,248,230,0.52)] blur-lg"
+                style={{
+                    left: "50%",
+                    width: "6.5rem",
+                    height: "3.9rem",
+                    transform: "translateX(-50%)",
+                }}
+                aria-hidden="true"
+            />
+
+            {isBubbleVisible ? (
+                <div
+                    ref={bubbleAnchorRef}
+                    style={{ left: "calc(50% + 2.5rem)", top: "0.35rem" }}
+                    className={cn(
+                        "pointer-events-none absolute z-20",
+                        !prefersReducedMotion &&
+                            bubblePhase === "entering" &&
+                            "student-home-mascot__bubble-shell--enter",
+                        !prefersReducedMotion &&
+                            bubblePhase === "exiting" &&
+                            "student-home-mascot__bubble-shell--exit",
+                    )}
+                >
+                    <div className="relative inline-block overflow-visible">
+                        <div
+                            data-slot="student-home-mascot-bubble"
+                            role="status"
+                            aria-live="polite"
+                            aria-atomic="true"
+                            className="relative block overflow-visible"
+                            style={{
+                                width: `${bubbleShellWidthPx / 16}rem`,
+                                height: `${bubbleShellHeightPx / 16}rem`,
+                                filter: "drop-shadow(0 4px 8px rgba(34, 28, 18, 0.05))",
+                            }}
+                        >
+                            <svg
+                                aria-hidden="true"
+                                className="pointer-events-none absolute inset-0 h-full w-full select-none"
+                                viewBox={`0 0 ${bubbleViewBoxWidth} ${bubbleSvgHeight}`}
+                                preserveAspectRatio="none"
+                            >
+                                <path d={bubbleShellPath} fill="#ffffff" />
+                                <path
+                                    d={bubbleShellPath}
+                                    fill="none"
+                                    stroke="#000000"
+                                    strokeWidth="5"
+                                    strokeLinejoin="round"
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                            <div
+                                className={cn(
+                                    "absolute inset-0 flex gap-1.5 text-[11px] font-semibold text-[#151515]",
+                                    bubbleWrapMode === "two-line"
+                                        ? "items-start"
+                                        : "items-center",
+                                )}
+                                style={{
+                                    padding:
+                                        bubbleWrapMode === "two-line"
+                                            ? "0.28rem 0.74rem 0.56rem 0.92rem"
+                                            : "0.24rem 0.7rem 0.52rem 0.92rem",
+                                }}
+                            >
+                                <Sparkles
+                                    className={cn(
+                                        "h-3 w-3 shrink-0 text-[#151515]",
+                                        bubbleWrapMode === "two-line"
+                                            ? "mt-[0.06rem]"
+                                            : "mt-0",
+                                    )}
+                                />
+                                <span
+                                    ref={bubbleTextRef}
+                                    className="min-w-0 break-keep leading-[0.95rem] text-[#151515]"
+                                    style={{
+                                        display:
+                                            bubbleWrapMode === "two-line"
+                                                ? "-webkit-box"
+                                                : "block",
+                                        WebkitBoxOrient:
+                                            bubbleWrapMode === "two-line"
+                                                ? "vertical"
+                                                : undefined,
+                                        WebkitLineClamp:
+                                            bubbleWrapMode === "two-line"
+                                                ? 2
+                                                : undefined,
+                                        overflow:
+                                            bubbleWrapMode === "two-line"
+                                                ? "hidden"
+                                                : "visible",
+                                        whiteSpace:
+                                            bubbleWrapMode === "two-line"
+                                                ? "normal"
+                                                : "nowrap",
+                                    }}
+                                >
+                                    {bubbleMessage}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
+            <button
+                type="button"
+                onClick={handleTap}
+                data-slot="student-home-mascot"
+                data-dance-state={danceState}
+                data-reaction-key={reactionKey ?? "idle"}
+                aria-label="미니펫 상호작용"
+                aria-pressed={danceState !== "idle"}
+                className="group absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end justify-center overflow-visible rounded-[1.9rem] bg-transparent transition-transform duration-200 active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0c766] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                style={{ width: "10.12rem", height: "12.76rem" }}
+            >
+                <span
+                    className="absolute left-1/2 bottom-[0.35rem] -translate-x-1/2 rounded-full bg-[rgba(255,248,230,0.48)] blur-lg"
+                    style={{ width: "6.8rem", height: "4.75rem" }}
+                    aria-hidden="true"
+                />
+                <span
+                    className="absolute inset-x-3 bottom-1 rounded-full bg-[rgba(157,191,93,0.14)] blur-md"
+                    style={{ height: "0.9rem" }}
+                    aria-hidden="true"
+                />
+                <span
+                    className={cn(
+                        "relative z-10 flex items-end justify-center overflow-visible",
+                        !prefersReducedMotion && "student-home-mascot__stage",
+                        isPoseActive &&
+                            !prefersReducedMotion &&
+                            "student-home-mascot__stage--active",
+                        prefersReducedMotion &&
+                            isPoseActive &&
+                            "student-home-mascot__stage--reduced",
+                    )}
+                    style={{ width: "6.71rem", height: "9.735rem" }}
+                    aria-hidden="true"
+                >
+                    <StudentHomeCuteBear
+                        mode={danceState}
+                        reaction={activeReactionKey}
+                        motionEnabled={!prefersReducedMotion}
+                        className="h-full w-full"
+                    />
+                </span>
+                <span
+                    aria-hidden="true"
+                    className={cn(
+                        "pointer-events-none absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#ffe8a7] shadow-[0_0_0_3px_rgba(255,225,124,0.14)]",
+                        !prefersReducedMotion && "student-home-mascot__sparkle",
+                        isPoseActive &&
+                            !prefersReducedMotion &&
+                            "student-home-mascot__sparkle--dancing",
+                    )}
+                />
+            </button>
+
+            <style jsx>{`
+                .student-home-mascot__stage {
+                    filter: drop-shadow(0 12px 18px rgba(132, 95, 39, 0.12));
+                }
+
+                .student-home-mascot__bubble-shell--enter {
+                    transform-origin: 18% 88%;
+                    animation: student-home-bubble-enter
+                        ${bubbleEnterDurationMs}ms ease-out both;
+                }
+
+                .student-home-mascot__bubble-shell--exit {
+                    transform-origin: 18% 88%;
+                    animation: student-home-bubble-exit
+                        ${bubbleExitDurationMs}ms ease-in both;
+                }
+
+                .student-home-mascot__stage--active {
+                    animation: student-home-stage-glow
+                        ${currentReactionMotionDurationMs}ms
+                        cubic-bezier(0.22, 1, 0.36, 1);
+                }
+
+                .student-home-mascot__stage--reduced {
+                    animation: student-home-stage-reduced
+                        ${currentReactionReducedDurationMs}ms
+                        cubic-bezier(0.25, 1, 0.5, 1);
+                }
+
+                .student-home-mascot__sparkle {
+                    animation: student-home-sparkle 3.4s ease-in-out infinite;
+                }
+
+                .student-home-mascot__sparkle--dancing {
+                    animation: student-home-sparkle-dance
+                        ${currentReactionMotionDurationMs}ms ease-out;
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                    .student-home-mascot__bubble-shell--enter,
+                    .student-home-mascot__bubble-shell--exit,
+                    .student-home-mascot__stage--active,
+                    .student-home-mascot__stage--reduced,
+                    .student-home-mascot__sparkle,
+                    .student-home-mascot__sparkle--dancing {
+                        animation: none !important;
+                        transition: none !important;
+                    }
+                }
+
+                @keyframes student-home-bubble-enter {
+                    0% {
+                        opacity: 0;
+                        transform: translate(6px, 2px) scale(0.96);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translate(0, 0) scale(1);
+                    }
+                }
+
+                @keyframes student-home-bubble-exit {
+                    0% {
+                        opacity: 1;
+                        transform: translate(0, 0) scale(1);
+                    }
+                    100% {
+                        opacity: 0;
+                        transform: translate(10px, 0) scale(0.98);
+                    }
+                }
+
+                @keyframes student-home-stage-glow {
+                    0% {
+                        filter: drop-shadow(
+                            0 12px 18px rgba(132, 95, 39, 0.12)
+                        );
+                    }
+                    35% {
+                        filter: drop-shadow(
+                            0 16px 22px rgba(196, 124, 39, 0.18)
+                        );
+                    }
+                    100% {
+                        filter: drop-shadow(
+                            0 12px 18px rgba(132, 95, 39, 0.12)
+                        );
+                    }
+                }
+
+                @keyframes student-home-stage-reduced {
+                    0% {
+                        filter: drop-shadow(
+                            0 12px 18px rgba(132, 95, 39, 0.12)
+                        );
+                    }
+                    55% {
+                        filter: drop-shadow(
+                            0 15px 20px rgba(196, 124, 39, 0.15)
+                        );
+                    }
+                    100% {
+                        filter: drop-shadow(
+                            0 12px 18px rgba(132, 95, 39, 0.12)
+                        );
+                    }
+                }
+
+                @keyframes student-home-sparkle {
+                    0%,
+                    100% {
+                        transform: scale(1);
+                        opacity: 0.82;
+                    }
+                    50% {
+                        transform: scale(1.12);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes student-home-sparkle-dance {
+                    0% {
+                        transform: scale(0.8);
+                        opacity: 0.7;
+                    }
+                    40% {
+                        transform: scale(1.35);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: scale(1);
+                        opacity: 0.9;
+                    }
+                }
+            `}</style>
         </div>
-      ) : null}
-
-      <div className="relative">
-        <div className="absolute inset-0 rounded-full bg-white/52 blur-lg" aria-hidden="true" />
-        <button
-          type="button"
-          onClick={handleTap}
-          data-slot="student-home-mascot"
-          aria-label="미니펫 상호작용"
-          className="group relative flex h-32 w-32 items-center justify-center rounded-full border border-[#edf2e2] bg-card shadow-[0_18px_34px_rgba(111,145,72,0.12)] transition-transform duration-200 active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f0c766] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
-          <span className="absolute inset-2 rounded-full border border-[#f3ecd4]" aria-hidden="true" />
-          <span
-            className={cn(
-              'relative flex h-28 w-28 items-center justify-center',
-              !prefersReducedMotion && 'student-home-mascot__pet',
-              isTapped && !prefersReducedMotion && 'student-home-mascot__pet--tapped',
-            )}
-            aria-hidden="true"
-          >
-            <SpmMascot variant={isTapped ? 'petTap' : 'petIdle'} size="lg" className="h-28 w-28" />
-          </span>
-          <span
-            aria-hidden="true"
-            className={cn(
-              'pointer-events-none absolute right-5 top-5 h-3 w-3 rounded-full bg-[#ffe8a7] shadow-[0_0_0_4px_rgba(255,225,124,0.18)]',
-              !prefersReducedMotion && 'student-home-mascot__sparkle',
-              isTapped && !prefersReducedMotion && 'student-home-mascot__sparkle--tapped',
-            )}
-          />
-        </button>
-      </div>
-
-      <style jsx>{`
-        .student-home-mascot__pet {
-          transform-origin: 50% 82%;
-          animation: student-home-bob 4.2s ease-in-out infinite;
-        }
-
-        .student-home-mascot__bubble {
-          transform-origin: 24% 100%;
-          animation: student-home-bubble 220ms ease-out;
-        }
-
-        .student-home-mascot__pet--tapped {
-          animation: student-home-tap ${tapDurationMs}ms cubic-bezier(0.2, 0.85, 0.2, 1);
-        }
-
-        .student-home-mascot__bubble--tapped {
-          animation: student-home-bubble-tap ${tapDurationMs}ms ease-out;
-        }
-
-        .student-home-mascot__sparkle {
-          animation: student-home-sparkle 3.4s ease-in-out infinite;
-        }
-
-        .student-home-mascot__sparkle--tapped {
-          animation: student-home-sparkle-tap ${tapDurationMs}ms ease-out;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .student-home-mascot__pet,
-          .student-home-mascot__bubble,
-          .student-home-mascot__pet--tapped,
-          .student-home-mascot__bubble--tapped,
-          .student-home-mascot__sparkle,
-          .student-home-mascot__sparkle--tapped {
-            animation: none !important;
-            transition: none !important;
-          }
-        }
-
-        @keyframes student-home-bob {
-          0%,
-          100% {
-            transform: translateY(0) rotate(0deg);
-          }
-          35% {
-            transform: translateY(-2px) rotate(-1deg);
-          }
-          70% {
-            transform: translateY(1px) rotate(1deg);
-          }
-        }
-
-        @keyframes student-home-tap {
-          0% {
-            transform: translateY(0) scale(1) rotate(0deg);
-          }
-          35% {
-            transform: translateY(-4px) scale(1.03) rotate(-4deg);
-          }
-          70% {
-            transform: translateY(2px) scale(0.99) rotate(2deg);
-          }
-          100% {
-            transform: translateY(0) scale(1) rotate(0deg);
-          }
-        }
-
-        @keyframes student-home-bubble {
-          0% {
-            opacity: 0;
-            transform: translateY(4px) scale(0.96);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes student-home-bubble-tap {
-          0% {
-            transform: translateY(0) scale(1);
-          }
-          30% {
-            transform: translateY(-3px) scale(1.02);
-          }
-          100% {
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        @keyframes student-home-sparkle {
-          0%,
-          100% {
-            transform: scale(1);
-            opacity: 0.82;
-          }
-          50% {
-            transform: scale(1.12);
-            opacity: 1;
-          }
-        }
-
-        @keyframes student-home-sparkle-tap {
-          0% {
-            transform: scale(0.8);
-            opacity: 0.7;
-          }
-          40% {
-            transform: scale(1.35);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(1);
-            opacity: 0.9;
-          }
-        }
-      `}</style>
-    </div>
-  )
+    );
 }

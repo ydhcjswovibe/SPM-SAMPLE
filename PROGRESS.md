@@ -14,6 +14,42 @@
 
 ## Recent Work Windows
 
+- `2026-04-10 | student home hello-wave 14-percent raise timing sync follow-up | start: not recorded | end: 2026-04-10 18:45 KST | status: done`
+- `2026-04-10 | student home hello-wave 16-percent raise timing follow-up | start: not recorded | end: 2026-04-10 18:42 KST | status: done`
+- `2026-04-10 | student home hello-wave 20-percent raise + wider wave interval follow-up | start: not recorded | end: 2026-04-10 18:36 KST | status: done`
+- `2026-04-10 | student home hello-wave exact 3-cycle max-to-min wave redesign | start: not recorded | end: 2026-04-10 18:19 KST | status: done`
+- `2026-04-10 | student home hello-wave 12-percent raise timing follow-up | start: not recorded | end: 2026-04-10 18:15 KST | status: done`
+- `2026-04-10 | student home hello-wave 18-percent raise timing follow-up | start: not recorded | end: 2026-04-10 18:13 KST | status: done`
+- `2026-04-10 | student home hello-wave uniform speed correction follow-up | start: not recorded | end: 2026-04-10 18:08 KST | status: done`
+- `2026-04-10 | student home hello-wave faster larger wave without post-raise pause | start: not recorded | end: 2026-04-10 18:01 KST | status: done`
+- `2026-04-10 | student home hello-wave simplified arm-only loop follow-up | start: not recorded | end: 2026-04-10 17:56 KST | status: done`
+- `2026-04-10 | student home hello-wave uniform wave cadence follow-up | start: not recorded | end: 2026-04-10 17:44 KST | status: done`
+- `2026-04-10 | student home hello-wave 36-percent wave start + larger angle follow-up | start: not recorded | end: 2026-04-10 17:42 KST | status: done`
+- `2026-04-10 | student home hello-wave earlier larger wave + longer duration follow-up | start: not recorded | end: 2026-04-10 17:39 KST | status: done`
+- `2026-04-10 | student home hello-wave tighter raise and wave timing follow-up | start: not recorded | end: 2026-04-10 17:30 KST | status: done`
+- `2026-04-10 | student home hello-wave 44-percent raise timing follow-up | start: not recorded | end: 2026-04-10 17:11 KST | status: done`
+- `2026-04-10 | student home hello-wave shorter post-raise gap + wider wave spacing | start: not recorded | end: 2026-04-10 17:08 KST | status: done`
+- `2026-04-10 | student home hello-wave fast-raise immediate-soft-wave follow-up | start: not recorded | end: 2026-04-10 17:05 KST | status: done`
+- `2026-04-10 | student home hello-wave recommended timing/easing set apply | start: not recorded | end: 2026-04-10 17:03 KST | status: done`
+- `2026-04-10 | student home hello-wave immediate post-raise wave follow-up | start: not recorded | end: 2026-04-10 16:52 KST | status: done`
+- `2026-04-10 | student home hello-wave hold-then-late-wave timing follow-up | start: not recorded | end: 2026-04-10 16:49 KST | status: done`
+- `2026-04-10 | student home hello-wave -120deg raise + visible wave follow-up | start: not recorded | end: 2026-04-10 16:45 KST | status: done`
+- `2026-04-10 | student home hello-wave higher final raise follow-up | start: not recorded | end: 2026-04-10 16:43 KST | status: done`
+- `2026-04-10 | student home hello-wave overflow unclipped follow-up | start: not recorded | end: 2026-04-10 16:42 KST | status: done`
+- `2026-04-10 | student home hello-wave one-step raise simplification | start: not recorded | end: 2026-04-10 16:24 KST | status: done`
+- `2026-04-10 | student home hello-wave split lift-wave smoothing follow-up | start: not recorded | end: 2026-04-10 16:19 KST | status: done`
+- `2026-04-10 | student home hello-wave anchor micro-lower follow-up | start: not recorded | end: 2026-04-10 16:15 KST | status: done`
+- `2026-04-10 | student home hello-wave lower-anchor smooth raise correction | start: not recorded | end: 2026-04-10 16:09 KST | status: done`
+- `2026-04-10 | student home hello-wave rotate-only shoulder greeting correction | start: not recorded | end: 2026-04-10 16:04 KST | status: done`
+- `2026-04-10 | student home hello-wave shoulder-pivot eye-level redesign | start: not recorded | end: 2026-04-10 14:31 KST | status: done`
+- `2026-04-10 | student home hello-wave raised greeting redesign | start: not recorded | end: 2026-04-10 14:23 KST | status: done`
+- `2026-04-10 | student home hello-wave greeting pose raise | start: not recorded | end: 2026-04-10 14:08 KST | status: done`
+- `2026-04-10 | student home mini-pet 3-reaction tap variety + reduced-motion verify pass | start: not recorded | end: 2026-04-10 13:30 KST | status: done`
+- `2026-04-09 | student home cute bear 1 asset swap + full-body fit | start: not recorded | end: 2026-04-09 15:32 KST | status: done`
+- `2026-04-09 | student home hero vertical compaction around cute bear | start: not recorded | end: 2026-04-09 15:10 KST | status: done`
+- `2026-04-08 | student home cute bear mini-pet swap + simple interaction loop | start: not recorded | end: 2026-04-08 19:47 KST | status: done`
+- `2026-04-08 | student home standing bear mascot simplification | start: not recorded | end: 2026-04-08 18:07 KST | status: done`
+- `2026-04-08 | student home salsa cat rive mascot | start: not recorded | end: 2026-04-08 16:27 KST | status: done`
 - `2026-04-07 | student home mini-pet interaction placeholder | start: not recorded | end: 2026-04-07 21:45 KST | status: done`
 - `2026-04-07 | student home medal level badge + gold exp rail pass | start: not recorded | end: 2026-04-07 21:18 KST | status: done`
 - `2026-04-07 | student home larger gamified hero card | start: not recorded | end: 2026-04-07 20:57 KST | status: done`
@@ -147,6 +183,47 @@
 
 ## Done Recently
 
+- `hello-wave` 손 올리기 완료 시점을 `14%`로 더 낮추고, 손 흔들기 cadence도 `14%` 기준으로 같이 앞당겼다. wave 포인트는 `22/28/32/42/46/56/60/70/74/84/88/92%`로 재배치했고, reduced-motion raise도 `14%`로 동기화했다.
+- `hello-wave` 손 올리기 완료 시점을 `20%`에서 `16%`로 줄였다. wave cadence는 유지하고, raise 직후 max hold 시작만 `16%` 기준으로 맞춰 올리기만 더 빠르게 읽히도록 조정했다. reduced-motion raise도 `16%`로 동기화했다.
+- `hello-wave` 손 올리기 완료 시점을 `20%`로 늦추고, 바깥 팔 hold도 `94%`까지 늘렸다. 손 흔들기는 `최대점(0deg) <-> 최소점(26deg)` 3회 왕복 구조는 유지하되 각 endpoint에 짧은 hold를 넣어 `30/44/58/72/86/94%` 리듬으로 더 넓게 읽히도록 조정했다. reduced-motion도 `20% raise -> 94% hold -> 100% lower`로 맞췄다.
+- `hello-wave`를 `최대 높이까지 raise -> 최대점(0deg)과 최소점(26deg)만 정확히 3번 왕복 -> 내림` 구조로 다시 짰다. wave는 `12/24/36/48/60/72/84%`의 고정 포인트만 쓰고, reduced-motion도 `12% raise -> 84% hold -> 100% lower`로 맞췄다.
+- `hello-wave` 손 올리기 완료 시점을 `18%`에서 `12%`로 더 줄여 첫 raise를 약 `0.50초` 수준으로 압축했다. wave도 같은 간격을 유지하도록 `12%` 기준 `24/36/48/60/72/84/96%`로 같이 당겼고, reduced-motion raise도 `12%`로 동기화했다.
+- `hello-wave` 손 올리기 완료 시점을 `36%`에서 `18%`로 줄여 첫 raise를 약 `0.76초` 수준으로 압축했다. hold처럼 보이지 않게 wave 포인트도 `18%` 기준 `30/42/54/66/78/90%`로 같이 당겼고, reduced-motion raise도 `18%`로 동기화했다.
+- `hello-wave`의 속도감이 균일하지 않던 문제를 줄이기 위해 바깥 팔 raise animation도 `linear`로 바꾸고, wave 포인트를 `48/60/72/84/96%`의 동일 간격으로 재배치했다. 기존처럼 처음만 급하게 튀는 `36->40%` 구간은 제거했다.
+- `hello-wave`에서 팔을 다 올린 뒤 비어 보이던 hold를 줄이기 위해 첫 wave 포인트를 `40%`로 당기고, 이후 흔들기를 `40/52/64/76/88%`의 동일 간격으로 재배치했다. wave 각도도 `±26deg`로 키워 더 크고 빠르게 흔들리도록 조정했다.
+- `hello-wave`를 `오른팔만 올림 -> 위에서 두 포인트 왕복 -> 내림` 구조로 단순화했다. 몸통, 얼굴, 귀, 왼팔, 발, 그림자 애니메이션은 껐고, wave는 `54%/72%/88%`의 고정 포인트만 사용하도록 정리했다.
+- `hello-wave` 첫 손짓만 급하게 튀지 않도록 wave animation easing을 `linear`로 바꾸고, 흔들기 포인트를 `48/60/72/84/96%`의 균일 간격으로 다시 배치했다. raise 완료 시점 `36%`, total duration `4200ms`는 유지했다.
+- `hello-wave` 손 흔들기를 실제 `36%` 시점부터 걸리게 당기고, wave 각도를 `24/-22/18/-14deg`로 키워 더 크게 보이도록 조정했다. total duration은 기존 `4200ms`를 유지했다.
+- `hello-wave`가 더 빨리 흔들리도록 첫 wave 시작을 `42%`로 당기고, 손 흔들기 각도를 `18/-16/14/-10deg`로 키웠다. 전체 리듬이 급해지지 않게 full-motion duration은 `4200ms`, reduced duration은 `1080ms`로 소폭 늘렸다.
+- `hello-wave` 올리기 도달 시점을 `44%`에서 `36%`로 더 앞당기고, 손 흔들기 포인트도 `50%/64%/78%/92%`로 같이 당겨서 전체 리듬을 더 타이트하게 맞췄다. reduced-motion raise도 `36%`로 동기화했다.
+
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave`의 raise 도달 시점과 wave 시작 기준을 `52%`에서 `44%`로 함께 당겨 더 빨리 든 상태에 들어가도록 조정했고, reduced-motion raise도 같은 `44%`로 동기화 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave`에서 raise 도달 뒤 첫 wave 시작 시점을 `58%`로 당겨 빈 간격을 줄였고, 이후 wave 포인트는 `72%`, `86%`, `96%`로 벌려 손 흔들기 간격이 더 넓게 읽히도록 조정 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave`를 `빠른 raise -> 도달 즉시 wave` 구조로 다시 맞춰 raise 도달 시점을 `52%`로 당기고, wave는 `52%`부터 바로 시작하되 각도는 `12 / -10 / 9 / -6`으로 눌러 덜 급하게 보이도록 조정 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave`를 추천 세트 기준으로 다시 맞춰, raise 도달 시점을 `65%`, hold 끝을 `92%`, 바깥 lift easing을 `linear`, wave 각도를 `18 / -18 / 16 / -14`로 적용했고 reduced-motion raise도 `65%`로 동기화 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave`가 `-120deg`에 도달한 직후부터 바로 흔들리도록 hello wave keyframe 시작 시점을 `80%`로 당기고, 든 각도 유지 구간도 더 길게 잡아 wave가 늦지 않게 보이도록 조정 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave` 타이밍을 `높게 든 상태 hold -> 마지막 짧은 wave -> 빠른 하강` 구조로 다시 배치해, wave가 끝부분에만 보이도록 조정 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave` 최종 raise를 full/reduced 모두 `-120deg`까지 올리고, 위쪽에서의 wave 각도도 더 크게 키워 손 흔들림이 눈에 띄게 보이도록 보정 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave` 최종 raise 각도를 full/reduced 모두 `-96deg`로 높여 idle에서 팔을 더 끝까지 든 높이로 읽히도록 보정 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx), [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx)에서 root SVG와 stage wrapper를 명시적으로 `overflow-visible`로 열어 든 팔이 표시 경계를 넘어가도 잘리지 않도록 보강 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave` 바깥 `lift` keyframe의 중간 raise 포즈를 제거해 `idle -> fully raised`가 한 번의 보간으로 올라가도록 단순화 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave` 오른팔을 바깥 `lift`와 안쪽 `wave` 2단 구조로 분리해, 바깥 그룹은 적은 keyframe으로 부드럽게 올리고 내리게 하고 안쪽 그룹은 위에서만 작은 각도로 흔들리게 재구성 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave` 오른팔의 hello 전용 앵커를 현재 값에서 추가로 1px 더 낮춰 회전 중심이 아주 살짝 더 아래에서 시작되도록 미세 조정 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave` 오른팔의 hello 전용 `transform-origin`을 팔 끝점보다 조금 아래로 내려 회전축이 더 자연스럽게 보이도록 조정했고, raise 구간 keyframe도 잘게 다시 나눠 빠르게 올라가되 중간에 뚝뚝 끊기지 않도록 부드럽게 재작성 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave` 팔 동작을 `rotate only`로 다시 교정해 오른팔 인사 구간의 `translate`를 제거했고, 현재 어깨점 `transform-origin`은 유지한 채 눈높이까지 올린 뒤 작은 두 번 흔들기 각도로 재작성했으며 reduced-motion hello pose도 같은 기준으로 정리 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave`를 어깨 pivot 기준으로 다시 설계해 오른팔이 어깨에서 출발해 눈높이까지 확실히 올라간 뒤 그 높이에서 작게 두 번 흔들고 천천히 내려오는 인사로 재작성했고, reduced-motion hello pose도 같은 raised silhouette로 맞춤 완료
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx)에서 반응별 motion/reduced duration을 분리해 `hello-wave 3.8s` 길이에 맞춰 active state, bubble visible time, sparkle/stage animation이 중간에 먼저 끝나지 않도록 동기화 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave`를 다시 설계해, 오른팔이 먼저 얼굴 옆까지 확실히 올라간 뒤 그 높이에서 짧게 두 번 흔들고 내려오는 인사 시퀀스로 재작성했고, 왼팔/발/그림자 움직임은 눌러 `춤`보다 `인사`로 읽히게 정리했으며 reduced-motion hello pose도 같은 실루엣으로 다시 맞춤 완료
+- 학생 요청에 맞춰 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx) `hello-wave` keyframe에서 오른팔 회전각과 상승량, 상체/얼굴 기울기를 함께 높여 손이 얼굴 위쪽까지 올라가는 더 명확한 인사 포즈로 보정했고, reduced-motion hello pose도 같은 인상을 유지하도록 같이 조정 완료
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx)에서 mini pet tap 반응을 `salsa-step / hello-wave / happy-bob` 3종으로 확장했고, 연속 tap에서는 직전 반응을 바로 반복하지 않도록 랜덤 queue를 넣었으며 `data-reaction-key` 계약과 reduced-motion용 정적 포즈 반응을 함께 추가 완료
+- 학생 홈 truth를 [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md), [scripts/014_verify_student_weekly_media_browser.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/014_verify_student_weekly_media_browser.mjs)에 `3종 반응 + 연속 중복 없음 + reduced-motion 반응` 기준으로 sync했고, [scripts/lib/surface-assert.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/lib/surface-assert.mjs)에는 bubble처럼 컨테이너를 채우는 SVG fill surface도 opaque로 읽히도록 보강 완료
+- `npm run typecheck`, `npm run lint`, `npm run build`, `npm run runtime:seed-auth` 통과 확인 완료
+- `SPM_BASE_URL=http://127.0.0.1:3931 npm run verify:student-browser-smoke`는 학생 홈 mini pet 새 반응 구간과 bubble opaque 체크를 지난 뒤, 별도 학생 수업 메모 영역의 `브라우저 연동 진행 메모` visibility 대기에서 실패했고 이번 mini pet 패키지 직접 회귀로 보이지는 않았다
+- 학생 홈 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx), [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`public/mascots/student-home/cute-bear-1.svg`](/home/ydhcjswo/projects/SPM-SAMPLE/public/mascots/student-home/cute-bear-1.svg) 기준으로 새 `cute-bear 1` 자산으로 교체했고, 원형 stage 안에서 귀부터 발끝까지 전신이 다 보이도록 세로형 fit으로 재조정 완료
+- 학생 홈 [`app/student/page.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx), [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx)에 `Lv.` badge overlay + 낮아진 hero min-height + 더 얇은 progress dock을 적용했고, cute bear mini-pet은 한 단계만 줄여 상단 빈 공간은 줄이되 캐릭터 존재감은 유지하도록 재정렬 완료
+- 학생 홈 [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx), [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`public/mascots/student-home/cute-bear_final.svg`](/home/ydhcjswo/projects/SPM-SAMPLE/public/mascots/student-home/cute-bear_final.svg)에 새 `cute bear` mini pet을 연결했고, 기존 `idle/dancing/reduced` 상태 계약과 `짧은 1회 루프 + 1줄 말풍선 + 효과음` 반응은 유지하면서 reduced-motion idle 상시 루프는 제거 완료
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`components/student-home-salsa-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-salsa-bear.tsx)에 home-only `서 있는 곰 살사 mini pet`을 다시 그리고, 버튼/캐릭터 점유율을 키워 더 크게 읽히는 `코드 내장 SVG 살사 1회 루프 + 말풍선 + 짧은 효과음`, reduced-motion 시 `정적 포즈 변화 + 말풍선`으로 정리 완료
+- [`scripts/014_verify_student_weekly_media_browser.mjs`](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/014_verify_student_weekly_media_browser.mjs), [`docs/SPEC.md`](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [`docs/VERIFY.md`](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md)를 학생 홈 `살사 loop 1회 + data-dance-state idle/dancing + no-layout-shift` 기준으로 sync 완료
 - 학생 홈 `[app/student/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)` hero에 home-only mini pet placeholder를 붙이고, `[components/student-home-mascot.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx)`와 `[components/spm-mascot.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/components/spm-mascot.tsx)`를 통해 `짧은 idle/tap 반응 + 1줄 말풍선`을 추가 완료
 - `[scripts/014_verify_student_weekly_media_browser.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/014_verify_student_weekly_media_browser.mjs)`, `[docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md)`, `[docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md)`를 학생 홈 `hero + mini-pet + 레벨/EXP + 상태 요약` current truth 기준으로 sync 완료
 - 학생 홈 `[app/student/page.tsx](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)`의 `Lv.` 배지를 외부 번짐 없는 골드 메달형으로 다시 만들고, 하단 `EXP` 영역을 긴 골드 경험치 레일로 강화해 `Lv -> 캐릭터 -> EXP` 흐름을 더 또렷하게 정리 완료
@@ -430,6 +507,32 @@
 - 학생 주차 본문에서 텍스트 피드백/진행 메모/중복 제목 카드를 제거하고, 영상은 좌우 이동 + 오버레이 fullscreen, 이미지는 기존 가로 스크롤/확대 구조 유지로 정렬 완료
 - 이번 compact lessons pass에 맞춰 [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md) sync 완료
 - 이번 패키지 이후 `npm run build` 통과 확인 완료
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx), [`app/student/page.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)에서 원형 stage를 제거하고 frameless mini pet으로 재정렬해 귀부터 발끝까지 전신 실루엣이 한 번에 읽히도록 조정 완료
+- 학생 홈 mini pet truth를 [docs/SPEC.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/SPEC.md), [docs/VERIFY.md](/home/ydhcjswo/projects/SPM-SAMPLE/docs/VERIFY.md), [scripts/014_verify_student_weekly_media_browser.mjs](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/014_verify_student_weekly_media_browser.mjs)에 sync하고, browser smoke는 불투명 원형 판 대신 안정적인 tap target + no-layout-shift를 확인하도록 갱신 완료
+- 이번 frameless mini pet pass에서 `npm run typecheck`, `npm run lint`, `npm run build` 통과 확인 완료
+- `SPM_BASE_URL=http://127.0.0.1:3000 npm run verify:student-browser-smoke`는 학생 홈 미니펫 검증 구간을 지난 뒤 `학생 수업 주차 rail background should stay opaque`에서 실패했고, 이번 mascot 변경과 직접 연결된 실패는 아니었다
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`app/student/page.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)에서 frameless mini pet wrapper와 hero 세로 예산을 한 단계 더 줄여, 캐릭터와 캐릭터 영역이 과하게 크게 보이지 않도록 추가 압축 완료
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`app/student/page.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)에서 hero 세로값을 더 과감하게 낮추고, 미니펫은 더 작은 전신 비율로 다시 축소해 compact hero 안에서 `작게 서 있는 전신 펫`으로 읽히도록 재조정 완료
+- 학생 홈 미니펫 축소가 화면에 반영되지 않던 원인은 arbitrary size class가 실제 렌더에서 먹지 않아 SVG가 intrinsic 크기(`약 300x436px`)로 남아 있던 문제였고, [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`app/student/page.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx), [`scripts/014_verify_student_weekly_media_browser.mjs`](/home/ydhcjswo/projects/SPM-SAMPLE/scripts/014_verify_student_weekly_media_browser.mjs)에 inline size 기준과 새 tap target 기준으로 재고정 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`app/student/page.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)에서 inline size 기준의 캐릭터 stage와 trigger를 다시 키워, 직전 tiny 상태보다 체감상 약 3배 가까이 커진 전신 펫으로 재조정 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`app/student/page.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)에서 캐릭터를 다시 크게 키우고, trigger 대비 stage 여백도 넓혀 `전신은 크게 보이되 공간은 덜 타이트한` hero로 재조정 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`app/student/page.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)에서 캐릭터 크기는 유지한 채 hero 세로 여백을 다시 늘리고, `Lv.` 배지와 `EXP` 카드 inset/gap을 키워 경계에 달라붙지 않는 자연스러운 배치로 재정렬 완료
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx), [`app/student/page.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/app/student/page.tsx)에서 bubble을 캐릭터 오른쪽 anchor로 옮기고, bubble enter/exit 상태를 분리해 종료 깜빡임을 제거했으며, dance 상향 이동량과 hero 상단 사용량을 함께 조정해 귀 clipping 없이 더 효율적인 상단 구성을 만들었다
+- 학생 요청에 맞춰 현재 compact hero 높이는 유지한 채 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx), [`components/student-home-cute-bear.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-cute-bear.tsx)에서 mini pet을 정확히 중앙 anchor로 재정렬하고, SVG viewBox 상단 headroom과 dance 상승폭을 다시 낮춰 귀 clipping을 줄였으며, bubble은 캐릭터 기준 상단 오른쪽으로 재배치 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 말풍선 꼬리를 rotated square에서 실제 pointed tail 형태로 교체해, 우측 분리 bubble이 더 자연스럽게 읽히도록 보정 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 말풍선을 채팅 버블 방식으로 처음부터 다시 설계해, warm ivory 단일 톤의 통합 shell + 2줄 clamp 텍스트 구조로 재구성 완료
+- 학생 요청에 맞춰 [`public/mascots/student-home/Union.svg`](/home/ydhcjswo/projects/SPM-SAMPLE/public/mascots/student-home/Union.svg) 자산을 프로젝트로 복사했고, [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) bubble shell은 코드형 path 대신 해당 SVG 자산을 그대로 사용하는 구조로 교체 완료
+- 학생 요청에 맞춰 [`public/mascots/student-home/Union.svg`](/home/ydhcjswo/projects/SPM-SAMPLE/public/mascots/student-home/Union.svg)을 디자인 레퍼런스로 유지하되, [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) bubble shell은 이미지 직접 표시를 버리고 `고정 디자인 tail + 가변 폭 body + 2줄 clamp` 구조의 코드형 채팅 버블로 재구성 완료
+- 학생 요청에 맞춰 [`public/mascots/student-home/Union.svg`](/home/ydhcjswo/projects/SPM-SAMPLE/public/mascots/student-home/Union.svg) 디자인을 그대로 유지하는 3-slice/9-slice 방식으로 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) bubble shell을 다시 구현했고, left/right cap은 원본 자산 crop을 그대로 쓰고 가운데 body만 텍스트 길이에 따라 가변 폭으로 늘어나도록 재구성 완료
+- 학생 요청에 맞춰 [`public/mascots/student-home/Union.svg`](/home/ydhcjswo/projects/SPM-SAMPLE/public/mascots/student-home/Union.svg)을 CSS `border-image` 9-slice source로 연결했고, [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) bubble shell은 원본 실루엣과 꼬리/라운드 형태를 유지한 채 텍스트 길이에 따라 가로만 가변되도록 재구성 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx)에서 bubble이 dance에 같이 흔들리지 않도록 고정 anchor로 유지하고, bubble shell의 자연 1줄 폭과 viewport 잔여 폭을 실측해 기본은 1줄로 두되 화면 경계를 넘길 위험이 있을 때만 2줄 clamp로 전환하도록 정리 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 말풍선 shell을 CSS `border-image` 9-slice에서 실측 기반 inline SVG path로 교체해, 기존 우측 bubble 실루엣은 유지하면서도 외곽선 두께가 더 일정하게 읽히도록 정리 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 말풍선 stroke를 더 얇고 부드러운 톤으로 낮추고, shell 최소 크기·padding·icon/text 정렬을 1줄/2줄 상태별로 다시 맞춰 텍스트와 bubble 비율이 덜 어색하게 보이도록 보정 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 말풍선을 단일 path shell 대신 `둥근 직사각형 body + 45도 회전 삼각 꼬리` 조합으로 다시 구성하고, border 톤/두께와 꼬리 길이를 함께 낮춰 더 단정한 bubble 실루엣으로 정리 완료
+- 학생 피드백에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx)에서 삼각 꼬리를 body 뒤로 더 깊게 겹치도록 재배치하고, triangle/body stroke와 shadow를 한 단계 더 낮춰 원본에 가까운 짧은 꼬리 인상으로 미세조정 완료
+- 학생 피드백에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 말풍선 body/tail을 다시 정렬해 triangle 대부분이 body 아래로 숨고 tip만 짧게 보이도록 재배치했으며, border·shadow·padding도 함께 낮춰 더 단정한 말풍선 조합으로 보정 완료
+- 학생 피드백에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 커스텀 bubble 조합을 버리고 [`public/mascots/student-home/Union.svg`](/home/ydhcjswo/projects/SPM-SAMPLE/public/mascots/student-home/Union.svg) 원본 shell을 직접 사용하는 구조로 복귀했으며, 텍스트만 그 위에 오버레이해 원본 말풍선 실루엣을 그대로 유지하도록 정리 완료
+- 학생 요청에 맞춰 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 말풍선 shell을 원본 [`Union.svg`](/home/ydhcjswo/projects/SPM-SAMPLE/public/mascots/student-home/Union.svg) path 좌표 기준으로 다시 구성해, 꼬리와 좌우 라운드 외곽은 최대한 그대로 두고 오른쪽 길이만 텍스트에 맞춰 가변되도록 정리 완료
 
 ## Next Up
 

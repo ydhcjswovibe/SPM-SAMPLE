@@ -240,6 +240,26 @@ function surfaceCardLocator(page, label) {
     .locator('xpath=ancestor::div[contains(@class,"overflow-hidden") and contains(@class,"border")][1]')
 }
 
+async function readBoundingBox(locator, label) {
+  const box = await locator.boundingBox()
+
+  expect(box, `${label} bounding box is missing`)
+  return box
+}
+
+function expectStableBounds(before, after, label) {
+  const allowedDelta = 2
+  const shifted =
+    Math.abs(before.x - after.x) > allowedDelta ||
+    Math.abs(before.y - after.y) > allowedDelta ||
+    Math.abs(before.width - after.width) > allowedDelta ||
+    Math.abs(before.height - after.height) > allowedDelta
+
+  if (shifted) {
+    throw new Error(`${label} should not shift while the student home mascot dances`)
+  }
+}
+
 async function verifyStudentHome(page, results, target) {
   await page.goto(`${baseUrl}/student?classId=${target.classId}&yearMonth=${target.yearMonth}`, {
     waitUntil: 'domcontentloaded',
@@ -279,17 +299,136 @@ async function verifyStudentHome(page, results, target) {
   const lessonsTabSurface = await expectOpaqueSurface(lessonsTabLink, '학생 하단탭 inactive state')
   const profileTabSurface = await expectOpaqueSurface(profileTabLink, '학생 하단탭 inactive profile state')
   const heroCardSurface = await expectOpaqueSurface(heroCard, '학생 홈 hero')
-  const mascotTriggerSurface = await expectOpaqueSurface(mascotTrigger, '학생 홈 미니펫 trigger')
+  const mascotTriggerBounds = await readBoundingBox(mascotTrigger, '학생 홈 미니펫 trigger')
+  expect(
+    mascotTriggerBounds.width >= 72 && mascotTriggerBounds.height >= 92,
+    'Student home mascot trigger should remain a stable tap target without a frame',
+  )
   const progressCardSurface = await expectOpaqueSurface(progressCard, '학생 홈 진척 카드')
   const progressRailSurface = await expectOpaqueSurface(progressRail, '학생 홈 progress rail')
   const attendanceCardSurface = await expectOpaqueSurface(attendanceCard, '학생 홈 출석 카드')
   const openCardSurface = await expectOpaqueSurface(openCard, '학생 홈 공개 카드')
   const feedbackCardSurface = await expectOpaqueSurface(feedbackCard, '학생 홈 피드백 카드')
+  const heroBoundsBeforeDance = await readBoundingBox(heroCard, '학생 홈 hero')
+  const progressBoundsBeforeDance = await readBoundingBox(progressCard, '학생 홈 progress card')
+  const expectedMascotReactionKeys = ['salsa-step', 'hello-wave', 'happy-bob']
+  const mascotReactionKeys = []
+  let mascotBubbleSurface = null
+
+  for (let index = 0; index < expectedMascotReactionKeys.length; index += 1) {
+    await mascotTrigger.click()
+    await page.waitForFunction(
+      () => {
+        const mascot = document.querySelector('[data-slot="student-home-mascot"]')
+        const danceState = mascot?.getAttribute('data-dance-state')
+        const reactionKey = mascot?.getAttribute('data-reaction-key')
+        return danceState === 'dancing' && reactionKey && reactionKey !== 'idle'
+      },
+      null,
+      {
+        timeout: 15000,
+      },
+    )
+
+    const mascotDanceStateDuring = await mascotTrigger.getAttribute('data-dance-state')
+    expect(mascotDanceStateDuring === 'dancing', 'Student home mascot should enter dancing state after tap')
+
+    const mascotReactionKey = await mascotTrigger.getAttribute('data-reaction-key')
+    expect(
+      mascotReactionKey && expectedMascotReactionKeys.includes(mascotReactionKey),
+      'Student home mascot should expose one of the supported reaction keys while active',
+    )
+
+    if (mascotReactionKeys.length > 0) {
+      expect(
+        mascotReactionKey !== mascotReactionKeys[mascotReactionKeys.length - 1],
+        'Student home mascot should not repeat the same reaction on consecutive taps',
+      )
+    }
+    mascotReactionKeys.push(mascotReactionKey)
+
+    const heroBoundsDuringDance = await readBoundingBox(heroCard, '학생 홈 hero')
+    const progressBoundsDuringDance = await readBoundingBox(progressCard, '학생 홈 progress card')
+    expectStableBounds(heroBoundsBeforeDance, heroBoundsDuringDance, '학생 홈 hero')
+    expectStableBounds(progressBoundsBeforeDance, progressBoundsDuringDance, '학생 홈 progress card')
+
+    const mascotBubble = page.locator('[data-slot="student-home-mascot-bubble"]').first()
+    await mascotBubble.waitFor({ state: 'visible', timeout: 15000 })
+    if (!mascotBubbleSurface) {
+      mascotBubbleSurface = await expectOpaqueSurface(mascotBubble, '학생 홈 미니펫 말풍선')
+    }
+
+    await page.waitForFunction(
+      () => document.querySelector('[data-slot="student-home-mascot"]')?.getAttribute('data-dance-state') === 'idle',
+      null,
+      {
+        timeout: 6000,
+      },
+    )
+
+    const heroBoundsAfterDance = await readBoundingBox(heroCard, '학생 홈 hero')
+    const progressBoundsAfterDance = await readBoundingBox(progressCard, '학생 홈 progress card')
+    expectStableBounds(heroBoundsBeforeDance, heroBoundsAfterDance, '학생 홈 hero')
+    expectStableBounds(progressBoundsBeforeDance, progressBoundsAfterDance, '학생 홈 progress card')
+  }
+
+  expect(
+    new Set(mascotReactionKeys).size === expectedMascotReactionKeys.length,
+    'Student home mascot should cover all three reactions before repeating',
+  )
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.waitForFunction(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, null, {
+    timeout: 15000,
+  })
 
   await mascotTrigger.click()
-  const mascotBubble = page.locator('[data-slot="student-home-mascot-bubble"]').first()
-  await mascotBubble.waitFor({ state: 'visible', timeout: 15000 })
-  const mascotBubbleSurface = await expectOpaqueSurface(mascotBubble, '학생 홈 미니펫 말풍선')
+  await page.waitForFunction(
+    () => document.querySelector('[data-slot="student-home-mascot"]')?.getAttribute('data-dance-state') === 'reduced',
+    null,
+    {
+      timeout: 15000,
+    },
+  )
+
+  const reducedMascotStateDuring = await mascotTrigger.getAttribute('data-dance-state')
+  expect(reducedMascotStateDuring === 'reduced', 'Student home mascot should enter reduced state when reduced motion is enabled')
+
+  const reducedMascotReactionKey = await mascotTrigger.getAttribute('data-reaction-key')
+  expect(
+    reducedMascotReactionKey && expectedMascotReactionKeys.includes(reducedMascotReactionKey),
+    'Student home mascot should keep exposing a supported reaction key in reduced motion',
+  )
+  expect(
+    reducedMascotReactionKey !== mascotReactionKeys[mascotReactionKeys.length - 1],
+    'Reduced motion mascot tap should still avoid repeating the previous reaction',
+  )
+
+  const heroBoundsDuringReduced = await readBoundingBox(heroCard, '학생 홈 hero')
+  const progressBoundsDuringReduced = await readBoundingBox(progressCard, '학생 홈 progress card')
+  expectStableBounds(heroBoundsBeforeDance, heroBoundsDuringReduced, '학생 홈 hero')
+  expectStableBounds(progressBoundsBeforeDance, progressBoundsDuringReduced, '학생 홈 progress card')
+
+  const reducedMascotBubble = page.locator('[data-slot="student-home-mascot-bubble"]').first()
+  await reducedMascotBubble.waitFor({ state: 'visible', timeout: 15000 })
+
+  await page.waitForFunction(
+    () => document.querySelector('[data-slot="student-home-mascot"]')?.getAttribute('data-dance-state') === 'idle',
+    null,
+    {
+      timeout: 6000,
+    },
+  )
+
+  const reducedMascotStateAfter = await mascotTrigger.getAttribute('data-dance-state')
+  expect(reducedMascotStateAfter === 'idle', 'Student home mascot should return to idle after reduced motion reaction')
+
+  const heroBoundsAfterReduced = await readBoundingBox(heroCard, '학생 홈 hero')
+  const progressBoundsAfterReduced = await readBoundingBox(progressCard, '학생 홈 progress card')
+  expectStableBounds(heroBoundsBeforeDance, heroBoundsAfterReduced, '학생 홈 hero')
+  expectStableBounds(progressBoundsBeforeDance, progressBoundsAfterReduced, '학생 홈 progress card')
+
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
 
   await menuButton.click()
   const menuSurface = await expectOpaqueSurface(
@@ -313,13 +452,23 @@ async function verifyStudentHome(page, results, target) {
     lessonsTabSurface,
     profileTabSurface,
     heroCardSurface,
-    mascotTriggerSurface,
+    mascotTriggerBounds,
     mascotBubbleSurface,
+    mascotDanceStateDuring: 'dancing',
+    mascotDanceStateAfter: 'idle',
+    mascotReactionKeys,
+    reducedMascotReactionKey,
+    reducedMascotStateDuring,
+    reducedMascotStateAfter,
     progressCardSurface,
     progressRailSurface,
     attendanceCardSurface,
     openCardSurface,
     feedbackCardSurface,
+    heroLayoutStableDuringDance: true,
+    heroLayoutStableAfterDance: true,
+    progressLayoutStableDuringDance: true,
+    progressLayoutStableAfterDance: true,
   }
 }
 

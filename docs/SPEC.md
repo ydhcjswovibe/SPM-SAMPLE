@@ -114,7 +114,7 @@ student-facing 흐름도 중요하지만,
 - `내상태`는 출석 / 결제 / 진행 상태 / 피드백처럼 status-heavy 정보를 우선한다
 - `내상태`는 profile card처럼 보이는 상단 요약과 설정 카드로 구성할 수 있지만, 수정 가능한 truth는 여전히 계정 이름과 테마 선택에 한정한다
 - 학생 표면에는 출석률 / 진행률 / 참여 흐름을 부드럽게 재해석한 `light gamification` 레이어를 둘 수 있지만, 본래 상태 정보의 판독성을 가리면 안 된다
-- 학생 홈 hero의 캐릭터는 home-only `mini pet`처럼 가볍게 반응할 수 있지만, 다른 학생 표면과 운영 표면의 공용 마스코트 primitive를 같은 강도로 움직일 필요는 없다
+- 학생 홈 hero의 캐릭터는 home-only `mini pet`으로 별도 인터랙티브 캐릭터를 둘 수 있고, 현재 baseline은 크게 읽히는 `서 있는 곰` mini pet이다
 - 학생 hero의 공기감과 ambient glow는 허용하지만, 실제 카드 / 버튼 / 요약 surface의 배경 fill은 `opaque color` 또는 `alpha 없는 gradient`로만 유지한다
 - 학생 header selector/menu, 하단 탭, 홈 hero/progress/summary, 수업 주차 rail/button, reply composer, profile 요약/설정 카드는 같은 opaque surface contract를 공유한다
 - 학생용 시각 톤은 `소프트 파스텔 + 절제된 귀여움`을 기본으로 하고, 주 사용 대상이 `20대~40대`인 점을 고려해 유아용처럼 과장된 캐릭터/색감은 피한다
@@ -210,7 +210,10 @@ student-facing 흐름도 중요하지만,
   - `수업`: 선택 필요 / 주차 없음 / 콘텐츠 없음 / 상세 refetch
   - `내상태`: 계정/상태 read와 저장 결과
 - 학생 `홈`과 `내상태`의 핵심 요약 카드는 가능한 한 낮은 높이로 유지하고, 같은 row 안 control 폭이 들쭉날쭉 흔들리지 않게 정렬한다
-- 학생 홈 hero 안의 mini pet 반응은 `짧은 포즈 변화 + 1줄 말풍선` 수준으로 머물고, `Lv.` 배지나 `EXP` 바 정렬을 밀어내면 안 된다
+- 학생 홈 hero 안의 mini pet 반응은 tap 시 `짧은 3종 반응 중 1개 + 1줄 말풍선 + 짧은 효과음`까지 허용하고, 연속 tap에서는 직전과 같은 반응을 바로 반복하지 않는다
+- reduced-motion에서는 같은 3종 반응을 `정적 포즈 변화 + 말풍선`으로 낮춘다
+- 학생 홈 hero 안의 mini pet 반응은 `Lv.` 배지나 `EXP` 바 정렬을 밀어내면 안 된다
+- 학생 홈 hero 안의 mini pet은 작은 포스터나 복잡한 일러스트처럼 보이지 않고, 별도 원형 스테이지 없이도 귀부터 발끝까지 `단순한 서 있는 곰 전신`이 즉시 읽혀야 한다
 - `PENDING` 월은 `등록 예정` 또는 이에 준하는 상태 라벨로 명확히 구분한다
 - `CANCELLED` 월은 학생 수업 목록에 노출하지 않는다
 - legacy deep link인 `/student/class/[classId]`는 `yearMonth`와 함께 `수업` route contract로 정규화해 redirect할 수 있어야 한다
@@ -360,7 +363,7 @@ student-facing 흐름도 중요하지만,
 - 학생은 출석률, 출석 streak, 공개된 콘텐츠 소비 같은 현재 앱에서 이미 읽을 수 있는 신호를 바탕으로 `경험치`, `레벨`, `다음 보상까지 진행률`을 이해할 수 있어야 한다
 - 학생 홈의 진척 카드는 큰 캐릭터 성장 카드로 읽히되, 좌상단 `Lv.` 배지와 하단 `EXP` 바가 한 세트로 붙어 보여야 한다
 - 현재 학생 홈의 `레벨/XP`는 기존 출석/공개/피드백 신호를 재해석한 light-gamification preview로 시작할 수 있고, 별도 저장 규칙이나 운영 로직은 추후에 확정한다
-- 학생 홈 hero의 캐릭터는 home-only mini pet으로 가볍게 반응할 수 있지만, `/student/lessons`, `/student/profile`, admin/header/sidebar의 공용 마스코트는 정적 primitive로 유지할 수 있다
+- 학생 홈 hero의 캐릭터는 home-only mini pet으로만 움직이고, `/student/lessons`, `/student/profile`, admin/header/sidebar의 공용 마스코트는 정적 primitive로 유지한다
 - 보상은 작은 디지털 보상에 한정한다:
   - 캐릭터 표정/소품 해금
   - 축하 카드/배지

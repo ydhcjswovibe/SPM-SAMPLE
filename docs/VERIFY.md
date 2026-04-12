@@ -182,7 +182,10 @@ If the package is docs-only, commands are optional; say which source docs or rep
 - 피드백이 있는 주차에서는 학생이 `reply slot`을 저장/수정/비우기 할 수 있어야 하고, 다른 학생 reply나 운영 내부메모는 노출되면 안 된다
 - 학생 홈 상황판과 내상태 요약 카드는 불필요한 세로 부피 없이 한 화면에서 핵심 상태를 빠르게 읽을 수 있어야 한다
 - 학생 홈 진척 카드는 큰 캐릭터 성장 카드 안에서 좌상단 `Lv.` 배지와 하단 `EXP` 바가 함께 읽혀야 하고, `진척/남은/확인/%` 같은 이전 출석형 정보는 남아 있으면 안 된다
-- 학생 홈 mini pet을 탭하면 짧은 포즈 변화와 1줄 말풍선이 나타나야 하고, 그 반응이 `Lv.` 배지나 `EXP` 바를 가리거나 hero 높이를 흔들면 안 된다
+- 학생 홈 mini pet을 탭하면 3개 짧은 반응 중 1개와 1줄 말풍선, 짧은 효과음이 나타나야 한다
+- 연속 탭에서는 직전과 같은 반응이 바로 반복되지 않아야 하고, reduced-motion에서는 같은 3종 반응이 정적 포즈 변화 + 말풍선으로 낮아져야 한다
+- 학생 홈 mini pet은 hero 안에서 너무 작거나 복잡하게 보이지 않고, 별도 원형 스테이지 없이도 귀부터 발끝까지 `큰 단순 곰 전신`으로 즉시 읽혀야 한다
+- 그 반응이 `Lv.` 배지나 `EXP` 바를 가리거나 hero 높이를 흔들면 안 된다
 - `/student/lessons`, `/student/profile`, admin/header/sidebar의 공용 마스코트는 이번 패키지에서 정적 상태를 유지해야 한다
 - 학생 하단 탭은 icon-only로 낮아져도 active tab이 색/배경만으로 즉시 구분되고, touch target과 safe area 여백이 유지돼야 한다
 - CTA labels match the real action:
