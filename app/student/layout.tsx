@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { StudentNav } from '@/components/student-nav'
+import { StudentUserNameProvider } from '@/components/student-user-name-provider'
 import { getDefaultRouteForRole, isStudentRole } from '@/lib/auth/roles'
 import { getServerAccessContext } from '@/lib/auth/server'
 
@@ -29,7 +30,9 @@ export default async function StudentLayout({
     <div className="min-h-dvh bg-[linear-gradient(180deg,#d6edf8_0%,#ddefc5_34%,#b1d86e_100%)]">
       <StudentNav userName={userName} />
       <main className="relative">
-        {children}
+        <StudentUserNameProvider userName={userName}>
+          {children}
+        </StudentUserNameProvider>
       </main>
     </div>
   )

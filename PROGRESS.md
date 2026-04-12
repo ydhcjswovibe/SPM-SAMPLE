@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-04-12 | student home mascot reaction-matched personalized bubble copy | start: not recorded | end: 2026-04-12 18:48 KST | status: done`
 - `2026-04-12 | student home mascot bubble 9-slice + two-line wrap | start: not recorded | end: 2026-04-12 16:46 KST | status: done`
 - `2026-04-12 | student home mascot bubble containment + hello-wave mobile fix | start: not recorded | end: 2026-04-12 16:25 KST | status: done`
 - `2026-04-12 | student home mascot bubble dance-coach copy swap | start: not recorded | end: 2026-04-12 16:23 KST | status: done`

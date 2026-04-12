@@ -12,6 +12,7 @@ import {
     StudentHomeCuteBear,
     type StudentHomeCuteBearReaction,
 } from "@/components/student-home-cute-bear";
+import { useStudentUserName } from "@/components/student-user-name-provider";
 import { cn } from "@/lib/utils";
 
 interface StudentHomeMascotProps {
@@ -24,17 +25,27 @@ const reactionKeys = [
     "happy-bob",
 ] as const satisfies readonly StudentHomeCuteBearReaction[];
 const defaultReactionKey = reactionKeys[0];
-const bubbleMessages = [
-    "오늘 출빠 하나요?",
-    "수업 출석 했나요?",
-    "쉐잇킷 쉐잇킷",
-    "원투쓰리~파이브식세븐~",
-    "왼오왼 오왼오",
-    "라이트턴~",
-    "저랑 홀딩해요",
-    "홀딩 100번 했나요?",
-] as const;
-const defaultBubbleMessage = bubbleMessages[0];
+const reactionBubbleMessageTemplates = {
+    "hello-wave": [
+        "{name}, 오늘 출빠 하나요?",
+        "{name}, 수업 출석 했나요?",
+    ],
+    "salsa-step": [
+        "{name}, 쉐잇킷 쉐잇킷",
+        "{name}, 원투쓰리~파이브식세븐~",
+        "{name}, 왼오왼 오왼오",
+        "{name}, 라이트턴~",
+    ],
+    "happy-bob": [
+        "{name}, 저랑 홀딩해요",
+        "{name}, 홀딩 100번 했나요?",
+    ],
+} as const satisfies Record<
+    StudentHomeCuteBearReaction,
+    readonly string[]
+>;
+const defaultBubbleMessage =
+    reactionBubbleMessageTemplates[defaultReactionKey][0];
 
 const reactionMotionDurationsMs: Record<StudentHomeCuteBearReaction, number> = {
     "salsa-step": 2400,
@@ -52,7 +63,8 @@ const bubbleExitDurationMs = 180;
 const bubbleNineSliceSource = "/mascots/student-home/Union.svg";
 const bubbleRightGutterPx = 12;
 const bubbleShellMinWidthPx = 112;
-const bubbleShellPreferredSingleLineMaxWidthPx = 118;
+const bubbleShellPreferredSingleLineMaxWidthPx = 132;
+const bubbleShellPreferredTwoLineMaxWidthPx = 152;
 const bubbleShellSingleLineHeightPx = 41;
 const bubbleShellTwoLineHeightPx = 58;
 const bubbleSingleLinePaddingLeftPx = 18;
@@ -71,6 +83,7 @@ const bubbleSliceLeftPx = 94;
 type DanceState = "idle" | "dancing" | "reduced";
 type BubblePhase = "hidden" | "entering" | "visible" | "exiting";
 type BubbleWrapMode = "single-line" | "two-line";
+type ReactionBubbleMessageIndexes = Record<StudentHomeCuteBearReaction, number>;
 
 type AudioWindow = Window &
     typeof globalThis & {
@@ -178,11 +191,49 @@ function buildReactionQueue(
     return nextQueue;
 }
 
+function formatBubbleStudentName(studentUserName: string) {
+    const trimmedName = studentUserName.trim();
+
+    if (!trimmedName) {
+        return "학생";
+    }
+
+    const firstNameToken = trimmedName.split(/\s+/)[0] ?? trimmedName;
+    const nameGraphemes = Array.from(firstNameToken);
+
+    if (nameGraphemes.length <= 8) {
+        return firstNameToken;
+    }
+
+    return `${nameGraphemes.slice(0, 8).join("")}…`;
+}
+
+function pickReactionBubbleMessage(
+    reactionKey: StudentHomeCuteBearReaction,
+    bubbleStudentName: string,
+    reactionBubbleMessageIndexes: ReactionBubbleMessageIndexes,
+) {
+    const bubbleTemplates = reactionBubbleMessageTemplates[reactionKey];
+    const nextMessageIndex = reactionBubbleMessageIndexes[reactionKey] ?? 0;
+    const nextBubbleTemplate =
+        bubbleTemplates[nextMessageIndex % bubbleTemplates.length] ??
+        defaultBubbleMessage;
+
+    reactionBubbleMessageIndexes[reactionKey] =
+        (nextMessageIndex + 1) % bubbleTemplates.length;
+
+    return nextBubbleTemplate.replaceAll("{name}", bubbleStudentName);
+}
+
 export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
+    const studentUserName = useStudentUserName();
+    const bubbleStudentName = formatBubbleStudentName(studentUserName);
     const [reactionKey, setReactionKey] =
         useState<StudentHomeCuteBearReaction | null>(null);
     const [bubbleMessageText, setBubbleMessageText] =
-        useState<string>(defaultBubbleMessage);
+        useState<string>(() =>
+            defaultBubbleMessage.replaceAll("{name}", bubbleStudentName),
+        );
     const [bubblePhase, setBubblePhase] = useState<BubblePhase>("hidden");
     const [bubbleWrapMode, setBubbleWrapMode] =
         useState<BubbleWrapMode>("single-line");
@@ -202,7 +253,13 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
     const bubbleAnchorRef = useRef<HTMLDivElement | null>(null);
     const bubbleTextRef = useRef<HTMLSpanElement | null>(null);
     const reactionQueueRef = useRef<StudentHomeCuteBearReaction[]>([]);
-    const bubbleMessageIndexRef = useRef(0);
+    const reactionBubbleMessageIndexesRef = useRef<ReactionBubbleMessageIndexes>(
+        {
+            "salsa-step": 0,
+            "hello-wave": 0,
+            "happy-bob": 0,
+        },
+    );
 
     function clearBubbleTimers() {
         if (bubbleEnterTimeoutRef.current !== null) {
@@ -266,17 +323,6 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         return reactionQueueRef.current.shift() ?? defaultReactionKey;
     }
 
-    function pickNextBubbleMessage() {
-        const nextBubbleMessage =
-            bubbleMessages[bubbleMessageIndexRef.current] ??
-            defaultBubbleMessage;
-
-        bubbleMessageIndexRef.current =
-            (bubbleMessageIndexRef.current + 1) % bubbleMessages.length;
-
-        return nextBubbleMessage;
-    }
-
     async function playTapSound() {
         const AudioContextCtor = getAudioContextConstructor();
 
@@ -302,7 +348,11 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         clearTimers();
 
         const nextReactionKey = pickNextReactionKey();
-        const nextBubbleMessage = pickNextBubbleMessage();
+        const nextBubbleMessage = pickReactionBubbleMessage(
+            nextReactionKey,
+            bubbleStudentName,
+            reactionBubbleMessageIndexesRef.current,
+        );
         const nextReactionMotionDurationMs =
             reactionMotionDurationsMs[nextReactionKey];
         const nextReactionReducedDurationMs =
@@ -448,7 +498,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                 bubbleShellMinWidthPx,
                 Math.min(
                     Math.floor(availableWidthPx),
-                    bubbleShellPreferredSingleLineMaxWidthPx,
+                    bubbleShellPreferredTwoLineMaxWidthPx,
                 ),
             );
 
@@ -593,6 +643,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                                             bubbleWrapMode === "two-line"
                                                 ? "normal"
                                                 : "nowrap",
+                                        overflowWrap: "anywhere",
                                         wordBreak: "keep-all",
                                     }}
                                 >
