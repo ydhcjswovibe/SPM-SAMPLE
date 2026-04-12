@@ -14,6 +14,7 @@
 
 ## Recent Work Windows
 
+- `2026-04-12 | student home mascot bubble dance-coach copy swap | start: not recorded | end: 2026-04-12 16:23 KST | status: done`
 - `2026-04-10 | student home hello-wave 14-percent raise timing sync follow-up | start: not recorded | end: 2026-04-10 18:45 KST | status: done`
 - `2026-04-10 | student home hello-wave 16-percent raise timing follow-up | start: not recorded | end: 2026-04-10 18:42 KST | status: done`
 - `2026-04-10 | student home hello-wave 20-percent raise + wider wave interval follow-up | start: not recorded | end: 2026-04-10 18:36 KST | status: done`
@@ -183,6 +184,7 @@
 
 ## Done Recently
 
+- 학생 홈 [`components/student-home-mascot.tsx`](/home/ydhcjswo/projects/SPM-SAMPLE/components/student-home-mascot.tsx) 말풍선 문구를 `오늘 출빠 하나요? / 수업 출석 했나요? / 쉐잇킷 쉐잇킷 / 원투쓰리~파이브식세븐~ / 왼오왼 오왼오 / 라이트턴~ / 저랑 홀딩해요 / 홀딩 100번 했나요?` 순환 세트로 교체 완료
 - `hello-wave` 손 올리기 완료 시점을 `14%`로 더 낮추고, 손 흔들기 cadence도 `14%` 기준으로 같이 앞당겼다. wave 포인트는 `22/28/32/42/46/56/60/70/74/84/88/92%`로 재배치했고, reduced-motion raise도 `14%`로 동기화했다.
 - `hello-wave` 손 올리기 완료 시점을 `20%`에서 `16%`로 줄였다. wave cadence는 유지하고, raise 직후 max hold 시작만 `16%` 기준으로 맞춰 올리기만 더 빠르게 읽히도록 조정했다. reduced-motion raise도 `16%`로 동기화했다.
 - `hello-wave` 손 올리기 완료 시점을 `20%`로 늦추고, 바깥 팔 hold도 `94%`까지 늘렸다. 손 흔들기는 `최대점(0deg) <-> 최소점(26deg)` 3회 왕복 구조는 유지하되 각 endpoint에 짧은 hold를 넣어 `30/44/58/72/86/94%` 리듬으로 더 넓게 읽히도록 조정했다. reduced-motion도 `20% raise -> 94% hold -> 100% lower`로 맞췄다.

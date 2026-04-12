@@ -19,11 +19,17 @@ const reactionKeys = [
     "happy-bob",
 ] as const satisfies readonly StudentHomeCuteBearReaction[];
 const defaultReactionKey = reactionKeys[0];
-const reactionMessages: Record<StudentHomeCuteBearReaction, string> = {
-    "salsa-step": "발끝이 먼저 움직여요",
-    "hello-wave": "손끝으로 먼저 인사해요",
-    "happy-bob": "어깨가 리듬을 타고 있어요",
-};
+const bubbleMessages = [
+    "오늘 출빠 하나요?",
+    "수업 출석 했나요?",
+    "쉐잇킷 쉐잇킷",
+    "원투쓰리~파이브식세븐~",
+    "왼오왼 오왼오",
+    "라이트턴~",
+    "저랑 홀딩해요",
+    "홀딩 100번 했나요?",
+] as const;
+const defaultBubbleMessage = bubbleMessages[0];
 
 const reactionMotionDurationsMs: Record<StudentHomeCuteBearReaction, number> = {
     "salsa-step": 2400,
@@ -183,6 +189,8 @@ function buildReactionQueue(
 export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
     const [reactionKey, setReactionKey] =
         useState<StudentHomeCuteBearReaction | null>(null);
+    const [bubbleMessageText, setBubbleMessageText] =
+        useState<string>(defaultBubbleMessage);
     const [bubblePhase, setBubblePhase] = useState<BubblePhase>("hidden");
     const [bubbleWrapMode, setBubbleWrapMode] =
         useState<BubbleWrapMode>("single-line");
@@ -199,6 +207,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
     const bubbleAnchorRef = useRef<HTMLDivElement | null>(null);
     const bubbleTextRef = useRef<HTMLSpanElement | null>(null);
     const reactionQueueRef = useRef<StudentHomeCuteBearReaction[]>([]);
+    const bubbleMessageIndexRef = useRef(0);
 
     function clearBubbleTimers() {
         if (bubbleEnterTimeoutRef.current !== null) {
@@ -262,6 +271,17 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         return reactionQueueRef.current.shift() ?? defaultReactionKey;
     }
 
+    function pickNextBubbleMessage() {
+        const nextBubbleMessage =
+            bubbleMessages[bubbleMessageIndexRef.current] ??
+            defaultBubbleMessage;
+
+        bubbleMessageIndexRef.current =
+            (bubbleMessageIndexRef.current + 1) % bubbleMessages.length;
+
+        return nextBubbleMessage;
+    }
+
     async function playTapSound() {
         const AudioContextCtor = getAudioContextConstructor();
 
@@ -287,6 +307,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         clearTimers();
 
         const nextReactionKey = pickNextReactionKey();
+        const nextBubbleMessage = pickNextBubbleMessage();
         const nextReactionMotionDurationMs =
             reactionMotionDurationsMs[nextReactionKey];
         const nextReactionReducedDurationMs =
@@ -297,6 +318,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         );
 
         setReactionKey(nextReactionKey);
+        setBubbleMessageText(nextBubbleMessage);
         setBubbleWrapMode("single-line");
         setBubbleShellWidthPx(bubbleShellMinWidthPx);
         setBubblePhase(prefersReducedMotion ? "visible" : "entering");
@@ -340,7 +362,6 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         );
     }
 
-    const bubbleMessage = reactionMessages[reactionKey ?? defaultReactionKey];
     const activeReactionKey = reactionKey ?? defaultReactionKey;
     const currentReactionMotionDurationMs =
         reactionMotionDurationsMs[activeReactionKey];
@@ -433,7 +454,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
         return () => {
             window.removeEventListener("resize", updateBubbleWrap);
         };
-    }, [bubbleMessage, isBubbleVisible]);
+    }, [bubbleMessageText, isBubbleVisible]);
 
     const bubbleViewBoxWidth = getBubbleViewBoxWidth(bubbleShellWidthPx);
     const bubbleShellPath = getUnionBubblePath(bubbleViewBoxWidth);
@@ -561,7 +582,7 @@ export function StudentHomeMascot({ className }: StudentHomeMascotProps) {
                                                 : "nowrap",
                                     }}
                                 >
-                                    {bubbleMessage}
+                                    {bubbleMessageText}
                                 </span>
                             </div>
                         </div>
